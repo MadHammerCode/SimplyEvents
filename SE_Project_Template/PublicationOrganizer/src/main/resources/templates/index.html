@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SimplyEvents</title>
+  <style>
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #f5f6f8; color: #111; }
+
+    /* Kopfzeile */
+    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 60px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; color: #fff; z-index: 10; }
+    .topbar-bg { position:absolute; inset:0; background: rgba(0,0,0,0.45); }
+    .brand { position:relative; font-weight: bold; }
+    .nav { position:relative; display:flex; gap:14px; font-size: 14px; }
+    .nav a { color:#fff; text-decoration:none; opacity:.95; }
+    .cta { position:relative; display:flex; gap:8px; }
+    .btn { background: transparent; color:#fff; border:1px solid rgba(255,255,255,0.5); padding:6px 12px; border-radius:8px; text-decoration:none; font-size: 14px; }
+    .btn.primary { background:#fff; color:#111; border-color:#fff; }
+
+    /* Hero (großes Bild) */
+    .hero { margin-top:60px; min-height: 70vh; display:flex; align-items:center; justify-content:center; text-align:center; color:#fff; position:relative; overflow:hidden; }
+    .hero::before { content:""; position:absolute; inset:0; background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.35)); }
+    .hero::after { content:""; position:absolute; inset:0; z-index:-1; background: url('./hero.jpg') center 35% / cover no-repeat; filter: saturate(1.05); }
+    .hero-inner { width: 92%; max-width: 760px; position:relative; }
+    h1 { margin: 0 0 10px 0; font-size: 40px; }
+
+    /* Suche */
+    .search { display:flex; align-items:center; gap:8px; background:#fff; border-radius:999px; padding:8px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .search input { flex:1; border:0; outline:0; padding:8px; font-size:14px; }
+    .search button { border:0; background:#22c55e; color:#06210f; font-weight:bold; border-radius:999px; padding:8px 14px; cursor:pointer; }
+
+    .hero-link { margin-top:8px; font-size: 12px; }
+    .hero-link a { color:#d9ffe7; }
+
+    @media (max-width: 720px){
+      .nav { display:none; }
+      .cta { display:none; }
+      h1 { font-size: 32px; }
+      .card { flex-basis: 78vw; }
+    }
+
+    /* Modal (Create Event) */
+    .modal { position: fixed; inset: 0; display: none; }
+    .modal.open { display: block; }
+    .modal-backdrop { position:absolute; inset:0; background: rgba(0,0,0,0.5); }
+    .modal-content { position: relative; z-index: 1; background:#fff; width: min(560px, 92vw); margin: 10vh auto; padding: 16px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+    .modal-content h2 { margin-top: 0; }
+    .modal-close { position:absolute; top:8px; right:10px; border:0; background:transparent; font-size:22px; cursor:pointer; }
+    .form-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .form-grid label { display:block; font-size:12px; margin-bottom:4px; }
+    .form-grid input, .form-grid textarea { width:100%; padding:8px; border:1px solid #ccc; border-radius:8px; font-size:14px; }
+    .actions { display:flex; gap:8px; justify-content:flex-end; margin-top: 8px; }
+    .btn.secondary { background:#f3f4f6; color:#111; border-color:#e5e7eb; }
+  </style>
+</head>
+<body>
+
+  <!-- Kopfzeile -->
+  <header class="topbar">
+    <div class="topbar-bg"></div>
+    <div class="brand">SimplyEvents</div>
+    <nav class="nav">
+    </nav>
+    <div class="cta">
+      <a class="btn" href="#">Log in</a>
+      <button class="btn" id="createEventBtn" type="button">Create Event</button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Find your nature</h1>
+
+      <form id="searchForm" class="search">
+        <input id="searchInput" type="text" placeholder="Find a city, a park or a path" />
+        <button type="submit">Suchen</button>
+      </form>
+
+
+    </div>
+  </section>
+
+  <!-- Create Event Modal -->
+  <div id="createEventModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-content" role="dialog" aria-labelledby="modalTitle">
+      <button class="modal-close" type="button" aria-label="Close" data-close>&times;</button>
+      <h2 id="modalTitle">Create new Event </h2>
+
+      <form id="createEventForm">
+        <div class="form-grid">
+          <div class="full">
+            <label for="title">Titel *</label>
+            <input id="title" name="title" type="text" required placeholder="required" />
+          </div>
+
+          <div>
+            <label for="date">Date *</label>
+            <input id="date" name="date" type="date" required />
+          </div>
+          <div>
+            <label for="time">Time *</label>
+            <input id="time" name="time" type="time" required />
+          </div>
+
+          <div class="full">
+            <label for="location">Location *</label>
+            <input id="location" name="location" type="text" required placeholder="required" />
+          </div>
+
+          <div>
+            <label for="price">Price *(€)</label>
+            <input id="price" name="price" type="number" min="0" step="0.01" placeholder="0.00" required />
+          </div>
+          <div>
+            <label for="capacity">Capacity *</label>
+            <input id="capacity" name="capacity" type="number" min="1" step="1" placeholder="20" required />
+          </div>
+
+          <div class="full">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4" placeholder="optional"></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn secondary" data-close>Cancel</button>
+          <button type="submit" class="btn primary">Safe</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Inhalte -->
+  <main class="section">
+    <div class="container">
+      <h2>Event List</h2>
+      <ul id="eventList" style="list-style:none; padding-left:0; margin: 8px 0 0 0;"></ul>
+      <p id="eventEmptyState" style="margin-top:8px; color:#555; display:none;">Noch keine Events gespeichert.</p>
+    </div>
+  </main>
+
+<script>
+  // Modal & Formular-Handling
+  (function(){
+    const openBtn = document.getElementById('createEventBtn');
+    const modal = document.getElementById('createEventModal');
+    const form = document.getElementById('createEventForm');
+
+    function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
+    function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+
+    // Open
+    if (openBtn) {
+      openBtn.addEventListener('click', function(){ openModal(); });
+    }
+
+    // Close on backdrop or X or "Cancel"
+    modal.addEventListener('click', function(e){
+      if (e.target.matches('[data-close]')) closeModal();
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Submit
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+
+      // Collect data as a minimal, flat object
+      const eventData = {
+        title: form.title.value.trim(),
+        date: form.date.value,
+        time: form.time.value,
+        location: form.location.value.trim(),
+        price: form.price.value ? Number(form.price.value) : null,
+        capacity: form.capacity.value ? Number(form.capacity.value) : null,
+        description: form.description.value.trim()
+      };
+
+      if (!eventData.title || !eventData.date || !eventData.time || !eventData.location){
+        alert('Please fill in all required fields (*).');
+        return;
+      }
+
+      try {
+        // === API-SCHNITTSTELLE: REST-POST ===
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData)
+        });
+        if (!res.ok) {
+          const msg = await res.text().catch(() => '');
+          throw new Error('Error saving: ' + (msg || res.status));
+        }
+        const saved = await res.json();
+
+        // UI Feedback & Liste aktualisieren
+        alert('Save Event: ' + saved.title);
+        form.reset();
+        closeModal();
+        await loadEvents();
+      } catch(err){
+        console.error(err);
+        alert('Save failed. Please try again later.');
+      }
+    });
+
+
+    // --- Eventliste laden & rendern ---
+    async function loadEvents(){
+      const list = document.getElementById('eventList');
+      const empty = document.getElementById('eventEmptyState');
+      if (!list) return;
+
+      try {
+        const res = await fetch('/api/events');
+        if (!res.ok) throw new Error('Laden fehlgeschlagen: ' + res.status);
+        const events = await res.json();
+
+        list.innerHTML = '';
+        if (!events || events.length === 0){
+          empty.style.display = 'block';
+          return;
+        }
+        empty.style.display = 'none';
+
+        for (const ev of events){
+          const li = document.createElement('li');
+          li.style.padding = '10px';
+          li.style.marginBottom = '8px';
+          li.style.border = '1px solid #e5e7eb';
+          li.style.borderRadius = '8px';
+          li.innerHTML = `
+            <strong>${ev.title}</strong><br/>
+            <small>${ev.date ?? ''} ${ev.time ?? ''} &ndash; ${ev.location ?? ''}</small><br/>
+            <small>Preis: ${ev.price != null ? ev.price + ' €' : 'n/a'}, Plätze: ${ev.capacity ?? 'n/a'}</small>
+          `;
+          list.appendChild(li);
+        }
+      } catch(err){
+        console.error(err);
+      }
+    }
+
+    // Initial laden
+    document.addEventListener('DOMContentLoaded', loadEvents);
+  })();
+</script>
+</body>
+</html>

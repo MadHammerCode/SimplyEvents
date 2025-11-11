@@ -12,9 +12,9 @@ import java.util.List;
 @Controller
 public class AuthorTemplateProvider {
 
-    @GetMapping("/authors")
+    @GetMapping("/")
     public ModelAndView getAuthorTemplate(Model model) {
         List<Author> authors = Arrays.asList(new Author("Ralph", "Hoch"), new Author("FH", "Vorarlberg"));
-        return new ModelAndView("Authors", "authors", authors);
+        return new ModelAndView("index", "authors", authors);
     }
 }
