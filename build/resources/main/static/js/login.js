@@ -1,4 +1,4 @@
-// Tabs umschalten
+
 const loginTab = document.getElementById("loginTab");
 const registerTab = document.getElementById("registerTab");
 const loginForm = document.getElementById("loginForm");
@@ -20,7 +20,7 @@ if (loginTab && registerTab) {
     });
 }
 
-// Demo-Login – später mit Backend ersetzen
+
 function login() {
     const email = document.getElementById("loginEmail").value;
     const pw = document.getElementById("loginPassword").value;
@@ -31,11 +31,10 @@ function login() {
     }
 
     console.log("Login:", email, pw);
-    // TODO: hier später Fetch zu /api/auth/login
     alert("Login erfolgreich (Demo)");
 }
 
-// Demo-Registrierung – später mit Backend ersetzen
+// Demo
 function register() {
     const email = document.getElementById("regEmail").value;
     const pw1 = document.getElementById("regPassword").value;
@@ -52,6 +51,5 @@ function register() {
     }
 
     console.log("Registrierung:", email, pw1);
-    // TODO: hier später Fetch zu /api/auth/register
     alert("Registrierung erfolgreich (Demo)");
 }

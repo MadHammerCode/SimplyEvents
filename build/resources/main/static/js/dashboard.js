@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <small>Preis: ${ev.price != null ? ev.price + ' €' : 'n/a'}, Plätze: ${ev.availableSlots ?? ev.maxParticipants ?? 'n/a'}</small>
         `;
 
-        // Robust: versuche sowohl 'id' als auch 'eventId' aus dem JSON
+
         const eventId = ev.id ?? ev.eventId;
         console.log('Loaded event from /api/events:', ev, '-> using id:', eventId);
 
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const ev = await res.json();
 
-      // Felder ins Modal einfügen
+
       document.getElementById("detailTitle").textContent = ev.title;
       document.getElementById("detailDate").textContent = ev.date;
       document.getElementById("detailTime").textContent = ev.time;
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById("detailRequirements").textContent = ev.requirements;
       document.getElementById("detailCancel").textContent = ev.cancellationDeadline;
 
-      // Modal öffnen
+
       const modal = document.getElementById("eventDetailModal");
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const eventData = {
         title: form.title.value.trim(),
-        date: form.date.value,                       // nur Datum, z.B. "2025-11-20"
-        time: form.time.value,                       // nur Zeit, z.B. "18:30"
+        date: form.date.value,
+        time: form.time.value,
         location: form.location.value.trim(),
         price: form.price.value ? Number(form.price.value) : null,
         description: form.description.value.trim(),
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cancellationDeadline: cancelDateTime
       };
 
-      // Pflichtfelder prüfen (entsprechend den *-Feldern im Formular)
+
       if (
         !eventData.title ||
         !eventData.date ||
@@ -155,6 +155,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Events beim Start laden
+
   loadEvents();
 });

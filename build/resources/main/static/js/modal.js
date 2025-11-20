@@ -70,7 +70,7 @@ if (!openBtn || !modal) {
       }
     });
 
-    //ESC schließt alle offenen Modals
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         const openModals = document.querySelectorAll('.modal.open');

@@ -13,7 +13,7 @@ h1 {
   color: #d9ffe7;
 }
 
-/* Suche */
+
 .search {
   display: flex;
   align-items: center;
@@ -42,17 +42,17 @@ h1 {
   cursor: pointer;
 }
 
-/* Eventliste */
+
 .event-list {
-  list-style: none;              /* Bulletpoints weg */
+  list-style: none;
     margin: 16px 0 0 0;
     padding: 0;
-    display: grid;                 /* macht ein Raster */
+    display: grid;
     grid-template-columns: repeat(
       auto-fit,
       minmax(260px, 1fr)
-    );                             /* automatisch 1–n Spalten */
-    gap: 16px;                     /* Abstand zwischen Karten */
+    );
+    gap: 16px;
 }
 
 .event-list li {
@@ -81,7 +81,7 @@ h1 {
   display: none;
 }
 
-/* Responsive */
+
 @media (max-width: 720px) {
   .nav {
     display: none;
