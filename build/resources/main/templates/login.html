@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login – SimplyEvents</title>
+
+    <!-- gleiche Basis-CSS wie im Dashboard -->
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/components.css">
+
+    <!-- eigenes Login-CSS -->
+    <link rel="stylesheet" href="/css/login.css">
+
+    <script src="/js/login.js" defer></script>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar-bg"></div>
+    <div class="brand">SimplyEvents</div>
+    <nav class="nav">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/events">Events</a>
+    </nav>
+</header>
+
+<main class="section">
+    <div class="container auth-container">
+
+        <div class="tab-buttons">
+            <button id="loginTab" class="tab-btn active">Login</button>
+            <button id="registerTab" class="tab-btn">Registrieren</button>
+        </div>
+
+        <div id="loginForm" class="auth-form active">
+            <h2>Login</h2>
+            <input type="text" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Passwort">
+            <button class="btn primary" type="button" onclick="login()">Einloggen</button>
+        </div>
+
+        <div id="registerForm" class="auth-form">
+            <h2>Account erstellen</h2>
+            <input type="text" id="regEmail" placeholder="Email">
+            <input type="password" id="regPassword" placeholder="Passwort">
+            <input type="password" id="regPassword2" placeholder="Passwort wiederholen">
+            <button class="btn primary" type="button" onclick="register()">Registrieren</button>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

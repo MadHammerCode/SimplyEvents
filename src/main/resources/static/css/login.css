@@ -1,0 +1,45 @@
+.auth-container {
+    max-width: 400px;
+    margin: 4rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.08);
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 999px;
+    background: #eee;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: #007bff;
+    color: #fff;
+}
+
+.auth-form {
+    display: none;
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.auth-form.active {
+    display: flex;
+}
+
+.auth-form input {
+    padding: 0.6rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
