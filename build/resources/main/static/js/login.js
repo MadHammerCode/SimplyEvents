@@ -41,6 +41,10 @@ async function login() {
         const text = await res.text();
         alert(text);
 
+        if (res.ok) {
+            window.location.href = "/dashboard";
+        }
+
     } catch (err) {
         alert("Fehler beim Login");
         console.error(err);
@@ -75,6 +79,10 @@ async function register() {
 
         const text = await res.text();
         alert(text);
+
+        if (res.ok) {
+            window.location.href = "/dashboard";
+        }
 
     } catch (err) {
         alert("Fehler bei der Registrierung");
