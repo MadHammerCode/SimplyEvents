@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class BookingDtos {
 
-    // Anfrage zum Buchen
+
     public record CreateBookingRequest(
             Long eventId,
             String firstName,
@@ -15,7 +15,7 @@ public class BookingDtos {
             String paymentMethod
     ) {}
 
-    // Antwort nach erfolgreicher Buchung
+
     public record BookingResponse(
             String bookingNumber,
             Long eventId,
@@ -27,13 +27,13 @@ public class BookingDtos {
             BigDecimal priceTotal
     ) {}
 
-    // Anfrage zum Canceln
+
     public record CancelBookingRequest(
             String bookingNumber,
             String cancelReason
     ) {}
 
-    // Antwort nach erfolgreichem Canceln
+
     public record CancelledBookingResponse(
             String bookingNumber,
             String eventTitle,

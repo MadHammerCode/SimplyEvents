@@ -20,7 +20,7 @@ public class BookingRestController {
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(@RequestBody CreateBookingRequest request) {
-        // einfache Validierung im Controller (zusätzlich zur Service-Logik)
+
         if (request.eventId() == null ||
                 request.firstName() == null || request.firstName().isBlank() ||
                 request.lastName() == null || request.lastName().isBlank() ||

@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/event-details.css">
+    <link rel="stylesheet" href="/css/searchbar.css">
 
 
     <script src="/js/modal.js" defer></script>
@@ -22,6 +23,21 @@
 <body>
 
 <div th:insert="~{fragments/topbar :: topbar}"></div>
+
+<section class="search-bar-container">
+    <form id="searchForm" class="search-bar">
+        <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+                    id="searchInput"
+                    type="text"
+                    placeholder="Search events by title, location, category…"
+                    autocomplete="off"
+            />
+        </div>
+        <button type="submit" class="btn primary search-btn">Search</button>
+    </form>
+</section>
 
 <div id="createEventModal" class="modal" aria-hidden="true">
     <div class="modal-backdrop" data-close></div>

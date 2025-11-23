@@ -14,7 +14,7 @@ public class ActiveBooking {
     @Column(name = "booking_id")
     private Long id;
 
-    // Öffentliche Buchungsnummer für den Benutzer
+    // Öffentliche Buchungsnummer
     @Column(name = "booking_number", nullable = false, unique = true, length = 32)
     private String bookingNumber;
 
@@ -38,7 +38,7 @@ public class ActiveBooking {
     @Column(name = "phone")
     private String phone;
 
-    // Optional: Felder, die du laut Log schon hast
+
     @Column(name = "booking_type")
     private String bookingType;
 

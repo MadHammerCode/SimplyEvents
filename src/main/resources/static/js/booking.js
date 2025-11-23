@@ -1,4 +1,4 @@
-// booking.js
+
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const eventId = params.get('eventId');
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const bookingNumberEl = document.getElementById('bookingNumber');
   const resultBox = document.getElementById('bookingResult');
 
-  // Event-Infos laden
+
   if (eventId) {
     document.getElementById('eventId').value = eventId;
 

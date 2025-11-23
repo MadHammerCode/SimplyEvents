@@ -51,14 +51,14 @@ public class CancelledBooking {
     @Column(name = "status")
     private String status;
 
-    // Cancel-spezifisch
+
     @Column(name = "cancel_reason", nullable = false)
     private String cancelReason;
 
     @Column(name = "cancelled_at", nullable = false)
     private LocalDateTime cancelledAt;
 
-    // Optional: wann ursprünglich erstellt
+
     @Column(name = "original_created_at")
     private LocalDateTime originalCreatedAt;
 

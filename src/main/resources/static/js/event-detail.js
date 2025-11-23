@@ -1,10 +1,9 @@
-// event-detail.js
-// Hält die aktuell im Detail-Modal angezeigte Event-ID
+
 let currentEventId = null;
 
-// Wird von events-list.js aufgerufen, wenn ein Event in der Liste angeklickt wird
+
 async function openEventDetail(eventId) {
-  currentEventId = eventId; // wichtig für den "Book Event"-Button
+  currentEventId = eventId;
 
   try {
     console.log('Opening event details for id:', eventId, 'URL:', `/api/events/${eventId}`);
@@ -13,7 +12,7 @@ async function openEventDetail(eventId) {
 
     const ev = await res.json();
 
-    // DOM-Felder im Modal füllen
+
     document.getElementById("detailTitle").textContent = ev.title;
     document.getElementById("detailDate").textContent = ev.date ?? '';
     document.getElementById("detailTime").textContent = ev.time ?? '';
@@ -50,10 +49,10 @@ async function openEventDetail(eventId) {
   }
 }
 
-// global machen, damit events-list.js es aufrufen kann
+
 window.openEventDetail = openEventDetail;
 
-// Buttons im Detail-Modal verdrahten
+
 document.addEventListener('DOMContentLoaded', () => {
   const bookBtn = document.getElementById('bookEventBtn');
   const cancelBtn = document.getElementById('cancelBookingBtn');
@@ -64,14 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('No event selected.');
         return;
       }
-      // weiterleiten auf die Buchungsseite mit Event-ID als Parameter
+
       window.location.href = `/booking?eventId=${currentEventId}`;
     });
   }
 
   if (cancelBtn) {
     cancelBtn.addEventListener('click', () => {
-      // hier nur auf die Cancel-Seite gehen, Booking-Nummer wird dort eingegeben
+
       window.location.href = `/cancel-booking`;
     });
   }

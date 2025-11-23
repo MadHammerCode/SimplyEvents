@@ -35,7 +35,7 @@ public class BookingService {
         Event event = eventRepository.findById(request.eventId())
                 .orElseThrow(() -> new EntityNotFoundException("Event not found: " + request.eventId()));
 
-        // Punkt 1.2 – bereits gebuchte Plätze ermitteln und Kapazität prüfen
+
         int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
         int max = event.getMaxParticipants();
         int remaining = max - alreadyBooked;
@@ -50,11 +50,11 @@ public class BookingService {
             throw new IllegalArgumentException("Only " + remaining + " places left for this event.");
         }
 
-        // einfache Preisberechnung: event.price * participants
+
         BigDecimal pricePerPerson = BigDecimal.valueOf(event.getPrice());
         BigDecimal total = pricePerPerson.multiply(BigDecimal.valueOf(request.numParticipants()));
 
-        // Buchungscode generieren
+
         String bookingNumber = UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
 
         ActiveBooking booking = new ActiveBooking();
@@ -72,7 +72,7 @@ public class BookingService {
 
         activeBookingRepository.save(booking);
 
-        // availableSlots im Event aktualisieren
+
         event.setAvailableSlots(remaining - request.numParticipants());
         eventRepository.save(event);
 
@@ -95,7 +95,7 @@ public class BookingService {
 
         Event event = booking.getEvent();
 
-        // in Cancel-Tabelle schreiben
+
         CancelledBooking cancelled = new CancelledBooking();
         cancelled.setBookingNumber(booking.getBookingNumber());
         cancelled.setEvent(event);
@@ -115,14 +115,14 @@ public class BookingService {
 
         cancelledBookingRepository.save(cancelled);
 
-        // aus booking-Tabelle löschen (verschieben)
+
         activeBookingRepository.delete(booking);
 
-        // neue Summe der gebuchten Plätze berechnen
+
         int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
         int remaining = event.getMaxParticipants() - alreadyBooked;
 
-        // availableSlots im Event aktualisieren
+
         event.setAvailableSlots(remaining);
         eventRepository.save(event);
 
