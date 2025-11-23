@@ -21,21 +21,35 @@ if (loginTab && registerTab) {
 }
 
 
-function login() {
+async function login() {
     const email = document.getElementById("loginEmail").value;
     const pw = document.getElementById("loginPassword").value;
 
+    // keep this from the demo function
     if (!email || !pw) {
         alert("Bitte alle Felder ausfüllen");
         return;
     }
 
-    console.log("Login:", email, pw);
-    alert("Login erfolgreich (Demo)");
+    try {
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email, password: pw })
+        });
+
+        const text = await res.text();
+        alert(text);
+
+    } catch (err) {
+        alert("Fehler beim Login");
+        console.error(err);
+    }
 }
 
+
 // Demo
-function register() {
+async function register() {
     const email = document.getElementById("regEmail").value;
     const pw1 = document.getElementById("regPassword").value;
     const pw2 = document.getElementById("regPassword2").value;
@@ -50,6 +64,20 @@ function register() {
         return;
     }
 
-    console.log("Registrierung:", email, pw1);
-    alert("Registrierung erfolgreich (Demo)");
+    const name = "Demo User"; // or add an input field
+
+    try {
+        const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password: pw1 })
+        });
+
+        const text = await res.text();
+        alert(text);
+
+    } catch (err) {
+        alert("Fehler bei der Registrierung");
+        console.error(err);
+    }
 }

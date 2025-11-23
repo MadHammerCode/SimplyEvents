@@ -1,4 +1,4 @@
-// Tabs umschalten
+
 const loginTab = document.getElementById("loginTab");
 const registerTab = document.getElementById("registerTab");
 const loginForm = document.getElementById("loginForm");
@@ -20,23 +20,36 @@ if (loginTab && registerTab) {
     });
 }
 
-// Demo-Login – später mit Backend ersetzen
-function login() {
+
+async function login() {
     const email = document.getElementById("loginEmail").value;
     const pw = document.getElementById("loginPassword").value;
 
+    // keep this from the demo function
     if (!email || !pw) {
         alert("Bitte alle Felder ausfüllen");
         return;
     }
 
-    console.log("Login:", email, pw);
-    // TODO: hier später Fetch zu /api/auth/login
-    alert("Login erfolgreich (Demo)");
+    try {
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email, password: pw })
+        });
+
+        const text = await res.text();
+        alert(text);
+
+    } catch (err) {
+        alert("Fehler beim Login");
+        console.error(err);
+    }
 }
 
-// Demo-Registrierung – später mit Backend ersetzen
-function register() {
+
+// Demo
+async function register() {
     const email = document.getElementById("regEmail").value;
     const pw1 = document.getElementById("regPassword").value;
     const pw2 = document.getElementById("regPassword2").value;
@@ -51,7 +64,20 @@ function register() {
         return;
     }
 
-    console.log("Registrierung:", email, pw1);
-    // TODO: hier später Fetch zu /api/auth/register
-    alert("Registrierung erfolgreich (Demo)");
+    const name = "Demo User"; // or add an input field
+
+    try {
+        const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password: pw1 })
+        });
+
+        const text = await res.text();
+        alert(text);
+
+    } catch (err) {
+        alert("Fehler bei der Registrierung");
+        console.error(err);
+    }
 }

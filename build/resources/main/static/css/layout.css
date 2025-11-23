@@ -59,7 +59,7 @@
   );
 }
 
-/* Bild im Hero – ganzes Bild anzeigen */
+
 .hero::after {
   content: "";
   position: absolute;

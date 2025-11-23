@@ -29,6 +29,10 @@ public class Event {
     @OneToOne(mappedBy = "event")
     private Booking booking;
 
+    @ManyToOne
+    @JoinColumn(name = "vendor_id")
+    private Vendor vendor;
+
     public Event(){
 
     }

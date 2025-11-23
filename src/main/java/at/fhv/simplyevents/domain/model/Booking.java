@@ -22,6 +22,10 @@ public class Booking {
     @JoinColumn(name = "event_Id")
     private Event event;
 
+    @ManyToOne
+    @JoinColumn(name = "enduser_id")
+    private EndUser endUser;
+
     protected Booking(){
 
     }
