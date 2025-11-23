@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>Book Event</title>
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/event-details.css">
+    <script src="/js/booking.js" defer></script>
+</head>
+<body>
+
+<div th:insert="~{fragments/topbar :: topbar}"></div>
+
+<main class="section">
+    <div class="container">
+        <h1>Book Event</h1>
+
+        <div id="bookingEventInfo" class="event-summary">
+            <!-- wird aus JS mit Eventdaten gefüllt -->
+        </div>
+
+        <form id="bookingForm" class="form" novalidate>
+            <input type="hidden" id="eventId" name="eventId" />
+
+            <div class="form-grid">
+                <div>
+                    <label for="firstName">First name *</label>
+                    <input id="firstName" name="firstName" type="text" required />
+                </div>
+                <div>
+                    <label for="lastName">Last name *</label>
+                    <input id="lastName" name="lastName" type="text" required />
+                </div>
+                <div>
+                    <label for="email">Email *</label>
+                    <input id="email" name="email" type="email" required />
+                </div>
+                <div>
+                    <label for="phone">Phone</label>
+                    <input id="phone" name="phone" type="tel" />
+                </div>
+                <div>
+                    <label for="numParticipants">Participants *</label>
+                    <input id="numParticipants" name="numParticipants" type="number" min="1" step="1" value="1" required />
+                </div>
+                <div>
+                    <label for="paymentMethod">Payment method</label>
+                    <select id="paymentMethod" name="paymentMethod">
+                        <option value="CASH">Cash</option>
+                        <option value="CARD">Card</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn primary">Book now</button>
+            </div>
+        </form>
+
+        <div id="bookingResult" class="booking-result" style="display:none;">
+            <h2>Booking successful</h2>
+            <p>Your booking number is: <strong id="bookingNumber"></strong></p>
+        </div>
+    </div>
+</main>
+</body>
+</html>

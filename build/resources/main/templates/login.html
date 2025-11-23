@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,14 +17,7 @@
 </head>
 <body>
 
-<header class="topbar">
-    <div class="topbar-bg"></div>
-    <div class="brand">SimplyEvents</div>
-    <nav class="nav">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/events">Events</a>
-    </nav>
-</header>
+<div th:insert="~{fragments/topbar :: topbar}"></div>
 
 <main class="section">
     <div class="container auth-container">

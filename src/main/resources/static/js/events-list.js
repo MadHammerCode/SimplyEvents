@@ -1,17 +1,12 @@
-// events-list.js
+
 (function () {
 
-  /**
-   * Lädt Events vom Backend und rendert sie in #eventList.
-   * Wird:
-   *  - beim Laden der Seite aufgerufen
-   *  - nach dem Speichern eines neuen Events (create-event.js)
-   */
+
   async function loadEvents() {
     const list = document.getElementById('eventList');
     const empty = document.getElementById('eventEmptyState');
 
-    // Wenn die Seite keine Event-Liste hat, einfach nichts tun
+
     if (!list) {
       return;
     }
@@ -58,10 +53,10 @@
     }
   }
 
-  // global machen, damit create-event.js es nach dem Speichern verwenden kann
+
   window.loadEvents = loadEvents;
 
-  // Beim Laden der Seite automatisch Events holen
+
   document.addEventListener('DOMContentLoaded', function () {
     loadEvents();
   });

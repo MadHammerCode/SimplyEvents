@@ -1,8 +1,3 @@
-// modal.js
-// Zentrale Steuerung zum Öffnen/Schließen von Modals (.modal)
-// Unterstützt:
-//  - Öffnen des Create-Event-Modals über #createEventBtn
-//  - Schließen aller Modals über [data-close] und ESC
 
 document.addEventListener('DOMContentLoaded', function () {
   const createOpenBtn = document.getElementById('createEventBtn');
@@ -22,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.setAttribute('aria-hidden', 'true');
   }
 
-  // Spezifisch: Create-Event-Modal über Button öffnen
+
   if (createOpenBtn && createModal) {
     console.log('Modal init: createEventBtn + createEventModal gefunden');
     createOpenBtn.addEventListener('click', function () {
@@ -36,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Global: Klick auf [data-close] schließt das nächste .modal
+
   document.addEventListener('click', function (e) {
     if (e.target.matches('[data-close]')) {
       const modal = e.target.closest('.modal');
@@ -47,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Global: ESC-Taste schließt alle offenen Modals
+
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       const openModals = document.querySelectorAll('.modal.open');

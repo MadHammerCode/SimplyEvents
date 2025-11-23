@@ -8,16 +8,24 @@ public class ViewController {
 
     @GetMapping("/dashboard")
     public String authorsView() {
-        return "Dashboard"; // Name der HTML-Datei ohne .html
-    }
+        return "Dashboard"; }
+
 
     @GetMapping("/events")
     public String eventList() {
-        return "eventlist";     // lädt templates/eventlist.html
-    }
+        return "eventlist"; }
 
     @GetMapping("/login")
     public String showLoginPage() {
-        return "login"; // login.html in /templates
+        return "login"; }
+
+    @GetMapping("/booking")
+    public String showBookingPage() {
+        return "booking";
+    }
+
+    @GetMapping("/cancel-booking")
+    public String showCancelBookingPage() {
+        return "cancel-booking";
     }
 }

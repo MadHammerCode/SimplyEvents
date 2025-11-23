@@ -22,24 +22,7 @@
 </head>
 <body>
 
-
-<header class="topbar">
-    <div class="topbar-bg"></div>
-    <div class="brand">SimplyEvents</div>
-    <nav class="nav">
-        <nav class="nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/events">Events</a>
-        </nav>
-
-
-    </nav>
-    <div class="cta">
-        <a class="btn" id="loginBtn" href="/login">Log in</a>
-        <button class="btn primary" id="createEventBtn" type="button">Create Event</button>
-    </div>
-</header>
-
+<div th:insert="~{fragments/topbar :: topbar}"></div>
 
 <section class="hero">
     <div class="hero-inner">
@@ -55,7 +38,7 @@
 
 <div th:replace="~{fragments/create-event-modal :: create-event-modal}"></div>
 
-<div th:replace="fragments/event-detail-modal :: event-detail-modal"></div>
+<div th:replace="~{fragments/event-detail-modal :: event-detail-modal}"></div>
 
 <main class="section">
     <div class="container">

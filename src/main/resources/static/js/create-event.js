@@ -1,10 +1,10 @@
-// create-event.js
+
 document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('createEventForm');
   const modal = document.getElementById('createEventModal');
 
   if (!form) {
-    // Seite ohne Create-Event-Formular
+
     return;
   }
 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
       cancellationDeadline: cancelDateTime
     };
 
-    // Validierung wie bisher
+
     if (
       !eventData.title ||
       !eventData.date ||
@@ -69,13 +69,13 @@ document.addEventListener('DOMContentLoaded', function () {
       alert('Save Event: ' + saved.title);
       form.reset();
 
-      // Modal schließen
+
       if (modal) {
         modal.classList.remove('open');
         modal.setAttribute('aria-hidden', 'true');
       }
 
-      // Liste neu laden, falls die Seite eine hat
+
       if (typeof window.loadEvents === 'function') {
         await window.loadEvents();
       }
