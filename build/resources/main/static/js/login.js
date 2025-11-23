@@ -21,39 +21,21 @@ if (loginTab && registerTab) {
 }
 
 
-async function login() {
+function login() {
     const email = document.getElementById("loginEmail").value;
     const pw = document.getElementById("loginPassword").value;
 
-    // keep this from the demo function
     if (!email || !pw) {
         alert("Bitte alle Felder ausfüllen");
         return;
     }
 
-    try {
-        const res = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ email, password: pw })
-        });
-
-        const text = await res.text();
-        alert(text);
-
-        if (res.ok) {
-            window.location.href = "/dashboard";
-        }
-
-    } catch (err) {
-        alert("Fehler beim Login");
-        console.error(err);
-    }
+    console.log("Login:", email, pw);
+    alert("Login erfolgreich (Demo)");
 }
 
-
 // Demo
-async function register() {
+function register() {
     const email = document.getElementById("regEmail").value;
     const pw1 = document.getElementById("regPassword").value;
     const pw2 = document.getElementById("regPassword2").value;
@@ -68,24 +50,6 @@ async function register() {
         return;
     }
 
-    const name = "Demo User"; // or add an input field
-
-    try {
-        const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, password: pw1 })
-        });
-
-        const text = await res.text();
-        alert(text);
-
-        if (res.ok) {
-            window.location.href = "/dashboard";
-        }
-
-    } catch (err) {
-        alert("Fehler bei der Registrierung");
-        console.error(err);
-    }
+    console.log("Registrierung:", email, pw1);
+    alert("Registrierung erfolgreich (Demo)");
 }

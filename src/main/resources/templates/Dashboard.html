@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="de">
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,37 +12,24 @@
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/event-details.css">
 
 
     <script src="/js/modal.js" defer></script>
-    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/event-detail.js" defer></script>
+    <script src="/js/events-list.js" defer></script>
+    <script src="/js/create-event.js" defer></script>
 </head>
 <body>
 
-
-<header class="topbar">
-    <div class="topbar-bg"></div>
-    <div class="brand">SimplyEvents</div>
-    <nav class="nav">
-        <nav class="nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/events">Events</a>
-        </nav>
-
-
-    </nav>
-    <div class="cta">
-        <a class="btn" id="loginBtn" href="/login">Log in</a>
-        <button class="btn primary" id="createEventBtn" type="button">Create Event</button>
-    </div>
-</header>
-
+<div th:insert="~{fragments/topbar :: topbar}"></div>
 
 <section class="hero">
     <div class="hero-inner">
         <h1>Find your Event</h1>
 
         <form id="searchForm" class="search">
+            <span class="search-icon">🔍</span>
             <input id="searchInput" type="text" placeholder="Search Event" />
             <button type="submit">Search</button>
         </form>
@@ -49,118 +37,9 @@
 </section>
 
 
-<div id="createEventModal" class="modal" aria-hidden="true">
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-content" role="dialog" aria-labelledby="modalTitle">
-        <button class="modal-close" type="button" aria-label="Close" data-close>&times;</button>
-        <h2 id="modalTitle">Create new Event</h2>
+<div th:replace="~{fragments/create-event-modal :: create-event-modal}"></div>
 
-        <form id="createEventForm" novalidate>
-            <div class="form-grid">
-                <div class="full">
-                    <label for="title">Titel *</label>
-                    <input id="title" name="title" type="text" required placeholder="yoga, skiing, hiking" />
-                </div>
-
-                <div>
-                    <label for="date">Date *</label>
-                    <input id="date" name="date" type="date" required />
-                </div>
-                <div>
-                    <label for="time">Time *</label>
-                    <input id="time" name="time" type="time" required />
-                </div>
-
-                <div class="full">
-                    <label for="location">Location *</label>
-                    <input id="location" name="location" type="text" required placeholder="Dornbirn" />
-                </div>
-
-                <div>
-                    <label for="price">Price *(€)</label>
-                    <input id="price" name="price" type="number" min="0" step="0.01" placeholder="0.00" required />
-                </div>
-                <div>
-                    <label for="capacity">Capacity *</label>
-                    <input id="capacity" name="capacity" type="number" min="1" step="1" placeholder="20" required />
-                </div>
-
-                <div class="full">
-                    <label for="description">Description</label>
-                    <textarea id="description" name="description" rows="4" placeholder="optional"></textarea>
-                </div>
-
-                <div class="full">
-                    <label for="category">Category *</label>
-                    <input id="category" name="category" type="text" placeholder="sports, culture, nature" required/>
-                </div>
-
-                <div>
-                    <label for="minParticipants">Min. Participants *</label>
-                    <input id="minParticipants" name="minParticipants" type="number" min="1" step="1" placeholder="1" required/>
-                </div>
-
-                <div>
-                    <label for="maxParticipants">Max. Participants *</label>
-                    <input id="maxParticipants" name="maxParticipants" type="number" min="1" step="1" placeholder="20" required />
-                </div>
-
-                <div>
-                    <label for="durationHours">Duration (hours)</label>
-                    <input id="durationHours" name="durationHours" type="number" min="1" step="1" placeholder="2" />
-                </div>
-
-                <div>
-                    <label for="cancelDeadline">Cancellation deadline</label>
-                    <input id="cancelDeadline" name="cancelDeadline" type="datetime-local" />
-                </div>
-
-                <div class="full">
-                    <label for="equipmentNeeded">Equipment needed</label>
-                    <input id="equipmentNeeded" name="equipmentNeeded" type="text" placeholder="sports shoes, towel" />
-                </div>
-
-                <div class="full">
-                    <label for="requirements">Requirements</label>
-                    <textarea id="requirements" name="requirements" rows="3" placeholder="basic fitness, minimum age"></textarea>
-                </div>
-            </div>
-
-            <p class="required-hint">* Required fields must be filled</p>
-
-            <div class="actions">
-                <button type="button" class="btn secondary" data-close>Cancel</button>
-                <button type="submit" class="btn primary">Save</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-
-<div id="eventDetailModal" class="modal" aria-hidden="true">
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-content" role="dialog" aria-labelledby="eventDetailTitle">
-        <button class="modal-close" type="button" aria-label="Close" data-close>&times;</button>
-
-        <h2 id="eventDetailTitle">Event Details</h2>
-
-        <div class="event-detail-body">
-            <p><strong>Title:</strong> <span id="detailTitle"></span></p>
-            <p><strong>Date:</strong> <span id="detailDate"></span></p>
-            <p><strong>Time:</strong> <span id="detailTime"></span></p>
-            <p><strong>Location:</strong> <span id="detailLocation"></span></p>
-            <p><strong>Price:</strong> <span id="detailPrice"></span></p>
-            <p><strong>Category:</strong> <span id="detailCategory"></span></p>
-            <p><strong>Description:</strong> <span id="detailDescription"></span></p>
-            <p><strong>Min Participants:</strong> <span id="detailMin"></span></p>
-            <p><strong>Max Participants:</strong> <span id="detailMax"></span></p>
-            <p><strong>Available Slots:</strong> <span id="detailSlots"></span></p>
-            <p><strong>Equipment:</strong> <span id="detailEquipment"></span></p>
-            <p><strong>Requirements:</strong> <span id="detailRequirements"></span></p>
-            <p><strong>Cancellation Deadline:</strong> <span id="detailCancel"></span></p>
-        </div>
-    </div>
-</div>
+<div th:replace="~{fragments/event-detail-modal :: event-detail-modal}"></div>
 
 <main class="section">
     <div class="container">

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,30 +11,41 @@
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/event-details.css">
+    <link rel="stylesheet" href="/css/searchbar.css">
 
 
     <script src="/js/modal.js" defer></script>
-    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/event-detail.js" defer></script>
+    <script src="/js/events-list.js" defer></script>
+    <script src="/js/create-event.js" defer></script>
 </head>
 <body>
 
+<div th:insert="~{fragments/topbar :: topbar}"></div>
 
-<header class="topbar">
-    <div class="topbar-bg"></div>
-    <div class="brand">SimplyEvents</div>
-    <nav class="nav">
-        <nav class="nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/events">Events</a>
-        </nav>
+<section class="search-bar-container">
+    <form id="searchForm" class="search-bar">
+        <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+                    id="searchInput"
+                    type="text"
+                    placeholder="Search events by title, location, category…"
+                    autocomplete="off"
+            />
+        </div>
+        <button type="submit" class="btn primary search-btn">Search</button>
+    </form>
+</section>
 
-    </nav>
-    <div class="cta">
-        <a class="btn" href="#">Log in</a>
-        <button class="btn primary" id="createEventBtn" type="button">Create Event</button>
-    </div>
-</header>
-
+<div class="category-filter">
+    <button class="cat-btn active" data-category="ALL">All</button>
+    <button class="cat-btn" data-category="Sport">Sport</button>
+    <button class="cat-btn" data-category="Culture">Culture</button>
+    <button class="cat-btn" data-category="Nature">Nature</button>
+    <button class="cat-btn" data-category="Extreme">Extreme</button>
+</div>
 
 <div id="createEventModal" class="modal" aria-hidden="true">
     <div class="modal-backdrop" data-close></div>
@@ -124,37 +135,7 @@
 </div>
 
 
-<div id="eventDetailModal" class="modal" aria-hidden="true">
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-content" role="dialog" aria-labelledby="eventDetailTitle">
-
-        <button
-                class="modal-close"
-                type="button"
-                aria-label="Close"
-                data-close>
-            &times;
-        </button>
-
-        <h2 id="eventDetailTitle">Event Details</h2>
-
-        <div class="event-detail-body">
-            <p><strong>Title:</strong> <span id="detailTitle"></span></p>
-            <p><strong>Date:</strong> <span id="detailDate"></span></p>
-            <p><strong>Time:</strong> <span id="detailTime"></span></p>
-            <p><strong>Location:</strong> <span id="detailLocation"></span></p>
-            <p><strong>Price:</strong> <span id="detailPrice"></span></p>
-            <p><strong>Category:</strong> <span id="detailCategory"></span></p>
-            <p><strong>Description:</strong> <span id="detailDescription"></span></p>
-            <p><strong>Min Participants:</strong> <span id="detailMin"></span></p>
-            <p><strong>Max Participants:</strong> <span id="detailMax"></span></p>
-            <p><strong>Available Slots:</strong> <span id="detailSlots"></span></p>
-            <p><strong>Equipment:</strong> <span id="detailEquipment"></span></p>
-            <p><strong>Requirements:</strong> <span id="detailRequirements"></span></p>
-            <p><strong>Cancellation Deadline:</strong> <span id="detailCancel"></span></p>
-        </div>
-    </div>
-</div>
+<div th:replace="~{fragments/event-detail-modal :: event-detail-modal}"></div>
 
 
 <main class="section">
