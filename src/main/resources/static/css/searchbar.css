@@ -46,3 +46,29 @@
     border-radius: 8px;
     cursor: pointer;
 }
+
+.category-filter {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.cat-btn {
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    background: #e5e7eb;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.cat-btn:hover {
+    background: #d1d5db;
+}
+
+.cat-btn.active {
+    background: #2563eb;
+    color: white;
+}

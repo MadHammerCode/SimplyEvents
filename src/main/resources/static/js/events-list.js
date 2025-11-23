@@ -3,6 +3,8 @@
 (function () {
 
   let allEvents = [];
+  let currentCategory = 'ALL';
+  let currentSearchTerm = '';
 
 
   async function loadEvents() {
@@ -66,8 +68,8 @@
     }
   }
 
-  function applySearch(term) {
-    const lower = term.toLowerCase();
+  function applyFilters() {
+    const lower = currentSearchTerm.toLowerCase();
 
     const filtered = allEvents.filter(ev => {
       const title = (ev.title || '').toLowerCase();
@@ -75,12 +77,18 @@
       const category = (ev.category || '').toLowerCase();
       const description = (ev.description || '').toLowerCase();
 
-      return (
+      const matchesSearch =
+        !lower ||
         title.includes(lower) ||
         location.includes(lower) ||
         category.includes(lower) ||
-        description.includes(lower)
-      );
+        description.includes(lower);
+
+      const matchesCategory =
+        currentCategory === 'ALL' ||
+        category === currentCategory.toLowerCase();
+
+      return matchesSearch && matchesCategory;
     });
 
     renderEvents(filtered);
@@ -99,23 +107,27 @@
     if (searchForm && searchInput) {
       searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const term = searchInput.value.trim();
-        if (!term) {
-          renderEvents(allEvents);
-        } else {
-          applySearch(term);
-        }
+        currentSearchTerm = searchInput.value.trim();
+        applyFilters();
       });
 
       searchInput.addEventListener('input', () => {
-        const term = searchInput.value.trim();
-        if (!term) {
-          renderEvents(allEvents);
-        } else {
-          applySearch(term);
-        }
+        currentSearchTerm = searchInput.value.trim();
+        applyFilters();
       });
     }
+
+    const catButtons = document.querySelectorAll('.cat-btn');
+    catButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentCategory = btn.dataset.category || 'ALL';
+
+        catButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        applyFilters();
+      });
+    });
   });
 
 })();
