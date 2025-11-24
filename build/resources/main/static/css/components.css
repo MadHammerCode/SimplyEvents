@@ -1,0 +1,64 @@
+.btn {
+  background: #1e90ff;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: #1e90ff; /*DodgerBlue1*/
+  color: #fff;
+  border-color: #fff;
+}
+
+.btn.secondary {
+  background: #f3f4f6;
+  color: #111;
+  border-color: #e5e7eb;
+}
+
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+}
+
+.modal.open {
+  display: block;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  width: min(560px, 92vw);
+  margin: 10vh auto;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+}
+
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+}
