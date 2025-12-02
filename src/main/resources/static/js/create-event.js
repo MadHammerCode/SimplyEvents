@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('createEventForm');
   const modal = document.getElementById('createEventModal');
+  const imageInput = document.getElementById('image');
 
   if (!form) {
 
@@ -14,6 +15,16 @@ document.addEventListener('DOMContentLoaded', function () {
     form.classList.add('was-submitted');
 
     const cancelDateTime = form.cancelDeadline.value || null;
+
+    const yearRound = form.yearRound.checked;
+
+    const bookingStart = !yearRound && form.bookingStart.value
+      ? form.bookingStart.value
+      : null;
+
+    const bookingEnd = !yearRound && form.bookingEnd.value
+      ? form.bookingEnd.value
+      : null;
 
     const eventData = {
       title: form.title.value.trim(),
@@ -37,7 +48,11 @@ document.addEventListener('DOMContentLoaded', function () {
       equipmentNeeded: form.equipmentNeeded.value.trim() || null,
       requirements: form.requirements.value.trim() || null,
 
-      cancellationDeadline: cancelDateTime
+      cancellationDeadline: cancelDateTime,
+
+      bookingStart,
+      bookingEnd,
+      yearRound
     };
 
 
@@ -53,6 +68,18 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    if (!yearRound) {
+      if (!bookingStart || !bookingEnd) {
+        alert('Please set both "Booking from" and "Booking until" or choose "Available all year".');
+        return;
+      }
+
+      if (new Date(bookingStart) > new Date(bookingEnd)) {
+        alert('"Booking from" must be before or equal to "Booking until".');
+        return;
+      }
+    }
+
     try {
       const res = await fetch('/api/events', {
         method: 'POST',
@@ -66,9 +93,31 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       const saved = await res.json();
+
+
+      if (imageInput && imageInput.files && imageInput.files.length > 0) {
+        try {
+          const imgFormData = new FormData();
+          imgFormData.append('file', imageInput.files[0]);
+
+          const imgRes = await fetch(`/api/events/${saved.id}/image`, {
+            method: 'POST',
+            body: imgFormData
+          });
+
+          if (!imgRes.ok) {
+            const imgMsg = await imgRes.text().catch(() => '');
+            console.error('Image upload failed:', imgMsg || imgRes.status);
+            alert('Event saved, but the image could not be uploaded.');
+          }
+        } catch (imgErr) {
+          console.error('Image upload error:', imgErr);
+          alert('Event saved, but an error occurred while uploading the image.');
+        }
+      }
+
       alert('Save Event: ' + saved.title);
       form.reset();
-
 
       if (modal) {
         modal.classList.remove('open');

@@ -58,9 +58,17 @@ h1 {
 .event-list li {
   background: #ffffff;
   border-radius: 12px;
-  padding: 12px 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.event-list li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  border-color: #d1fae5;
 }
 
 .event-list li strong {
@@ -94,4 +102,44 @@ h1 {
   h1 {
     font-size: 32px;
   }
+}
+
+.event-card-inner {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.event-card-thumb-wrapper {
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.event-card-thumb {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+.event-card-content {
+    flex: 1;
+}
+
+.event-card-content strong {
+    font-size: 15px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.event-card-content small {
+    display: block;
+    font-size: 12px;
+    color: #4b5563;
+    line-height: 1.4;
 }

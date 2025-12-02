@@ -20,7 +20,7 @@ public class Event {
     private String requirements;
     private String equipmentNeeded;
     private String location;
-    private int durationHours;
+    private Integer durationHours;
     private Date date;
     private int availableSlots;
     private String description;
@@ -29,12 +29,27 @@ public class Event {
     @OneToOne(mappedBy = "event")
     private Booking booking;
 
+    private Boolean yearRound;
+
+    @Temporal(TemporalType.DATE)
+    private Date bookingStart;
+
+    @Temporal(TemporalType.DATE)
+    private Date bookingEnd;
+
     @ManyToOne
     @JoinColumn(name = "vendor_id")
     private Vendor vendor;
 
-    public Event(){
+    @Column(name = "image_path")
+    private String imagePath;
 
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     public String getLocation() {
@@ -105,7 +120,7 @@ public class Event {
         return durationHours;
     }
 
-    public void setDurationHours(int durationHours) {
+    public void setDurationHours(Integer durationHours) {
         this.durationHours = durationHours;
     }
 
@@ -155,5 +170,29 @@ public class Event {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isYearRound() {
+        return Boolean.TRUE.equals(yearRound);
+    }
+
+    public void setYearRound(boolean yearRound) {
+        this.yearRound = yearRound;
+    }
+
+    public Date getBookingStart() {
+        return bookingStart;
+    }
+
+    public void setBookingStart(Date bookingStart) {
+        this.bookingStart = bookingStart;
+    }
+
+    public Date getBookingEnd() {
+        return bookingEnd;
+    }
+
+    public void setBookingEnd(Date bookingEnd) {
+        this.bookingEnd = bookingEnd;
     }
 }

@@ -20,12 +20,22 @@ async function openEventDetail(eventId) {
     document.getElementById("detailPrice").textContent = (ev.price != null ? ev.price + " €" : "Free");
     document.getElementById("detailCategory").textContent = ev.category ?? '';
     document.getElementById("detailDescription").textContent = ev.description ?? '';
-    document.getElementById("detailMin").textContent = ev.minParticipants ?? '';
-    document.getElementById("detailMax").textContent = ev.maxParticipants ?? '';
+    const minEl = document.getElementById("detailMin");
+    if (minEl) minEl.textContent = ev.minParticipants ?? '';
+
+    const maxEl = document.getElementById("detailMax");
+    if (maxEl) maxEl.textContent = ev.maxParticipants ?? '';
+
     document.getElementById("detailSlots").textContent = ev.availableSlots ?? '';
-    document.getElementById("detailEquipment").textContent = ev.equipmentNeeded ?? '';
-    document.getElementById("detailRequirements").textContent = ev.requirements ?? '';
-    document.getElementById("detailCancel").textContent = ev.cancellationDeadline ?? '';
+
+    const equipEl = document.getElementById("detailEquipment");
+    if (equipEl) equipEl.textContent = ev.equipmentNeeded ?? '';
+
+    const reqEl = document.getElementById("detailRequirements");
+    if (reqEl) reqEl.textContent = ev.requirements ?? '';
+
+    const cancelEl = document.getElementById("detailCancel");
+    if (cancelEl) cancelEl.textContent = ev.cancellationDeadline ?? '';
 
     const slotsEl = document.getElementById("detailSlots");
     if (ev.availableSlots != null) {
@@ -34,6 +44,29 @@ async function openEventDetail(eventId) {
       slotsEl.textContent = ev.maxParticipants;
     } else {
       slotsEl.textContent = '—';
+    }
+
+    const availabilityEl = document.getElementById("detailAvailability");
+    if (availabilityEl) {
+      if (ev.yearRound) {
+        availabilityEl.textContent = "Available all year";
+      } else if (ev.bookingStart && ev.bookingEnd) {
+        availabilityEl.textContent = `Bookable from ${ev.bookingStart} to ${ev.bookingEnd}`;
+      } else {
+        availabilityEl.textContent = "Availability not specified";
+      }
+    }
+
+
+    const detailImage = document.getElementById("detailImage");
+    if (detailImage) {
+      if (ev.imagePath) {
+        detailImage.src = '/' + ev.imagePath;
+        detailImage.style.display = 'block';
+      } else {
+        detailImage.src = '';
+        detailImage.style.display = 'none';
+      }
     }
 
     const modal = document.getElementById("eventDetailModal");

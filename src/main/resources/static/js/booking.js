@@ -21,6 +21,33 @@ document.addEventListener('DOMContentLoaded', async () => {
           <p>${ev.date} · ${ev.time} · ${ev.location}</p>
           <p>Price per participant: ${ev.price != null ? ev.price + ' €' : 'Free'}</p>
         `;
+
+        if (ev.yearRound) {
+          eventInfoDiv.innerHTML += `<p>Availability: all year</p>`;
+        } else if (ev.bookingStart && ev.bookingEnd) {
+          eventInfoDiv.innerHTML += `<p>Availability: bookable from ${ev.bookingStart} to ${ev.bookingEnd}</p>`;
+        } else {
+          eventInfoDiv.innerHTML += `<p>Availability: not specified</p>`;
+        }
+
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        let blockedMessage = '';
+
+        if (!ev.yearRound) {
+          if (ev.bookingStart && todayStr < ev.bookingStart) {
+            blockedMessage = `This event can only be booked from ${ev.bookingStart}.`;
+          }
+          if (!blockedMessage && ev.bookingEnd && todayStr > ev.bookingEnd) {
+            blockedMessage = `The booking period ended on ${ev.bookingEnd}.`;
+          }
+        }
+
+        if (blockedMessage) {
+          form.style.display = 'none';
+          eventInfoDiv.innerHTML += `<p style="color:#b91c1c; font-weight:600;">${blockedMessage}</p>`;
+          return;
+        }
          const numInput = document.getElementById('numParticipants');
               if (ev.availableSlots != null) {
                 numInput.max = ev.availableSlots;

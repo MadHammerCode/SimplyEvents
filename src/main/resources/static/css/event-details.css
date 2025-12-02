@@ -195,3 +195,19 @@
         justify-content: flex-start;
     }
 }
+
+.event-meta-row-3 {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.event-meta-row-3 .event-meta-item {
+    flex: 1;
+}
+
+@media (max-width: 600px) {
+    .event-meta-row-3 {
+        flex-direction: column;
+    }
+}

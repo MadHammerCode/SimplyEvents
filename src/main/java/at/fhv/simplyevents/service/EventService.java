@@ -12,13 +12,18 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Date;
 import java.time.ZoneId;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.Instant;
 
 import java.util.NoSuchElementException;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class EventService {
 
     private final EventRepository eventRepository;
+    private static final DateTimeFormatter BOOKING_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public EventService(EventRepository eventRepository) {
         this.eventRepository = eventRepository;
@@ -49,6 +54,19 @@ public class EventService {
             cancellationDeadlineDate = Date.from(cancellationDeadline.atZone(ZoneId.systemDefault()).toInstant());
         }
 
+
+        Date bookingStartDate = null;
+        if (dto.bookingStart() != null && !dto.bookingStart().isBlank()) {
+            LocalDate bs = LocalDate.parse(dto.bookingStart());
+            bookingStartDate = Date.from(bs.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+
+        Date bookingEndDate = null;
+        if (dto.bookingEnd() != null && !dto.bookingEnd().isBlank()) {
+            LocalDate be = LocalDate.parse(dto.bookingEnd());
+            bookingEndDate = Date.from(be.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+
         Event event = new Event();
         event.setTitle(dto.title());
         event.setDate(startDate);
@@ -68,6 +86,10 @@ public class EventService {
         event.setRequirements(dto.requirements());
         event.setCancellationDeadline(cancellationDeadlineDate);
 
+        event.setYearRound(Boolean.TRUE.equals(dto.yearRound()));
+        event.setBookingStart(bookingStartDate);
+        event.setBookingEnd(bookingEndDate);
+
         Event saved = eventRepository.save(event);
         return toResponse(saved);
     }
@@ -82,6 +104,28 @@ public class EventService {
     public EventResponse getEventById(Long id) {
         var event = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
+
+        if (!event.isYearRound()) {
+            LocalDate start = null;
+            LocalDate end = null;
+
+            if (event.getBookingStart() != null) {
+                Instant instStart = Instant.ofEpochMilli(event.getBookingStart().getTime());
+                start = instStart.atZone(ZoneId.systemDefault()).toLocalDate();
+            }
+            if (event.getBookingEnd() != null) {
+                Instant instEnd = Instant.ofEpochMilli(event.getBookingEnd().getTime());
+                end = instEnd.atZone(ZoneId.systemDefault()).toLocalDate();
+            }
+
+            if (start != null && today.isBefore(start)) {
+                throw new IllegalArgumentException("Booking period has not started yet.");
+            }
+            if (end != null && today.isAfter(end)) {
+                throw new IllegalArgumentException("Booking period has ended.");
+            }
+        }
         return toResponse(event);
     }
 
@@ -99,6 +143,20 @@ public class EventService {
             cancellationDeadline = event.getCancellationDeadline().toString();
         }
 
+        String bookingStart = null;
+        if (event.getBookingStart() != null) {
+            Instant instStart = Instant.ofEpochMilli(event.getBookingStart().getTime());
+            LocalDate bs = instStart.atZone(ZoneId.systemDefault()).toLocalDate();
+            bookingStart = bs.format(BOOKING_DATE_FMT);
+        }
+
+        String bookingEnd = null;
+        if (event.getBookingEnd() != null) {
+            Instant instEnd = Instant.ofEpochMilli(event.getBookingEnd().getTime());
+            LocalDate be = instEnd.atZone(ZoneId.systemDefault()).toLocalDate();
+            bookingEnd = be.format(BOOKING_DATE_FMT);
+        }
+
         return new EventResponse(
                 event.getEventId(),
                 event.getTitle(),
@@ -114,7 +172,11 @@ public class EventService {
                 event.getDescription(),
                 event.getEquipmentNeeded(),
                 event.getRequirements(),
-                cancellationDeadline
+                cancellationDeadline,
+                event.getImagePath(),
+                bookingStart,
+                bookingEnd,
+                event.isYearRound()
         );
     }
 }

@@ -11,7 +11,7 @@
             <button class="modal-close" type="button" aria-label="Close" data-close>&times;</button>
             <h2 id="modalTitle">Create new Event</h2>
 
-            <form id="createEventForm" novalidate>
+            <form id="createEventForm" novalidate enctype="multipart/form-data">
                 <div class="form-grid">
                     <div class="full">
                         <label for="title">Titel *</label>
@@ -58,13 +58,30 @@
                     </div>
 
                     <div>
-                        <label for="durationHours">Duration (hours)</label>
-                        <input id="durationHours" name="durationHours" type="number" min="1" step="1" placeholder="2" />
+                        <label for="durationHours">Duration (hours) *</label>
+                        <input id="durationHours" name="durationHours" type="number" min="1" step="1" placeholder="2" required />
                     </div>
 
                     <div>
                         <label for="cancelDeadline">Cancellation deadline</label>
                         <input id="cancelDeadline" name="cancelDeadline" type="datetime-local" />
+                    </div>
+
+                    <div>
+                        <label>
+                            <input id="yearRound" name="yearRound" type="checkbox" checked />
+                            Available all year
+                        </label>
+                    </div>
+
+                    <div>
+                        <label for="bookingStart">Booking from</label>
+                        <input id="bookingStart" name="bookingStart" type="date" />
+                    </div>
+
+                    <div>
+                        <label for="bookingEnd">Booking until</label>
+                        <input id="bookingEnd" name="bookingEnd" type="date" />
                     </div>
 
                     <div class="full">
@@ -75,6 +92,10 @@
                     <div class="full">
                         <label for="requirements">Requirements</label>
                         <textarea id="requirements" name="requirements" rows="3" placeholder="basic fitness, minimum age"></textarea>
+                    </div>
+                    <div class="full">
+                        <label for="image">Event image</label>
+                        <input id="image" name="file" type="file" accept="image/*" />
                     </div>
                 </div>
 

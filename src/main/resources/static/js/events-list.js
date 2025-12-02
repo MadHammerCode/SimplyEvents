@@ -43,10 +43,26 @@
 
     for (const ev of eventsToShow) {
       const li = document.createElement('li');
+
+      const thumbnailHtml = ev.imagePath
+        ? `
+          <div class="event-card-thumb-wrapper">
+            <img class="event-card-thumb"
+                 src="/${ev.imagePath}"
+                 alt="Event image of ${ev.title}">
+          </div>
+        `
+        : '';
+
       li.innerHTML = `
-        <strong>${ev.title}</strong><br/>
-        <small>${ev.date ?? ''} ${ev.time ?? ''} &ndash; ${ev.location ?? ''}</small><br/>
-        <small>Preis: ${ev.price != null ? ev.price + ' €' : 'n/a'}, Plätze: ${ev.availableSlots ?? ev.maxParticipants ?? 'n/a'}</small>
+        <article class="event-card-inner">
+          ${thumbnailHtml}
+          <div class="event-card-content">
+            <strong>${ev.title}</strong><br/>
+            <small>${ev.date ?? ''} ${ev.time ?? ''} &ndash; ${ev.location ?? ''}</small><br/>
+            <small>Preis: ${ev.price != null ? ev.price + ' €' : 'n/a'}, Plätze: ${ev.availableSlots ?? ev.maxParticipants ?? 'n/a'}</small>
+          </div>
+        </article>
       `;
 
       const eventId = ev.id ?? ev.eventId;

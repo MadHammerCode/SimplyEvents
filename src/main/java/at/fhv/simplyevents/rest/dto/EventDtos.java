@@ -23,7 +23,10 @@ public class EventDtos {
             String equipmentNeeded,
             String requirements,
 
-            String cancellationDeadline
+            String cancellationDeadline,
+            String bookingStart,
+            String bookingEnd,
+            Boolean yearRound
     ) {}
 
 
@@ -47,6 +50,10 @@ public class EventDtos {
             String equipmentNeeded,
             String requirements,
 
-            String cancellationDeadline
+            String cancellationDeadline,
+            String imagePath,
+            String bookingStart,
+            String bookingEnd,
+            Boolean yearRound
     ) {}
 }
