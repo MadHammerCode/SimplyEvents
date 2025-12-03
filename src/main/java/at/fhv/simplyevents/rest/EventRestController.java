@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,8 +41,17 @@ public class EventRestController {
     }
 
     @PostMapping
-    public EventResponse createEvent(@RequestBody @Valid CreateEventRequest request) {
-        return eventService.createEvent(request);
+    public ResponseEntity<?> createEvent(@Valid @RequestBody CreateEventRequest request,
+                                         BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        EventResponse response = eventService.createEvent(request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

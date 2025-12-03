@@ -3,22 +3,34 @@ package at.fhv.simplyevents.rest.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+import java.lang.String;
 
 
 public class EventDtos {
 
     public record CreateEventRequest(
-            @NotBlank String title,
-            @NotBlank String date,
-            @NotBlank String time,
-            @NotBlank String location,
+            @NotBlank(message = "Title must not be blank")
+            String title,
+            @NotBlank(message = "Date must not be blank")
+            String date,
+            @NotBlank(message = "Time must not be blank")
+            String time,
+            @NotBlank (message = "Location must not be blank")
+            String location,
 
+            @DecimalMin(value = "0.0", inclusive = true, message = "Price must be greater than 0")
             BigDecimal price,
+            @Min(value = 0, message = "Minimum participants must be at least 0")
             Integer minParticipants,
+            @Min(value = 1, message = "Maximum participants must be at least 1")
             Integer maxParticipants,
             Integer durationHours,
 
             String category,
+            @Size(max = 2000, message = "Description must not exceed 2000 characters")
             String description,
             String equipmentNeeded,
             String requirements,
