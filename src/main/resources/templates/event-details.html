@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Details</title>
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/event-details.css">
+
+    <script src="/js/event-details-page.js" defer></script>
+</head>
+<body>
+
+<div th:insert="~{fragments/topbar :: topbar}"></div>
+
+<main class="section">
+    <div class="container">
+
+        <!-- Media Viewer -->
+        <div id="eventMediaViewer" class="event-media-viewer">
+            <button id="mediaPrevBtn" class="btn secondary icon media-nav-btn" type="button">
+                ◀
+            </button>
+
+            <div class="event-media-frame">
+                <img id="eventMediaImage" src="" alt="Event media"
+                     style="display: none; max-width: 100%; border-radius: 12px;"/>
+
+                <video id="eventMediaVideo" control
+                       style="display: none; max-width: 100%; border-radius: 12px">
+                    <source id="eventMediaVideoSource" src="" type="video/mp4"/>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <button id="mediaNextBtn" class="btn secondary icon media-nav-btn" type="button">
+                ▶
+            </button>
+
+            <div class="event-media-indicator">
+                <span id="mediaIndex">1</span> / <span id="mediaTotal">1</span>
+            </div>
+        </div>
+
+        <!-- Title + Basic Details -->
+        <header class="event-details-header">
+            <p class="event-category-pill" id="detailsCategory">Category</p>
+            <h1 id="detailTitle" class="event-title">Event Title</h1>
+            <p class="event-subtitle">
+                <span id="detailDate">--</span>
+                ·
+                <span id="detailTime">--</span>
+                ·
+                <span id="detailLocation">--</span>
+            </p>
+        </header>
+
+        <!-- Main Content + Booking Sidebar -->
+        <div class="event-detail-layout">
+
+            <!-- Left Column -->
+            <div class="event-detail-main">
+                <section class="event-description-block">
+                    <h3>Description</h3>
+                    <p id="detailDescription">
+                        Loading description…
+                    </p>
+                </section>
+
+                <div class="event-meta-grid">
+                    <div class="event-meta-item">
+                        <span class="meta-label">Equipment needed</span>
+                        <span id="detailEquipment" class="meta-value">--</span>
+                    </div>
+                    <div class="event-meta-item">
+                        <span class="meta-label">Requirements</span>
+                        <span id="detailRequirement" class="meta-value">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <aside class="event-detail-sidebar">
+                <div class="event-detail-card">
+                    <div class="event-detail-card-header">
+                        <span class="event-price-label">Price per person</span>
+                        <span id="detailPrice" class="event-price-value">--</span>
+                    </div>
+
+                    <ul class="event-detail-facts">
+                        <li>📅  <strong id="cardDate">--</strong></li>
+                        <li>⏰  <span id="cardTime">--</span></li>
+                        <li>👥  <span id="cardSlots"> slots available</span></li>
+                        <li>⏳  Duration: <span id="cardDuration">--</span> h</li>
+                    </ul>
+
+                    <button id="bookNowBtn" class="btn primary">
+                        Book now
+                    </button>
+
+                    <p class="event-booking-text">
+                        Cancellation deadline:
+                        <span id="cardDeadline">--</span>
+                    </p>
+                </div>
+            </aside>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

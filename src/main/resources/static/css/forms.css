@@ -1,33 +1,33 @@
 .form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 .form-grid .full {
-  grid-column: 1 / -1;
+    grid-column: 1 / -1;
 }
 
 .form-grid label {
-  display: block;
-  font-size: 12px;
-  margin-bottom: 4px;
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
 }
 
 .form-grid input,
 .form-grid textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
 }
 
 .actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px;
 }
 
 .required-hint {
@@ -38,21 +38,28 @@
 }
 
 .modal-content {
-  max-height: 85vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .was-submitted input:invalid,
 .was-submitted textarea:invalid {
-  border: 2px solid #e63946;
+    border: 2px solid #e63946;
 }
 
 .event-detail-body p {
     margin: 4px 0;
     font-size: 14px;
 }
+
 .event-detail-body strong {
     color: #333;
+}
+
+/* Booking Page: Spacing Between Summary Card And Form */
+
+.booking-header {
+    margin-bottom: 24px;
 }
