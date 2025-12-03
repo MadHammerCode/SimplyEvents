@@ -1,4 +1,3 @@
-
 let currentEventId = null;
 
 
@@ -69,6 +68,13 @@ async function openEventDetail(eventId) {
       }
     }
 
+    // setze Link zur Vollseitenansicht (neue Seite zeigt Event nochmals detaillierter + Buchung)
+    const fullPageLink = document.getElementById('openFullPageBtn');
+    if (fullPageLink) {
+      fullPageLink.href = '/event-details/' + encodeURIComponent(eventId);
+      fullPageLink.style.display = 'inline-block';
+    }
+
     const modal = document.getElementById("eventDetailModal");
     if (!modal) {
       console.error('eventDetailModal not found in DOM');
@@ -85,26 +91,3 @@ async function openEventDetail(eventId) {
 
 window.openEventDetail = openEventDetail;
 
-
-document.addEventListener('DOMContentLoaded', () => {
-  const bookBtn = document.getElementById('bookEventBtn');
-  const cancelBtn = document.getElementById('cancelBookingBtn');
-
-  if (bookBtn) {
-    bookBtn.addEventListener('click', () => {
-      if (!currentEventId) {
-        alert('No event selected.');
-        return;
-      }
-
-      window.location.href = `/booking?eventId=${currentEventId}`;
-    });
-  }
-
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-
-      window.location.href = `/cancel-booking`;
-    });
-  }
-});

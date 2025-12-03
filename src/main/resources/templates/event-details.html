@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${event != null ? event.title : 'Event details'}">Event details</title>
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <link rel="stylesheet" href="/css/event-details-modal.css">
+    <link rel="stylesheet" href="/css/event-details.css">
+</head>
+<body>
+
+<div th:insert="~{fragments/topbar :: topbar}"></div>
+
+<main class="section">
+    <div class="container">
+
+        <!-- Message banner (immer sichtbar) -->
+        <div id="pageMessage" th:classappend="${messageType == 'error'} ? ' msg-error' : ' msg-info'" class="msg-info">
+            <p th:text="${message}">Info</p>
+        </div>
+
+        <!-- Gestapelte, modal-ähnliche Event-Details -->
+        <article class="event-detail-modal main-card">
+
+            <header class="event-detail-header">
+                <div class="event-detail-header-left">
+                    <p class="event-category-pill">
+                        <span th:text="${event != null ? event.category : ''}">Kategorie</span>
+                    </p>
+                    <h1 id="eventTitle" class="event-title" th:text="${event != null ? event.title : 'Event nicht gefunden'}">Event Title</h1>
+                    <p class="event-subtitle">
+                        <span th:text="${event != null ? event.date : ''}">Datum</span>
+                        &middot;
+                        <span th:text="${event != null ? event.time : ''}">Uhrzeit</span>
+                        &middot;
+                        <span th:text="${event != null ? event.location : ''}">Ort</span>
+                    </p>
+                </div>
+
+                <div class="event-detail-header-right">
+                    <span class="event-price-label">Preis</span>
+                    <div class="event-price-value" th:text="${event != null ? event.price + ' €' : 'Gratis'}">€ 0</div>
+                    <div class="event-slots">Frei: <span th:text="${event != null ? event.availableSlots : 'n/a'}">n/a</span></div>
+                </div>
+            </header>
+
+            <div class="event-detail-body">
+                <div class="event-detail-image-wrapper">
+                    <img class="event-detail-image"
+                         th:src="${event != null and event.imagePath != null} ? @{/${event.imagePath}} : @{/images/coming_soon.jpg}"
+                         th:alt="${event != null ? event.title : 'Event image'}"
+                         loading="lazy" />
+                </div>
+
+                <div class="event-meta-row-3">
+                    <div class="event-meta-item">
+                        <span class="meta-label">Equipment</span>
+                        <span class="meta-value" th:text="${event != null ? event.equipmentNeeded : ''}">-</span>
+                    </div>
+                    <div class="event-meta-item">
+                        <span class="meta-label">Anforderungen</span>
+                        <span class="meta-value" th:text="${event != null ? event.requirements : ''}">-</span>
+                    </div>
+                    <div class="event-meta-item">
+                        <span class="meta-label">Stornierung</span>
+                        <span class="meta-value" th:text="${event != null ? event.cancellationDeadline : ''}">-</span>
+                    </div>
+                </div>
+
+                <section class="event-description-block">
+                    <h3>Beschreibung</h3>
+                    <p id="detailDescription" th:text="${event != null ? event.description : 'Keine Details verfügbar.'}">Beschreibung</p>
+                </section>
+            </div>
+
+            <footer class="event-detail-footer">
+                <div class="event-booking-info">
+                    <!-- additional info could go here -->
+                </div>
+                <div class="event-booking-actions">
+                    <a class="btn secondary" href="/dashboard">Zur Übersicht</a>
+                    <a id="bookThisEvent" th:if="${event != null}"
+                       th:href="@{/booking(eventId=${event.id})}"
+                       class="btn primary">Jetzt buchen 🚀</a>
+                </div>
+            </footer>
+
+        </article>
+
+    </div>
+</main>
+
+</body>
+</html>
