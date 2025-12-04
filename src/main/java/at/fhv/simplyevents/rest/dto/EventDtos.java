@@ -14,9 +14,7 @@ public class EventDtos {
     public record CreateEventRequest(
             @NotBlank(message = "Title must not be blank")
             String title,
-            @NotBlank(message = "Date must not be blank")
             String date,
-            @NotBlank(message = "Time must not be blank")
             String time,
             @NotBlank (message = "Location must not be blank")
             String location,
@@ -38,7 +36,8 @@ public class EventDtos {
             String cancellationDeadline,
             String bookingStart,
             String bookingEnd,
-            Boolean yearRound
+            Boolean yearRound,
+            Boolean confirmPast
     ) {}
 
 

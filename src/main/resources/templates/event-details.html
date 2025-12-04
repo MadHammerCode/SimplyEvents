@@ -19,10 +19,6 @@
 <main class="section">
     <div class="container">
 
-        <!-- Message banner (immer sichtbar) -->
-        <div id="pageMessage" th:classappend="${messageType == 'error'} ? ' msg-error' : ' msg-info'" class="msg-info">
-            <p th:text="${message}">Info</p>
-        </div>
 
         <!-- Gestapelte, modal-ähnliche Event-Details -->
         <article class="event-detail-modal main-card">
@@ -30,22 +26,22 @@
             <header class="event-detail-header">
                 <div class="event-detail-header-left">
                     <p class="event-category-pill">
-                        <span th:text="${event != null ? event.category : ''}">Kategorie</span>
+                        <span th:text="${event != null ? event.category : ''}">Category</span>
                     </p>
                     <h1 id="eventTitle" class="event-title" th:text="${event != null ? event.title : 'Event nicht gefunden'}">Event Title</h1>
                     <p class="event-subtitle">
-                        <span th:text="${event != null ? event.date : ''}">Datum</span>
+                        <span th:text="${event != null ? event.date : ''}">Date</span>
                         &middot;
-                        <span th:text="${event != null ? event.time : ''}">Uhrzeit</span>
+                        <span th:text="${event != null ? event.time : ''}">Time</span>
                         &middot;
-                        <span th:text="${event != null ? event.location : ''}">Ort</span>
+                        <span th:text="${event != null ? event.location : ''}">Location</span>
                     </p>
                 </div>
 
                 <div class="event-detail-header-right">
-                    <span class="event-price-label">Preis</span>
+                    <span class="event-price-label">Price</span>
                     <div class="event-price-value" th:text="${event != null ? event.price + ' €' : 'Gratis'}">€ 0</div>
-                    <div class="event-slots">Frei: <span th:text="${event != null ? event.availableSlots : 'n/a'}">n/a</span></div>
+                    <div class="event-slots">Available: <span th:text="${event != null ? event.availableSlots : 'n/a'}">n/a</span></div>
                 </div>
             </header>
 
@@ -63,18 +59,18 @@
                         <span class="meta-value" th:text="${event != null ? event.equipmentNeeded : ''}">-</span>
                     </div>
                     <div class="event-meta-item">
-                        <span class="meta-label">Anforderungen</span>
+                        <span class="meta-label">Requirements</span>
                         <span class="meta-value" th:text="${event != null ? event.requirements : ''}">-</span>
                     </div>
                     <div class="event-meta-item">
-                        <span class="meta-label">Stornierung</span>
+                        <span class="meta-label">Date of termination</span>
                         <span class="meta-value" th:text="${event != null ? event.cancellationDeadline : ''}">-</span>
                     </div>
                 </div>
 
                 <section class="event-description-block">
-                    <h3>Beschreibung</h3>
-                    <p id="detailDescription" th:text="${event != null ? event.description : 'Keine Details verfügbar.'}">Beschreibung</p>
+                    <h3>Description</h3>
+                    <p id="detailDescription" th:text="${event != null ? event.description : 'No details available.'}">Description</p>
                 </section>
             </div>
 
@@ -83,10 +79,10 @@
                     <!-- additional info could go here -->
                 </div>
                 <div class="event-booking-actions">
-                    <a class="btn secondary" href="/dashboard">Zur Übersicht</a>
+                    <a class="btn secondary" href="/dashboard">Go to Dashboard</a>
                     <a id="bookThisEvent" th:if="${event != null}"
                        th:href="@{/booking(eventId=${event.id})}"
-                       class="btn primary">Jetzt buchen 🚀</a>
+                       class="btn primary">Book now</a>
                 </div>
             </footer>
 

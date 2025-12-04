@@ -23,19 +23,12 @@
                     <h2 id="eventDetailTitle" class="event-title">
                         <span id="detailTitle">Event Title</span>
                     </h2>
-                    <p class="event-subtitle">
-                        <span id="detailDate">2025-11-21</span>
-                        ·
-                        <span id="detailTime">19:30</span>
-                        ·
-                        <span id="detailLocation">Dornbirn</span>
+                    <!-- subtitle hidden by default; JS will populate detailSubtitle if date/time/location exist -->
+                    <p class="event-subtitle" style="display:none;">
+                        <span id="detailSubtitle"></span>
                     </p>
                 </div>
 
-                <div class="event-meta-item">
-                    <span class="meta-label">Availability</span>
-                    <span id="detailAvailability" class="meta-value"></span>
-                </div>
 
                 <div class="event-detail-header-right">
                     <span class="event-price-label">Price</span>
@@ -50,22 +43,8 @@
                 <div class="event-detail-image-wrapper">
                     <img id="detailImage"
                          class="event-detail-image"
-                         src=""
-                         alt="Event image">
-                </div>
-                <div class="event-meta-row-3">
-                    <div class="event-meta-item">
-                        <span class="meta-label">Equipment</span>
-                        <span id="detailEquipment" class="meta-value"></span>
-                    </div>
-                    <div class="event-meta-item">
-                        <span class="meta-label">Requirements</span>
-                        <span id="detailRequirements" class="meta-value"></span>
-                    </div>
-                    <div class="event-meta-item">
-                        <span class="meta-label">Cancellation deadline</span>
-                        <span id="detailCancel" class="meta-value"></span>
-                    </div>
+                         src="/images/coming_soon.jpg"
+                         alt="Event image" />
                 </div>
 
                 <section class="event-description-block">
@@ -89,6 +68,7 @@
                     <a id="openFullPageBtn" class="btn primary" href="#" style="display:none;">
                         Show event
                     </a>
+                    <a id="editEventBtn" class="btn" href="#" style="margin-left:8px; display:none;">Edit</a>
                 </div>
             </footer>
         </div>

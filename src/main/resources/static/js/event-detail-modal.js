@@ -13,9 +13,25 @@ async function openEventDetail(eventId) {
 
 
     document.getElementById("detailTitle").textContent = ev.title;
-    document.getElementById("detailDate").textContent = ev.date ?? '';
-    document.getElementById("detailTime").textContent = ev.time ?? '';
-    document.getElementById("detailLocation").textContent = ev.location ?? '';
+
+    // Build subtitle parts only if values exist
+    const subtitleEl = document.getElementById('detailSubtitle');
+    const subtitleContainer = subtitleEl ? subtitleEl.parentElement : null;
+    if (subtitleEl) {
+      const parts = [];
+      if (ev.date) parts.push(ev.date);
+      if (ev.time) parts.push(ev.time);
+      if (ev.location) parts.push(ev.location);
+      if (parts.length > 0) {
+        subtitleEl.textContent = parts.join(' · ');
+        if (subtitleContainer) subtitleContainer.style.display = 'block';
+      } else {
+        // hide subtitle container
+        if (subtitleContainer) subtitleContainer.style.display = 'none';
+        subtitleEl.textContent = '';
+      }
+    }
+
     document.getElementById("detailPrice").textContent = (ev.price != null ? ev.price + " €" : "Free");
     document.getElementById("detailCategory").textContent = ev.category ?? '';
     document.getElementById("detailDescription").textContent = ev.description ?? '';
@@ -63,8 +79,9 @@ async function openEventDetail(eventId) {
         detailImage.src = '/' + ev.imagePath;
         detailImage.style.display = 'block';
       } else {
-        detailImage.src = '';
-        detailImage.style.display = 'none';
+        // show fallback image instead of hiding
+        detailImage.src = '/images/coming_soon.jpg';
+        detailImage.style.display = 'block';
       }
     }
 
@@ -73,6 +90,12 @@ async function openEventDetail(eventId) {
     if (fullPageLink) {
       fullPageLink.href = '/event-details/' + encodeURIComponent(eventId);
       fullPageLink.style.display = 'inline-block';
+    }
+
+    const editBtn = document.getElementById('editEventBtn');
+    if (editBtn) {
+      editBtn.setAttribute('href', '/create-event?edit=' + encodeURIComponent(eventId));
+      editBtn.style.display = 'inline-block';
     }
 
     const modal = document.getElementById("eventDetailModal");
@@ -90,4 +113,3 @@ async function openEventDetail(eventId) {
 
 
 window.openEventDetail = openEventDetail;
-

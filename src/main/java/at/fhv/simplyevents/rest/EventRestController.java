@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.PutMapping;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,8 +51,12 @@ public class EventRestController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        EventResponse response = eventService.createEvent(request);
-        return ResponseEntity.ok(response);
+        try {
+            EventResponse response = eventService.createEvent(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
     @GetMapping
@@ -62,6 +67,24 @@ public class EventRestController {
     @GetMapping("/{id}")
     public EventResponse getEventById(@PathVariable Long id) {
         return eventService.getEventById(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEvent(@PathVariable Long id, @Valid @RequestBody CreateEventRequest request,
+                                         BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            EventResponse response = eventService.updateEvent(id, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
     @PostMapping("/{eventId}/image")

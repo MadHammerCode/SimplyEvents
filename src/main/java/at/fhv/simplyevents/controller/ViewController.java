@@ -53,4 +53,9 @@ public class ViewController {
         }
         return "event-details";
     }
+
+    @GetMapping("/create-event")
+    public String showCreateEventPage() {
+        return "create-event";
+    }
 }

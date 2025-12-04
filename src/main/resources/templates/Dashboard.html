@@ -1,5 +1,4 @@
 <!doctype html>
-<html lang="de">
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
@@ -18,36 +17,35 @@
     <script src="/js/modal.js" defer></script>
     <script src="/js/event-detail-modal.js" defer></script>
     <script src="/js/events-list.js" defer></script>
-    <script src="/js/create-event.js" defer></script>
-</head>
-<body>
+    <!-- create-event.js intentionally not loaded here because create-event should be a standalone page -->
+ </head>
+ <body>
 
-<div th:insert="~{fragments/topbar :: topbar}"></div>
+ <div th:insert="~{fragments/topbar :: topbar}"></div>
 
-<section class="hero">
-    <div class="hero-inner">
-        <h1>Find your Event</h1>
+ <section class="hero">
+     <div class="hero-inner">
+         <h1>Find your Event</h1>
 
-        <form id="searchForm" class="search">
-            <span class="search-icon">🔍</span>
-            <input id="searchInput" type="text" placeholder="Search Event" />
-            <button type="submit">Search</button>
-        </form>
-    </div>
-</section>
+         <form id="searchForm" class="search">
+             <span class="search-icon">🔍</span>
+             <input id="searchInput" type="text" placeholder="Search Event" />
+             <button type="submit">Search</button>
+         </form>
+     </div>
+ </section>
 
 
-<div th:replace="~{fragments/create-event-modal :: create-event-modal}"></div>
 
-<div th:replace="~{fragments/event-detail-modal :: event-detail-modal}"></div>
+ <div th:replace="~{fragments/event-detail-modal :: event-detail-modal}"></div>
 
-<main class="section">
-    <div class="container">
-        <h2>Event List</h2>
-        <ul id="eventList" class="event-list"></ul>
-        <p id="eventEmptyState" class="event-empty">No event saved yet.</p>
-    </div>
-</main>
+ <main class="section">
+     <div class="container">
+         <h2>Event List</h2>
+         <ul id="eventList" class="event-list"></ul>
+         <p id="eventEmptyState" class="event-empty">No event saved yet.</p>
+     </div>
+ </main>
 
-</body>
+ </body>
 </html>
