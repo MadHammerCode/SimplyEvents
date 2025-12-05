@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Front office check-in</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/frontoffice-checkin.css">
+</head>
+<body>
+<div class="page">
+    <!-- Header -->
+    <header class="fo-header">
+        <div class="container fo-header__inner">
+            <div>
+                <h1 class="fo-title">Front office check-in</h1>
+                <p class="fo-subtitle">
+                    Select an event and check in participants quickly and securely.
+                </p>
+            </div>
+            <nav class="fo-nav">
+                <button type="button" id="goToDashboard" class="btn btn-outline">Dashboard</button>
+                <button type="button" id="goToBackoffice" class="btn btn-outline">Backoffice</button>
+                <button type="button" id="logoutBtn" class="btn btn-danger">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Event selection -->
+    <section class="fo-eventbar">
+        <div class="container fo-eventbar__inner">
+            <div class="fo-event-select">
+                <label for="eventSelect">Event</label>
+                <select id="eventSelect">
+                    <option value="">Please select an event…</option>
+                    <!-- filled via JS -->
+                </select>
+            </div>
+            <div class="fo-event-meta">
+                <p id="eventMetaTitle" class="fo-event-meta__title">No event selected</p>
+                <p id="eventMetaInfo" class="fo-event-meta__info">Please select an event to display participants.</p>
+            </div>
+        </div>
+    </section>
+
+    <main class="fo-main">
+        <div class="container fo-main__inner">
+
+            <!-- Stat cards -->
+            <section class="fo-stats">
+                <article class="fo-stat-card">
+                    <p class="fo-stat-card__label">Total participants</p>
+                    <p id="statTotal" class="fo-stat-card__value">–</p>
+                </article>
+                <article class="fo-stat-card fo-stat-card--success">
+                    <p class="fo-stat-card__label">Checked in</p>
+                    <p id="statCheckedIn" class="fo-stat-card__value">–</p>
+                </article>
+                <article class="fo-stat-card fo-stat-card--warning">
+                    <p class="fo-stat-card__label">Open</p>
+                    <p id="statOpen" class="fo-stat-card__value">–</p>
+                </article>
+            </section>
+
+            <!-- Filters & search -->
+            <section class="fo-filters">
+                <div class="fo-filters__left">
+                    <label class="checkbox">
+                        <input type="checkbox" id="filterOnlyOpen" class="checkbox__input">
+                        <span class="checkbox__label">Show only not checked-in participants</span>
+                    </label>
+                </div>
+                <div class="fo-filters__right">
+                    <input id="searchInput" type="text" class="search-input" placeholder="Search by name, email or booking number…">
+                </div>
+            </section>
+
+            <!-- Table -->
+            <section class="fo-table-section">
+                <div class="table-wrapper">
+                    <table class="fo-table">
+                        <thead>
+                        <tr>
+                            <th>Booking no.</th>
+                            <th>Participant</th>
+                            <th>E-Mail</th>
+                            <th>Status</th>
+                            <th>Check-in time</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="participantTableBody">
+                        <!-- filled via JS -->
+                        </tbody>
+                    </table>
+                    <p id="tableEmpty" class="empty-msg">
+                        No participants found. Select an event or adjust your filters.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+
+<script src="/js/frontoffice-checkin.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Global styles for navbar & footer -->
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+
+    <!-- PAGE-SPECIFIC STYLES: adjust per page -->
+    <!-- Example: <link rel="stylesheet" href="/css/landing.css"> -->
+</head>
+<body>
+<div class="page">
+
+    <!-- 🔹 NAVBAR (always the same) -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">SimplyEvents</a>
+
+            <div class="nav-links" id="navLinks">
+                <a href="/dashboard" class="nav-link">Events</a>
+                <a href="/my-bookings" class="nav-link nav-auth-only">My bookings</a>
+                <a href="/profile" class="nav-link nav-auth-only">Profile</a>
+                <a href="/backoffice" class="nav-link nav-role-backoffice">Backoffice</a>
+                <a href="/checkin" class="nav-link nav-role-frontoffice">Check-in</a>
+
+                <a href="/login" class="nav-link nav-guest-only">Login</a>
+                <a href="/register" class="nav-link nav-guest-only">Register</a>
+                <span class="nav-divider nav-auth-only"></span>
+                <button id="logoutBtn" class="nav-link nav-btn nav-auth-only">Logout</button>
+            </div>
+
+            <button id="navToggle" class="nav-toggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- 🔸 MAIN CONTENT (varies per page) -->
+    <main id="main-content">
+        <!--
+          The HTML content of the respective page is inserted here,
+          e.g. landing page, backoffice dashboard, my bookings, etc.
+        -->
+    </main>
+
+    <!-- 🔹 FOOTER (always the same) -->
+    <footer class="footer">
+        <div class="container footer__inner">
+
+            <div class="footer__section footer__brand">
+                <h3 class="footer__logo">SimplyEvents</h3>
+                <p class="footer__text">
+                    Your platform for events, tickets & unforgettable experiences.
+                </p>
+            </div>
+
+            <div class="footer__section">
+                <h4 class="footer__title">Navigation</h4>
+                <ul class="footer__links">
+                    <li><a href="/dashboard">Discover events</a></li>
+                    <li><a href="/my-bookings">My bookings</a></li>
+                    <li><a href="/profile">My profile</a></li>
+                    <li><a href="/login">Login</a></li>
+                </ul>
+            </div>
+
+            <div class="footer__section">
+                <h4 class="footer__title">Legal</h4>
+                <ul class="footer__links">
+                    <li><a href="/impressum">Imprint</a></li>
+                    <li><a href="/datenschutz">Privacy policy</a></li>
+                    <li><a href="/agb">Terms & Conditions</a></li>
+                </ul>
+            </div>
+
+            <div class="footer__section">
+                <h4 class="footer__title">Support</h4>
+                <ul class="footer__links">
+                    <li><a href="/kontakt">Contact</a></li>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/hilfe">Help</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer__bottom">
+            <p class="footer__copy">
+                © <span id="footerYear"></span> SimplyEvents – All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+</div>
+
+<!-- Global scripts -->
+<script src="/js/navbar.js" defer></script>
+<script src="/js/footer.js" defer></script>
+
+<!-- PAGE-SPECIFIC SCRIPT -->
+<!-- Example: <script src="/js/landing.js" defer></script> -->
+
+</body>
+</html>

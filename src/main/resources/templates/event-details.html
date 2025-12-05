@@ -1,95 +1,203 @@
-<!doctype html>
-<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title th:text="${event != null ? event.title : 'Event details'}">Event details</title>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Event Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/forms.css">
-    <link rel="stylesheet" href="/css/event-details-modal.css">
     <link rel="stylesheet" href="/css/event-details.css">
 </head>
 <body>
+<div class="page">
+    <!-- Hero section with image, title, category, rating -->
+    <header class="event-hero">
+        <div class="event-hero__image-wrap">
+            <img id="eventImage" class="event-hero__image" src="/images/default-event.jpg" alt="Event">
+            <div class="event-hero__overlay"></div>
 
-<div th:insert="~{fragments/topbar :: topbar}"></div>
+            <div class="event-hero__topbar">
+                <button type="button" id="backButton" class="icon-button icon-button--light">
+                    ←
+                    <span class="icon-button__label">Back</span>
+                </button>
 
-<main class="section">
-    <div class="container">
-
-
-        <!-- Gestapelte, modal-ähnliche Event-Details -->
-        <article class="event-detail-modal main-card">
-
-            <header class="event-detail-header">
-                <div class="event-detail-header-left">
-                    <p class="event-category-pill">
-                        <span th:text="${event != null ? event.category : ''}">Category</span>
-                    </p>
-                    <h1 id="eventTitle" class="event-title" th:text="${event != null ? event.title : 'Event nicht gefunden'}">Event Title</h1>
-                    <p class="event-subtitle">
-                        <span th:text="${event != null ? event.date : ''}">Date</span>
-                        &middot;
-                        <span th:text="${event != null ? event.time : ''}">Time</span>
-                        &middot;
-                        <span th:text="${event != null ? event.location : ''}">Location</span>
-                    </p>
+                <div class="event-hero__actions">
+                    <button type="button" id="wishlistButton" class="icon-button icon-button--circle icon-button--light">
+                        <span id="wishlistHeart">♡</span>
+                    </button>
+                    <button type="button" id="shareButton" class="icon-button icon-button--circle icon-button--light">
+                        ⤴
+                    </button>
                 </div>
-
-                <div class="event-detail-header-right">
-                    <span class="event-price-label">Price</span>
-                    <div class="event-price-value" th:text="${event != null ? event.price + ' €' : 'Gratis'}">€ 0</div>
-                    <div class="event-slots">Available: <span th:text="${event != null ? event.availableSlots : 'n/a'}">n/a</span></div>
-                </div>
-            </header>
-
-            <div class="event-detail-body">
-                <div class="event-detail-image-wrapper">
-                    <img class="event-detail-image"
-                         th:src="${event != null and event.imagePath != null} ? @{/${event.imagePath}} : @{/images/coming_soon.jpg}"
-                         th:alt="${event != null ? event.title : 'Event image'}"
-                         loading="lazy" />
-                </div>
-
-                <div class="event-meta-row-3">
-                    <div class="event-meta-item">
-                        <span class="meta-label">Equipment</span>
-                        <span class="meta-value" th:text="${event != null ? event.equipmentNeeded : ''}">-</span>
-                    </div>
-                    <div class="event-meta-item">
-                        <span class="meta-label">Requirements</span>
-                        <span class="meta-value" th:text="${event != null ? event.requirements : ''}">-</span>
-                    </div>
-                    <div class="event-meta-item">
-                        <span class="meta-label">Date of termination</span>
-                        <span class="meta-value" th:text="${event != null ? event.cancellationDeadline : ''}">-</span>
-                    </div>
-                </div>
-
-                <section class="event-description-block">
-                    <h3>Description</h3>
-                    <p id="detailDescription" th:text="${event != null ? event.description : 'No details available.'}">Description</p>
-                </section>
             </div>
 
-            <footer class="event-detail-footer">
-                <div class="event-booking-info">
-                    <!-- additional info could go here -->
+            <div class="event-hero__content">
+                <div class="container">
+                    <div class="event-hero__meta">
+                        <span id="eventCategory" class="badge badge--hero">Category</span>
+                    </div>
+                    <h1 id="eventTitle" class="event-hero__title">Event title</h1>
+                    <div class="event-hero__rating">
+                        <span class="event-hero__rating-star">★</span>
+                        <span id="eventRatingValue" class="event-hero__rating-value">0.0</span>
+                        <span id="eventRatingCount" class="event-hero__rating-count">(0 reviews)</span>
+                    </div>
                 </div>
-                <div class="event-booking-actions">
-                    <a class="btn secondary" href="/dashboard">Go to Dashboard</a>
-                    <a id="bookThisEvent" th:if="${event != null}"
-                       th:href="@{/booking(eventId=${event.id})}"
-                       class="btn primary">Book now</a>
-                </div>
-            </footer>
+            </div>
+        </div>
+    </header>
 
-        </article>
+    <!-- Main content -->
+    <main class="event-main">
+        <div class="container event-layout">
+            <!-- Left column: info, description, organizer, reviews -->
+            <section class="event-main__content">
+                <!-- Quick Info -->
+                <section class="card">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-icon">📅</div>
+                            <div>
+                                <p class="info-label">Date &amp; time</p>
+                                <p id="eventDate" class="info-text">–</p>
+                                <p id="eventTime" class="info-subtext">–</p>
+                            </div>
+                        </div>
 
+                        <div class="info-item">
+                            <div class="info-icon">📍</div>
+                            <div>
+                                <p class="info-label">Location</p>
+                                <p id="eventLocation" class="info-text">–</p>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">👥</div>
+                            <div>
+                                <p class="info-label">Available seats</p>
+                                <p id="eventCapacity" class="info-text">–</p>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">€</div>
+                            <div>
+                                <p class="info-label">Price</p>
+                                <p id="eventPrice" class="info-text">–</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Description -->
+                <section class="card">
+                    <h2 class="card__title">About this event</h2>
+                    <p id="eventDescription" class="card__text">
+                        –
+                    </p>
+                </section>
+
+                <!-- Organizer (placeholder for later backend feature) -->
+                <section class="card">
+                    <h2 class="card__title">Organizer</h2>
+                    <div class="organizer">
+                        <div class="organizer__avatar">
+                            <span>SE</span>
+                        </div>
+                        <div>
+                            <h3 class="organizer__name">SimplyEvents</h3>
+                            <p class="organizer__info">Information about the organizer will be loaded from the backend here later.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reviews (currently mock data from JS) -->
+                <section class="card">
+                    <div class="reviews-header">
+                        <div>
+                            <h2 class="card__title">Reviews</h2>
+                        </div>
+                        <div class="reviews-header__rating">
+                            <span class="reviews-header__star">★</span>
+                            <span id="reviewsAverage" class="reviews-header__value">0.0</span>
+                            <span id="reviewsCount" class="reviews-header__count">(0)</span>
+                        </div>
+                    </div>
+
+                    <div id="reviewsList" class="reviews-list">
+                        <!-- Reviews are inserted via JS -->
+                    </div>
+
+                    <p id="noReviewsText" class="no-reviews hidden">
+                        No reviews yet – be the first to review this event!
+                    </p>
+                </section>
+            </section>
+
+            <!-- Right column: booking card -->
+            <aside class="event-main__sidebar">
+                <section class="card card--sticky">
+                    <div class="booking-price">
+                        <span id="bookingPrice" class="booking-price__main">–</span>
+                        <span class="booking-price__sub">per person</span>
+                    </div>
+
+                    <div class="booking-row">
+                        <label for="participantsInput" class="booking-label">Participants</label>
+                        <input
+                                id="participantsInput"
+                                type="number"
+                                min="1"
+                                value="1"
+                                class="booking-input"
+                        >
+                    </div>
+
+                    <div class="booking-row booking-row--summary">
+                        <span class="booking-label">Total price</span>
+                        <span id="bookingTotal" class="booking-total">–</span>
+                    </div>
+
+                    <button type="button" id="bookNowButton" class="btn btn-primary btn-full">
+                        Book now
+                    </button>
+
+                    <div class="booking-hints">
+                        <p>✓ Instant booking confirmation</p>
+                        <p>✓ Free cancellation up to 48h before (if configured in the event)</p>
+                        <p>✓ Mobile tickets available</p>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+</div>
+
+<!-- Share Modal -->
+<div id="shareModal" class="modal hidden">
+    <div class="modal__backdrop"></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <h2 class="modal__title">Share event</h2>
+            <button type="button" id="shareCloseButton" class="icon-button icon-button--circle">
+                ✕
+            </button>
+        </div>
+        <div class="modal__body">
+            <p class="modal__text">Share this event with your friends:</p>
+            <div class="modal__field">
+                <input id="shareLinkInput" type="text" class="share-input" readonly>
+            </div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn-outline btn-full">WhatsApp</button>
+                <button type="button" class="btn btn-outline btn-full">Facebook</button>
+                <button type="button" class="btn btn-outline btn-full">Twitter</button>
+            </div>
+        </div>
     </div>
-</main>
+</div>
 
+<script src="/js/event-details.js" defer></script>
 </body>
 </html>

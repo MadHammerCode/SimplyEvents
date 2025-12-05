@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Backoffice Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/backoffice-dashboard.css">
+</head>
+<body>
+<div class="page">
+    <!-- Header / Top bar -->
+    <header class="admin-header">
+        <div class="container admin-header__inner">
+            <div>
+                <h1 class="admin-title">Backoffice Dashboard</h1>
+                <p class="admin-subtitle">Overview of all events, bookings and revenue.</p>
+            </div>
+
+            <nav class="admin-nav">
+                <button type="button" id="goToCreateEvent" class="btn btn-primary">+ New event</button>
+                <button type="button" id="goToFrontoffice" class="btn btn-outline">Front office</button>
+                <button type="button" id="logoutBtn" class="btn btn-danger">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Filters / period -->
+    <section class="admin-filters">
+        <div class="container admin-filters__inner">
+            <div class="filter-group">
+                <label for="filterPeriod">Period</label>
+                <select id="filterPeriod">
+                    <option value="all">All time</option>
+                    <option value="30d">Last 30 days</option>
+                    <option value="90d">Last 90 days</option>
+                    <option value="year">This year</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterCategory">Category</label>
+                <select id="filterCategory">
+                    <option value="all">All categories</option>
+                    <!-- will be filled with real categories via JS -->
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <main class="admin-main">
+        <div class="container admin-main__inner">
+
+            <!-- Stat Cards -->
+            <section class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--primary">📅</div>
+                    <p class="stat-card__label">Aktive Events</p>
+                    <p id="statEvents" class="stat-card__value">–</p>
+                    <p id="statEventsChange" class="stat-card__trend">–</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--success">👥</div>
+                    <p class="stat-card__label">Total bookings (estimated)</p>
+                    <p id="statBookings" class="stat-card__value">–</p>
+                    <p id="statBookingsChange" class="stat-card__trend">–</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--warning">📈</div>
+                    <p class="stat-card__label">Ø utilization</p>
+                    <p id="statUtilization" class="stat-card__value">–</p>
+                    <p id="statUtilizationChange" class="stat-card__trend">–</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--accent">€</div>
+                    <p class="stat-card__label">Revenue (potential)</p>
+                    <p id="statRevenue" class="stat-card__value">–</p>
+                    <p id="statRevenueChange" class="stat-card__trend">–</p>
+                </article>
+            </section>
+
+            <!-- Charts -->
+            <section class="charts-grid">
+                <!-- Umsatzentwicklung -->
+                <article class="chart-card">
+                    <div class="chart-card__header">
+                        <div class="chart-card__title-group">
+                            <span class="chart-card__icon">📊</span>
+                            <h2 class="chart-card__title">Umsatzentwicklung</h2>
+                        </div>
+                    </div>
+                    <div id="revenueChart" class="chart chart--bars">
+                        <!-- bars are generated via JS -->
+                    </div>
+                    <p class="chart-card__hint">
+                        Monthly revenue based on event prices and capacity (simplified calculation in the frontend).
+                    </p>
+                </article>
+
+                <!-- Bookings by category -->
+                <article class="chart-card">
+                    <div class="chart-card__header">
+                        <div class="chart-card__title-group">
+                            <span class="chart-card__icon">🧩</span>
+                            <h2 class="chart-card__title">Bookings by category</h2>
+                        </div>
+                    </div>
+                    <div id="categoryChart" class="chart chart--pie">
+                        <!-- pie slices are generated via JS -->
+                    </div>
+                    <ul id="categoryLegend" class="chart-legend">
+                        <!-- legend via JS -->
+                    </ul>
+                </article>
+            </section>
+
+            <!-- Lower area: table + top events -->
+            <section class="bottom-grid">
+                <!-- Event table -->
+                <section class="admin-section">
+                    <div class="admin-section__header">
+                        <div>
+                            <h2 class="admin-section__title">Manage events</h2>
+                            <p class="admin-section__subtitle">
+                                Overview of all events with location, date, capacity and price.
+                            </p>
+                        </div>
+                        <div class="admin-section__actions">
+                            <input id="eventSearch" class="search-input" type="text" placeholder="Search events…">
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="events-table">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Location</th>
+                                <th>Date</th>
+                                <th>Capacity</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="eventsTableBody">
+                            <!-- rows via JS -->
+                            </tbody>
+                        </table>
+                        <p id="eventsEmpty" class="empty-msg hidden">
+                            No events found.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Top events / highlights -->
+                <aside class="side-section">
+                    <section class="card">
+                        <h2 class="card__title">Top events (by utilization)</h2>
+                        <div id="topEventsList" class="top-events-list">
+                            <!-- entries via JS -->
+                        </div>
+                        <p id="topEventsEmpty" class="empty-msg hidden">
+                            No data available yet for display.
+                        </p>
+                    </section>
+                </aside>
+            </section>
+        </div>
+    </main>
+</div>
+
+
+<script src="/js/backoffice-dashboard.js" defer></script>
+</body>
+</html>

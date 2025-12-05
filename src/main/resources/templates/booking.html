@@ -1,71 +1,225 @@
-<!doctype html>
-<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Book Event</title>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Booking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/forms.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/event-details.css">
-    <script src="/js/booking.js" defer></script>
+    <link rel="stylesheet" href="/css/booking.css">
 </head>
 <body>
-
-<div th:insert="~{fragments/topbar :: topbar}"></div>
-
-<main class="section">
-    <div class="container">
-        <h1>Book Event</h1>
-
-        <div id="bookingEventInfo" class="event-summary">
-
-        </div>
-
-        <form id="bookingForm" class="form" novalidate>
-            <input type="hidden" id="eventId" name="eventId" />
-
-            <div class="form-grid">
-                <div>
-                    <label for="firstName">First name *</label>
-                    <input id="firstName" name="firstName" type="text" required />
+<div class="page">
+    <header class="booking-header">
+        <div class="container booking-header__inner">
+            <button type="button" id="backToEventButton" class="back-link">
+                ← Back to event
+            </button>
+            <div class="booking-steps">
+                <div class="step-indicator" data-step="1">
+                    <span class="step-indicator__circle step-indicator__circle--active">1</span>
+                    <span class="step-indicator__label">Tickets & contact</span>
                 </div>
-                <div>
-                    <label for="lastName">Last name *</label>
-                    <input id="lastName" name="lastName" type="text" required />
+                <div class="step-indicator" data-step="2">
+                    <span class="step-indicator__circle">2</span>
+                    <span class="step-indicator__label">Payment</span>
                 </div>
-                <div>
-                    <label for="email">Email *</label>
-                    <input id="email" name="email" type="email" required />
-                </div>
-                <div>
-                    <label for="phone">Phone</label>
-                    <input id="phone" name="phone" type="tel" />
-                </div>
-                <div>
-                    <label for="numParticipants">Participants *</label>
-                    <input id="numParticipants" name="numParticipants" type="number" min="1" step="1" value="1" required />
-                </div>
-                <div>
-                    <label for="paymentMethod">Payment method</label>
-                    <select id="paymentMethod" name="paymentMethod">
-                        <option value="CASH">Cash</option>
-                        <option value="CARD">Card</option>
-                    </select>
+                <div class="step-indicator" data-step="3">
+                    <span class="step-indicator__circle">3</span>
+                    <span class="step-indicator__label">Confirmation</span>
                 </div>
             </div>
-
-            <div class="actions">
-                <button type="submit" class="btn primary">Book now</button>
-            </div>
-        </form>
-
-        <div id="bookingResult" class="booking-result" style="display:none;">
-            <h2>Booking successful</h2>
-            <p>Your booking number is: <strong id="bookingNumber"></strong></p>
         </div>
-    </div>
-</main>
+    </header>
+
+    <main class="booking-main">
+        <div class="container booking-layout">
+            <!-- Left column: steps -->
+            <section class="booking-main__content">
+                <!-- Error display -->
+                <div id="errorBox" class="error-box hidden"></div>
+
+                <!-- Step 1: Tickets & contact details -->
+                <section id="step1" class="card">
+                    <h1 class="card__title">Tickets & contact details</h1>
+                    <p class="card__subtitle">
+                        Select the number of tickets and enter your contact details.
+                    </p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="ticketCount" class="form-label">Number of tickets</label>
+                            <input
+                                    id="ticketCount"
+                                    type="number"
+                                    min="1"
+                                    class="form-input"
+                                    value="1"
+                            >
+                            <p id="ticketHint" class="form-hint"></p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="firstName" class="form-label">First name *</label>
+                            <input id="firstName" type="text" class="form-input" autocomplete="given-name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastName" class="form-label">Last name *</label>
+                            <input id="lastName" type="text" class="form-input" autocomplete="family-name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email *</label>
+                            <input id="email" type="email" class="form-input" autocomplete="email">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Phone (optional)</label>
+                            <input id="phone" type="tel" class="form-input" autocomplete="tel">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Step 2: Payment -->
+                <section id="step2" class="card hidden">
+                    <h1 class="card__title">Payment method</h1>
+                    <p class="card__subtitle">
+                        Choose your preferred payment method.
+                    </p>
+
+                    <div class="payment-options">
+                        <label class="payment-option">
+                            <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="CREDITCARD"
+                                    class="payment-option__input"
+                                    checked
+                            >
+                            <div class="payment-option__body">
+                                <div class="payment-option__title">Credit card</div>
+                                <div class="payment-option__text">
+                                    Visa, Mastercard, American Express
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="payment-option">
+                            <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="PAYPAL"
+                                    class="payment-option__input"
+                            >
+                            <div class="payment-option__body">
+                                <div class="payment-option__title">PayPal</div>
+                                <div class="payment-option__text">
+                                    Pay quickly and securely with your PayPal account.
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="payment-note">
+                        Your payment data is processed securely. We do not store full credit card details in our system.
+                    </div>
+                </section>
+
+                <!-- Step 3: Confirmation -->
+                <section id="step3" class="card hidden">
+                    <h1 class="card__title">Booking confirmed</h1>
+                    <p class="card__subtitle">
+                        Thank you! Your booking was successful.
+                    </p>
+
+                    <div id="confirmationBox" class="confirmation-box">
+                        <p class="confirmation-line">
+                            <span class="confirmation-label">Booking number:</span>
+                            <span id="confirmBookingNumber" class="confirmation-value">–</span>
+                        </p>
+                        <p class="confirmation-line">
+                            <span class="confirmation-label">Event:</span>
+                            <span id="confirmEventTitle" class="confirmation-value">–</span>
+                        </p>
+                        <p class="confirmation-line">
+                            <span class="confirmation-label">Date:</span>
+                            <span id="confirmEventDate" class="confirmation-value">–</span>
+                        </p>
+                        <p class="confirmation-line">
+                            <span class="confirmation-label">Time:</span>
+                            <span id="confirmEventTime" class="confirmation-value">–</span>
+                        </p>
+                        <p class="confirmation-line">
+                            <span class="confirmation-label">Location:</span>
+                            <span id="confirmEventLocation" class="confirmation-value">–</span>
+                        </p>
+                        <p class="confirmation-line">
+                            <span class="confirmation-label">Participants:</span>
+                            <span id="confirmNumParticipants" class="confirmation-value">–</span>
+                        </p>
+                        <p class="confirmation-line">
+                            <span class="confirmation-label">Total price:</span>
+                            <span id="confirmPriceTotal" class="confirmation-value">–</span>
+                        </p>
+                    </div>
+
+                    <div class="confirmation-hints">
+                        <p>📧 A confirmation with all details has been sent to your email address (if implemented in the backend).</p>
+                        <p>📱 Show your booking number at check-in on site.</p>
+                    </div>
+                </section>
+
+                <!-- Navigation -->
+                <div class="booking-nav">
+                    <button type="button" id="cancelButton" class="btn btn-outline">
+                        Cancel
+                    </button>
+                    <button type="button" id="prevButton" class="btn btn-secondary hidden">
+                        Back
+                    </button>
+                    <button type="button" id="nextButton" class="btn btn-primary">
+                        Next
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right column: event summary -->
+            <aside class="booking-main__sidebar">
+                <section class="card card--summary">
+                    <h2 class="card__title">Your booking</h2>
+
+                    <div class="summary-event">
+                        <p id="summaryEventTitle" class="summary-event__title">Loading event…</p>
+                        <p id="summaryEventLocation" class="summary-event__location">–</p>
+                        <p id="summaryEventDateTime" class="summary-event__datetime">–</p>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Number of tickets</span>
+                        <span id="summaryTicketCount">1</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Price per ticket</span>
+                        <span id="summaryTicketPrice">–</span>
+                    </div>
+
+                    <div class="summary-row summary-row--total">
+                        <span>Total</span>
+                        <span id="summaryTotalPrice">–</span>
+                    </div>
+
+                    <div class="summary-hints">
+                        <p id="summaryAvailability">Available seats: –</p>
+                        <p id="summaryCancellation">Cancellation policy: –</p>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+</div>
+
+
+<script src="/js/booking.js" defer></script>
 </body>
 </html>

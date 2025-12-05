@@ -1,111 +1,418 @@
+// Helpers
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const params = new URLSearchParams(window.location.search);
-  const eventId = params.get('eventId');
+function escapeHtml(str) {
+    if (str == null) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
-  const eventInfoDiv = document.getElementById('bookingEventInfo');
-  const form = document.getElementById('bookingForm');
-  const bookingNumberEl = document.getElementById('bookingNumber');
-  const resultBox = document.getElementById('bookingResult');
-
-
-  if (eventId) {
-    document.getElementById('eventId').value = eventId;
-
-    try {
-      const res = await fetch(`/api/events/${eventId}`);
-      if (res.ok) {
-        const ev = await res.json();
-        eventInfoDiv.innerHTML = `
-          <h2>${ev.title}</h2>
-          <p>${ev.date} · ${ev.time} · ${ev.location}</p>
-          <p>Price per participant: ${ev.price != null ? ev.price + ' €' : 'Free'}</p>
-        `;
-
-        if (ev.yearRound) {
-          eventInfoDiv.innerHTML += `<p>Availability: all year</p>`;
-        } else if (ev.bookingStart && ev.bookingEnd) {
-          eventInfoDiv.innerHTML += `<p>Availability: bookable from ${ev.bookingStart} to ${ev.bookingEnd}</p>`;
-        } else {
-          eventInfoDiv.innerHTML += `<p>Availability: not specified</p>`;
-        }
-
-
-        const todayStr = new Date().toISOString().slice(0, 10);
-        let blockedMessage = '';
-
-        if (!ev.yearRound) {
-          if (ev.bookingStart && todayStr < ev.bookingStart) {
-            blockedMessage = `This event can only be booked from ${ev.bookingStart}.`;
-          }
-          if (!blockedMessage && ev.bookingEnd && todayStr > ev.bookingEnd) {
-            blockedMessage = `The booking period ended on ${ev.bookingEnd}.`;
-          }
-        }
-
-        if (blockedMessage) {
-          form.style.display = 'none';
-          eventInfoDiv.innerHTML += `<p style="color:#b91c1c; font-weight:600;">${blockedMessage}</p>`;
-          return;
-        }
-         const numInput = document.getElementById('numParticipants');
-              if (ev.availableSlots != null) {
-                numInput.max = ev.availableSlots;
-              } else if (ev.maxParticipants != null) {
-                numInput.max = ev.maxParticipants;
-              }
-      } else {
-        eventInfoDiv.textContent = 'Could not load event information.';
-      }
-    } catch (err) {
-      console.error(err);
-      eventInfoDiv.textContent = 'Error loading event information.';
+function getQueryParams() {
+    const params = {};
+    const qs = window.location.search.slice(1).split("&").filter(Boolean);
+    for (const part of qs) {
+        const [k, v] = part.split("=");
+        if (!k) continue;
+        params[decodeURIComponent(k)] = decodeURIComponent(v || "");
     }
-  } else {
-    eventInfoDiv.textContent = 'No event selected.';
-  }
+    return params;
+}
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+function setStep(step) {
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const step3 = document.getElementById("step3");
+    const prevBtn = document.getElementById("prevButton");
+    const nextBtn = document.getElementById("nextButton");
+    const cancelBtn = document.getElementById("cancelButton");
 
-    const data = {
-      eventId: Number(document.getElementById('eventId').value),
-      firstName: document.getElementById('firstName').value.trim(),
-      lastName: document.getElementById('lastName').value.trim(),
-      email: document.getElementById('email').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-      numParticipants: Number(document.getElementById('numParticipants').value),
-      paymentMethod: document.getElementById('paymentMethod').value
+    if (!step1 || !step2 || !step3 || !prevBtn || !nextBtn || !cancelBtn) return;
+
+    step1.classList.toggle("hidden", step !== 1);
+    step2.classList.toggle("hidden", step !== 2);
+    step3.classList.toggle("hidden", step !== 3);
+
+    prevBtn.classList.toggle("hidden", step === 1);
+    cancelBtn.classList.toggle("hidden", step === 3);
+
+    if (step === 3) {
+        nextBtn.classList.add("hidden");
+    } else {
+        nextBtn.classList.remove("hidden");
+        nextBtn.textContent = step === 2 ? "Jetzt buchen" : "Weiter";
+    }
+
+    // Step Indicators
+    document.querySelectorAll(".step-indicator").forEach((el) => {
+        const s = Number(el.getAttribute("data-step"));
+        const circle = el.querySelector(".step-indicator__circle");
+        if (!circle) return;
+
+        el.classList.toggle("step-indicator--done", s < step);
+        circle.classList.toggle("step-indicator__circle--active", s === step);
+    });
+
+    // Save in dataset for navigation logic
+    document.body.dataset.currentStep = String(step);
+}
+
+function showError(messageOrList) {
+    const errorBox = document.getElementById("errorBox");
+    if (!errorBox) return;
+    if (!messageOrList) {
+        errorBox.classList.add("hidden");
+        errorBox.innerHTML = "";
+        return;
+    }
+
+    if (Array.isArray(messageOrList)) {
+        const items = messageOrList.map((msg) => `<li>${escapeHtml(msg)}</li>`).join("");
+        errorBox.innerHTML = `<strong>Please check your entries:</strong><ul>${items}</ul>`;
+    } else {
+        errorBox.innerHTML = escapeHtml(messageOrList);
+    }
+
+    errorBox.classList.remove("hidden");
+}
+
+function formatPrice(value) {
+    if (value == null) return "–";
+    const num = Number(value);
+    if (isNaN(num)) return escapeHtml(String(value));
+    return `${num.toFixed(2)} €`;
+}
+
+/* ------ Event load and Summary fill ------ */
+
+let currentEvent = null;
+
+function loadEventAndPrefill() {
+    const params = getQueryParams();
+    const eventId = params.eventId;
+    const participantsParam = params.participants;
+
+    if (!eventId) {
+        showError("No event ID was passed. Please return to the event overview.");
+        return;
+    }
+
+    const ticketInput = document.getElementById("ticketCount");
+    if (ticketInput && participantsParam && !isNaN(Number(participantsParam))) {
+        ticketInput.value = String(Math.max(1, Number(participantsParam)));
+    }
+
+    fetch(`/api/events/${encodeURIComponent(eventId)}`)
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error("Event could not be loaded.");
+            }
+            return res.json();
+        })
+        .then((event) => {
+            currentEvent = event;
+            fillSummary(event);
+            updateTotalPrice();
+        })
+        .catch((err) => {
+            console.error(err);
+            showError("Oops – this event just couldn't be loaded. Please try again later.");
+        });
+
+    // Back link -> back to Event
+    const backBtn = document.getElementById("backToEventButton");
+    if (backBtn) {
+        backBtn.addEventListener("click", () => {
+            window.location.href = `/event-details/${encodeURIComponent(eventId)}`;
+        });
+    }
+}
+
+function fillSummary(event) {
+    const titleEl = document.getElementById("summaryEventTitle");
+    const locEl = document.getElementById("summaryEventLocation");
+    const dtEl = document.getElementById("summaryEventDateTime");
+    const priceEl = document.getElementById("summaryTicketPrice");
+    const availEl = document.getElementById("summaryAvailability");
+    const cancelEl = document.getElementById("summaryCancellation");
+    const ticketHint = document.getElementById("ticketHint");
+
+    if (titleEl) titleEl.textContent = event.title || "Event";
+    if (locEl) locEl.textContent = event.location || "–";
+
+    const date = event.date || "";
+    const time = event.time || "";
+    const dt = date ? (time ? `${date} · ${time}` : date) : "–";
+    if (dtEl) dtEl.textContent = dt;
+
+    if (priceEl) priceEl.textContent = formatPrice(event.price);
+
+    const available = event.availableSlots != null ? event.availableSlots : "-";
+    const capacity = event.capacity != null ? event.capacity : "-";
+    if (availEl) {
+        availEl.textContent = `Available places: ${available} from ${capacity}`;
+    }
+
+    if (ticketHint && event.availableSlots != null) {
+        ticketHint.textContent = `Maximum available: ${event.availableSlots} Tickets.`;
+    }
+
+    if (cancelEl) {
+        if (event.cancellationDeadline) {
+            cancelEl.textContent = `Cancellation policy: Cancellation possible until ${event.cancellationDeadline}.`;
+        } else {
+            cancelEl.textContent = "Cancellation conditions: Please note the information provided by the organizer.";
+        }
+    }
+}
+
+function updateTotalPrice() {
+    const ticketInput = document.getElementById("ticketCount");
+    const ticketCountEl = document.getElementById("summaryTicketCount");
+    const totalEl = document.getElementById("summaryTotalPrice");
+
+    if (!ticketInput || !ticketCountEl || !totalEl || !currentEvent) return;
+
+    let count = Number(ticketInput.value);
+    if (!count || count < 1) count = 1;
+
+    // optional: Limit to availableSlots
+    if (currentEvent.availableSlots != null && count > currentEvent.availableSlots) {
+        count = currentEvent.availableSlots;
+        ticketInput.value = String(count);
+    }
+
+    ticketCountEl.textContent = String(count);
+
+    const price = Number(currentEvent.price);
+    if (!isNaN(price)) {
+        const total = price * count;
+        totalEl.textContent = `${total.toFixed(2)} €`;
+    } else {
+        totalEl.textContent = "–";
+    }
+}
+
+/* ------ Validierung ------ */
+
+function validateStep1() {
+    const errors = [];
+    const firstName = document.getElementById("firstName")?.value.trim();
+    const lastName = document.getElementById("lastName")?.value.trim();
+    const email = document.getElementById("email")?.value.trim();
+    const ticketCountVal = document.getElementById("ticketCount")?.value;
+
+    if (!firstName) errors.push("First name must not be empty.");
+    if (!lastName) errors.push("Last name must not be empty.");
+    if (!email) {
+        errors.push("E-Mail must not be empty.");
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+        errors.push("Please enter a valid email address.");
+    }
+
+    const num = Number(ticketCountVal);
+    if (!num || num < 1) {
+        errors.push("The number of tickets must be at least 1.");
+    }
+
+    if (currentEvent && currentEvent.availableSlots != null && num > currentEvent.availableSlots) {
+        errors.push(`There are only ${currentEvent.availableSlots} Places available.`);
+    }
+
+    if (errors.length) {
+        showError(errors);
+        return false;
+    }
+
+    showError(null);
+    return true;
+}
+
+function validateStep2() {
+    const method = document.querySelector('input[name="paymentMethod"]:checked');
+    if (!method) {
+        showError("Please choose a payment method.");
+        return false;
+    }
+    showError(null);
+    return true;
+}
+
+/* ------ Booking API Call ------ */
+
+function submitBooking() {
+    const params = getQueryParams();
+    const eventId = params.eventId;
+    if (!eventId) {
+        showError("Event ID is missing. Please return to the event overview.");
+        return Promise.reject();
+    }
+
+    const firstName = document.getElementById("firstName")?.value.trim();
+    const lastName = document.getElementById("lastName")?.value.trim();
+    const email = document.getElementById("email")?.value.trim();
+    const phone = document.getElementById("phone")?.value.trim();
+    const ticketCountVal = document.getElementById("ticketCount")?.value;
+    const paymentMethodInput = document.querySelector('input[name="paymentMethod"]:checked');
+
+    const numParticipants = Number(ticketCountVal) || 1;
+    const paymentMethod = paymentMethodInput ? paymentMethodInput.value : "CREDITCARD";
+
+    const payload = {
+        eventId: Number(eventId),
+        firstName,
+        lastName,
+        email,
+        phone,
+        numParticipants,
+        paymentMethod
     };
 
-    if (!data.eventId || !data.firstName || !data.lastName || !data.email || !data.numParticipants) {
-      alert('Please fill in all required fields.');
-      return;
+    return fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    }).then(async (res) => {
+        if (!res.ok) {
+            let body;
+            try {
+                body = await res.json();
+            } catch {
+                body = await res.text();
+            }
+
+            if (Array.isArray(body)) {
+                showError(body);
+            } else if (typeof body === "string") {
+                showError(body);
+            } else {
+                showError("The booking could not be made. Please check your entries.");
+            }
+            throw new Error("Booking failed");
+        }
+
+        showError(null);
+        return res.json();
+    });
+}
+
+/* ------Fill in confirmation ------ */
+
+function fillConfirmation(bookingResponse) {
+    const bNumEl = document.getElementById("confirmBookingNumber");
+    const titleEl = document.getElementById("confirmEventTitle");
+    const dateEl = document.getElementById("confirmEventDate");
+    const timeEl = document.getElementById("confirmEventTime");
+    const locEl = document.getElementById("confirmEventLocation");
+    const numEl = document.getElementById("confirmNumParticipants");
+    const totalEl = document.getElementById("confirmPriceTotal");
+
+    if (!bookingResponse) return;
+
+    if (bNumEl) bNumEl.textContent = bookingResponse.bookingNumber || "–";
+    if (titleEl) titleEl.textContent = bookingResponse.eventTitle || (currentEvent?.title || "–");
+    if (dateEl) dateEl.textContent = bookingResponse.date || (currentEvent?.date || "–");
+    if (timeEl) timeEl.textContent = bookingResponse.time || (currentEvent?.time || "–");
+    if (locEl) locEl.textContent = bookingResponse.location || (currentEvent?.location || "–");
+    if (numEl) numEl.textContent = bookingResponse.numParticipants != null ? String(bookingResponse.numParticipants) : "–";
+
+    if (totalEl) {
+        if (bookingResponse.priceTotal != null) {
+            const num = Number(bookingResponse.priceTotal);
+            totalEl.textContent = isNaN(num) ? escapeHtml(String(bookingResponse.priceTotal)) : `${num.toFixed(2)} €`;
+        } else if (currentEvent) {
+            const tickets = Number(document.getElementById("ticketCount")?.value) || 1;
+            const price = Number(currentEvent.price);
+            if (!isNaN(price)) {
+                const total = price * tickets;
+                totalEl.textContent = `${total.toFixed(2)} €`;
+            } else {
+                totalEl.textContent = "–";
+            }
+        }
     }
-    const numInput = document.getElementById('numParticipants');
-      if (numInput.max && data.numParticipants > Number(numInput.max)) {
-        alert(`You can only book up to ${numInput.max} participants for this event.`);
-        return;
-      }
+}
 
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+/* ------ Navigation ------ */
 
-      if (!res.ok) {
-        const msg = await res.text().catch(() => '');
-        throw new Error('Booking failed: ' + (msg || res.status));
-      }
+function setupNavigation() {
+    const nextBtn = document.getElementById("nextButton");
+    const prevBtn = document.getElementById("prevButton");
+    const cancelBtn = document.getElementById("cancelButton");
+    const ticketInput = document.getElementById("ticketCount");
 
-      const booking = await res.json();
-      bookingNumberEl.textContent = booking.bookingNumber;
-      resultBox.style.display = 'block';
-    } catch (err) {
-      console.error(err);
-      alert('Booking failed. Please try again later.');
+    if (ticketInput) {
+        ticketInput.addEventListener("input", () => {
+            if (Number(ticketInput.value) < 1) {
+                ticketInput.value = "1";
+            }
+            updateTotalPrice();
+        });
     }
-  });
+
+    if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+            const currentStep = Number(document.body.dataset.currentStep || "1");
+
+            if (currentStep === 1) {
+                if (!validateStep1()) return;
+                setStep(2);
+            } else if (currentStep === 2) {
+                if (!validateStep2()) return;
+
+                // API Call
+                nextBtn.disabled = true;
+                nextBtn.textContent = "Will be booked…";
+
+                submitBooking()
+                    .then((bookingResponse) => {
+                        fillConfirmation(bookingResponse);
+                        setStep(3);
+                    })
+                    .catch(() => {
+                        // Fehler wurde bereits angezeigt
+                    })
+                    .finally(() => {
+                        nextBtn.disabled = false;
+                        nextBtn.textContent = "Book now";
+                    });
+            }
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener("click", () => {
+            const currentStep = Number(document.body.dataset.currentStep || "1");
+            if (currentStep === 2) {
+                setStep(1);
+            } else if (currentStep === 3) {
+                setStep(2);
+            }
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            // Abbrechen → zurück zur Event-Details oder Dashboard
+            const params = getQueryParams();
+            if (params.eventId) {
+                window.location.href = `/event-details/${encodeURIComponent(params.eventId)}`;
+            } else {
+                window.location.href = "/dashboard";
+            }
+        });
+    }
+}
+
+/* ------ Init ------ */
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.dataset.currentStep = "1";
+    setStep(1);
+    setupNavigation();
+    loadEventAndPrefill();
 });
