@@ -12,13 +12,16 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Date;
 import java.time.ZoneId;
+import java.time.Instant;
 
 import java.util.NoSuchElementException;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class EventService {
 
     private final EventRepository eventRepository;
+    private static final DateTimeFormatter BOOKING_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public EventService(EventRepository eventRepository) {
         this.eventRepository = eventRepository;
@@ -31,6 +34,37 @@ public class EventService {
             LocalDate date = LocalDate.parse(dto.date());
             LocalTime time = LocalTime.parse(dto.time());
             startDateTime = LocalDateTime.of(date, time);
+        }
+
+        // validate that at least one scheduling method is provided
+        boolean dateAndTimeProvided = startDateTime != null;
+        boolean yearRound = Boolean.TRUE.equals(dto.yearRound());
+        boolean bookingWindowProvided = dto.bookingStart() != null && !dto.bookingStart().isBlank()
+                && dto.bookingEnd() != null && !dto.bookingEnd().isBlank();
+
+        if (!dateAndTimeProvided && !yearRound && !bookingWindowProvided) {
+            throw new IllegalArgumentException("Please enter either date + time, or activate 'Available all year', or fill in both 'Booking from' and 'Booking until'.");
+        }
+
+        // if booking window provided, validate ordering
+        if (bookingWindowProvided) {
+            LocalDate bs = LocalDate.parse(dto.bookingStart());
+            LocalDate be = LocalDate.parse(dto.bookingEnd());
+            if (bs.isAfter(be)) {
+                throw new IllegalArgumentException("The booking window is invalid: 'Booking from' must be before or equal to 'Booking until'.");
+            }
+        }
+
+        // Server-side: if startDateTime is in the past and client didn't confirm, block creation
+        if (startDateTime != null) {
+            LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+            if (startDateTime.isBefore(now)) {
+                // if confirmPast is missing or false, reject
+                Boolean confirmed = dto.confirmPast();
+                if (confirmed == null || !confirmed) {
+                    throw new IllegalArgumentException("The event is in the past. If you still want to create it, confirm this.");
+                }
+            }
         }
 
         LocalDateTime cancellationDeadline = null;
@@ -47,6 +81,19 @@ public class EventService {
         Date cancellationDeadlineDate = null;
         if (cancellationDeadline != null) {
             cancellationDeadlineDate = Date.from(cancellationDeadline.atZone(ZoneId.systemDefault()).toInstant());
+        }
+
+
+        Date bookingStartDate = null;
+        if (dto.bookingStart() != null && !dto.bookingStart().isBlank()) {
+            LocalDate bs = LocalDate.parse(dto.bookingStart());
+            bookingStartDate = Date.from(bs.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+
+        Date bookingEndDate = null;
+        if (dto.bookingEnd() != null && !dto.bookingEnd().isBlank()) {
+            LocalDate be = LocalDate.parse(dto.bookingEnd());
+            bookingEndDate = Date.from(be.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
         Event event = new Event();
@@ -68,6 +115,103 @@ public class EventService {
         event.setRequirements(dto.requirements());
         event.setCancellationDeadline(cancellationDeadlineDate);
 
+        event.setYearRound(Boolean.TRUE.equals(dto.yearRound()));
+        event.setBookingStart(bookingStartDate);
+        event.setBookingEnd(bookingEndDate);
+
+        Event saved = eventRepository.save(event);
+        return toResponse(saved);
+    }
+
+    public EventResponse updateEvent(Long id, CreateEventRequest dto) {
+        // parse date/time if present
+        LocalDateTime startDateTime = null;
+        if (dto.date() != null && dto.time() != null && !dto.date().isBlank() && !dto.time().isBlank()) {
+            LocalDate date = LocalDate.parse(dto.date());
+            LocalTime time = LocalTime.parse(dto.time());
+            startDateTime = LocalDateTime.of(date, time);
+        }
+
+        // validate scheduling
+        boolean dateAndTimeProvided = startDateTime != null;
+        boolean yearRound = Boolean.TRUE.equals(dto.yearRound());
+        boolean bookingWindowProvided = dto.bookingStart() != null && !dto.bookingStart().isBlank()
+                && dto.bookingEnd() != null && !dto.bookingEnd().isBlank();
+
+        if (!dateAndTimeProvided && !yearRound && !bookingWindowProvided) {
+            throw new IllegalArgumentException("Please enter either date + time, or activate 'Available all year', or fill in both 'Booking from' and 'Booking until'.");
+        }
+
+        if (bookingWindowProvided) {
+            LocalDate bs = LocalDate.parse(dto.bookingStart());
+            LocalDate be = LocalDate.parse(dto.bookingEnd());
+            if (bs.isAfter(be)) {
+                throw new IllegalArgumentException("The booking window is invalid: 'Booking from' must be before or equal to 'Booking until'.");
+            }
+        }
+
+        // past date confirmation
+        if (startDateTime != null) {
+            LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+            if (startDateTime.isBefore(now)) {
+                Boolean confirmed = dto.confirmPast();
+                if (confirmed == null || !confirmed) {
+                    throw new IllegalArgumentException("The event is in the past. If you still want to update it, confirm this.");
+                }
+            }
+        }
+
+        // parse cancellation and booking dates
+        LocalDateTime cancellationDeadline = null;
+        if (dto.cancellationDeadline() != null && !dto.cancellationDeadline().isBlank()) {
+            cancellationDeadline = LocalDateTime.parse(dto.cancellationDeadline());
+        }
+
+        Date startDate = null;
+        if (startDateTime != null) {
+            startDate = Date.from(startDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        }
+
+        Date cancellationDeadlineDate = null;
+        if (cancellationDeadline != null) {
+            cancellationDeadlineDate = Date.from(cancellationDeadline.atZone(ZoneId.systemDefault()).toInstant());
+        }
+
+        Date bookingStartDate = null;
+        if (dto.bookingStart() != null && !dto.bookingStart().isBlank()) {
+            LocalDate bs = LocalDate.parse(dto.bookingStart());
+            bookingStartDate = Date.from(bs.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+
+        Date bookingEndDate = null;
+        if (dto.bookingEnd() != null && !dto.bookingEnd().isBlank()) {
+            LocalDate be = LocalDate.parse(dto.bookingEnd());
+            bookingEndDate = Date.from(be.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+
+        // load existing event
+        Event event = eventRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+
+        // update fields
+        event.setTitle(dto.title());
+        event.setDate(startDate);
+        event.setLocation(dto.location());
+        if (dto.price() != null) {
+            event.setPrice(dto.price().doubleValue());
+        }
+        event.setDescription(dto.description());
+        event.setCategory(dto.category());
+        event.setMinParticipants(dto.minParticipants());
+        event.setMaxParticipants(dto.maxParticipants());
+        event.setAvailableSlots(dto.maxParticipants() == null ? event.getMaxParticipants() : dto.maxParticipants());
+        event.setDurationHours(dto.durationHours());
+        event.setEquipmentNeeded(dto.equipmentNeeded());
+        event.setRequirements(dto.requirements());
+        event.setCancellationDeadline(cancellationDeadlineDate);
+        event.setYearRound(Boolean.TRUE.equals(dto.yearRound()));
+        event.setBookingStart(bookingStartDate);
+        event.setBookingEnd(bookingEndDate);
+
         Event saved = eventRepository.save(event);
         return toResponse(saved);
     }
@@ -82,6 +226,28 @@ public class EventService {
     public EventResponse getEventById(Long id) {
         var event = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
+
+        if (!event.isYearRound()) {
+            LocalDate start = null;
+            LocalDate end = null;
+
+            if (event.getBookingStart() != null) {
+                Instant instStart = Instant.ofEpochMilli(event.getBookingStart().getTime());
+                start = instStart.atZone(ZoneId.systemDefault()).toLocalDate();
+            }
+            if (event.getBookingEnd() != null) {
+                Instant instEnd = Instant.ofEpochMilli(event.getBookingEnd().getTime());
+                end = instEnd.atZone(ZoneId.systemDefault()).toLocalDate();
+            }
+
+            if (start != null && today.isBefore(start)) {
+                throw new IllegalArgumentException("Booking period has not started yet.");
+            }
+            if (end != null && today.isAfter(end)) {
+                throw new IllegalArgumentException("Booking period has ended.");
+            }
+        }
         return toResponse(event);
     }
 
@@ -99,6 +265,20 @@ public class EventService {
             cancellationDeadline = event.getCancellationDeadline().toString();
         }
 
+        String bookingStart = null;
+        if (event.getBookingStart() != null) {
+            Instant instStart = Instant.ofEpochMilli(event.getBookingStart().getTime());
+            LocalDate bs = instStart.atZone(ZoneId.systemDefault()).toLocalDate();
+            bookingStart = bs.format(BOOKING_DATE_FMT);
+        }
+
+        String bookingEnd = null;
+        if (event.getBookingEnd() != null) {
+            Instant instEnd = Instant.ofEpochMilli(event.getBookingEnd().getTime());
+            LocalDate be = instEnd.atZone(ZoneId.systemDefault()).toLocalDate();
+            bookingEnd = be.format(BOOKING_DATE_FMT);
+        }
+
         return new EventResponse(
                 event.getEventId(),
                 event.getTitle(),
@@ -114,7 +294,11 @@ public class EventService {
                 event.getDescription(),
                 event.getEquipmentNeeded(),
                 event.getRequirements(),
-                cancellationDeadline
+                cancellationDeadline,
+                event.getImagePath(),
+                bookingStart,
+                bookingEnd,
+                event.isYearRound()
         );
     }
 }

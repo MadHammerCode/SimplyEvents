@@ -10,6 +10,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.PutMapping;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import at.fhv.simplyevents.domain.model.Event;
+import at.fhv.simplyevents.persistence.EventRepository;
 
 import java.util.List;
 
@@ -18,14 +34,29 @@ import java.util.List;
 public class EventRestController {
 
     private final EventService eventService;
+    private final EventRepository eventRepository;
 
-    public EventRestController(EventService eventService) {
+    public EventRestController(EventService eventService, EventRepository eventRepository) {
         this.eventService = eventService;
+        this.eventRepository = eventRepository;
     }
 
     @PostMapping
-    public EventResponse createEvent(@RequestBody @Valid CreateEventRequest request) {
-        return eventService.createEvent(request);
+    public ResponseEntity<?> createEvent(@Valid @RequestBody CreateEventRequest request,
+                                         BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            EventResponse response = eventService.createEvent(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
     @GetMapping
@@ -36,5 +67,58 @@ public class EventRestController {
     @GetMapping("/{id}")
     public EventResponse getEventById(@PathVariable Long id) {
         return eventService.getEventById(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEvent(@PathVariable Long id, @Valid @RequestBody CreateEventRequest request,
+                                         BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            EventResponse response = eventService.updateEvent(id, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PostMapping("/{eventId}/image")
+    public ResponseEntity<Void> uploadEventImage(
+            @PathVariable Long eventId,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+
+        Path uploadDir = Paths.get("uploads");
+        Files.createDirectories(uploadDir); // falls noch nicht existiert
+
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String storedFileName = "event_" + eventId + "_" + System.currentTimeMillis() + extension;
+
+        Path targetPath = uploadDir.resolve(storedFileName);
+
+
+        Files.copy(file.getInputStream(), targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+
+        event.setImagePath("uploads/" + storedFileName);
+        eventRepository.save(event);
+
+        return ResponseEntity.ok().build();
     }
 }

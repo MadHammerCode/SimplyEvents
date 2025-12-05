@@ -7,6 +7,9 @@ import at.fhv.simplyevents.rest.dto.BookingDtos.CreateBookingRequest;
 import at.fhv.simplyevents.service.BookingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -19,14 +22,14 @@ public class BookingRestController {
     }
 
     @PostMapping
-    public ResponseEntity<BookingResponse> createBooking(@RequestBody CreateBookingRequest request) {
+    public ResponseEntity<?> createBooking(@Valid @RequestBody CreateBookingRequest request,
+                                           BindingResult bindingResult) {
 
-        if (request.eventId() == null ||
-                request.firstName() == null || request.firstName().isBlank() ||
-                request.lastName() == null || request.lastName().isBlank() ||
-                request.email() == null || request.email().isBlank() ||
-                request.numParticipants() == null || request.numParticipants() <= 0) {
-            return ResponseEntity.badRequest().build();
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
         }
 
         BookingResponse response = bookingService.createBooking(request);
@@ -34,10 +37,14 @@ public class BookingRestController {
     }
 
     @PostMapping("/cancel")
-    public ResponseEntity<CancelledBookingResponse> cancelBooking(@RequestBody CancelBookingRequest request) {
-        if (request.bookingNumber() == null || request.bookingNumber().isBlank() ||
-                request.cancelReason() == null || request.cancelReason().isBlank()) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> cancelBooking(@Valid @RequestBody CancelBookingRequest request,
+                                           BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
         }
 
         CancelledBookingResponse response = bookingService.cancelBooking(request);

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – My profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/user-profile.css">
+</head>
+<body>
+<div class="page">
+    <!-- HEADER -->
+    <header class="up-header">
+        <div class="container up-header__inner">
+            <h1 class="up-title">My profile</h1>
+            <nav class="up-nav">
+                <button type="button" id="btnToDashboard" class="btn btn-outline">Dashboard</button>
+                <button type="button" id="btnToBookings" class="btn btn-outline">My bookings</button>
+                <button type="button" id="btnLogout" class="btn btn-danger">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="up-main">
+        <div class="container up-main__inner">
+
+            <!-- PROFILE CARD -->
+            <section class="up-card up-profile-card">
+                <div class="up-avatar-wrapper">
+                    <img id="avatarImg" src="/images/avatar-default.png" alt="Avatar" class="up-avatar">
+                </div>
+                <div class="up-profile-info">
+                    <h2 id="profileName" class="up-profile-name">–</h2>
+                    <p id="profileEmail" class="up-profile-email">–</p>
+                    <p id="profileRole" class="up-profile-role">–</p>
+                </div>
+            </section>
+
+            <!-- PERSONAL DATA -->
+            <section class="up-card">
+                <h2 class="up-card__title">Personal data</h2>
+
+                <div id="errorBox" class="up-error-box hidden"></div>
+
+                <div class="up-form-grid">
+
+                    <div class="up-form-group">
+                        <label for="firstName" class="up-label">First name *</label>
+                        <input id="firstName" type="text" class="up-input">
+                    </div>
+
+                    <div class="up-form-group">
+                        <label for="lastName" class="up-label">Last name *</label>
+                        <input id="lastName" type="text" class="up-input">
+                    </div>
+
+                    <div class="up-form-group span-2">
+                        <label for="email" class="up-label">Email *</label>
+                        <input id="email" type="email" class="up-input">
+                    </div>
+
+                    <div class="up-form-group">
+                        <label for="phone" class="up-label">Phone number</label>
+                        <input id="phone" type="text" class="up-input">
+                    </div>
+
+                    <div class="up-form-group">
+                        <label for="address" class="up-label">Address</label>
+                        <input id="address" type="text" class="up-input">
+                    </div>
+                </div>
+
+                <div class="up-actions">
+                    <button type="button" id="btnSaveProfile" class="btn btn-primary">Save changes</button>
+                </div>
+            </section>
+
+            <!-- PASSWORD CHANGE -->
+            <section class="up-card">
+                <h2 class="up-card__title">Change password</h2>
+
+                <div id="passwordErrorBox" class="up-error-box hidden"></div>
+                <div id="passwordSuccessBox" class="up-success-box hidden"></div>
+
+                <div class="up-form-grid">
+                    <div class="up-form-group">
+                        <label for="currentPassword" class="up-label">Current password *</label>
+                        <input id="currentPassword" type="password" class="up-input">
+                    </div>
+
+                    <div class="up-form-group">
+                        <label for="newPassword" class="up-label">New password *</label>
+                        <input id="newPassword" type="password" class="up-input">
+                    </div>
+
+                    <div class="up-form-group span-2">
+                        <label for="confirmPassword" class="up-label">Confirm new password *</label>
+                        <input id="confirmPassword" type="password" class="up-input">
+                    </div>
+                </div>
+
+                <div class="up-actions">
+                    <button type="button" id="btnChangePassword" class="btn btn-secondary">Update password</button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+
+<script src="/js/user-profile.js" defer></script>
+</body>
+</html>

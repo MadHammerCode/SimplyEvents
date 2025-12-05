@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Find your next event</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+<div class="page">
+    <header class="hero">
+        <div class="container hero__inner">
+            <div class="hero__content">
+                <p class="hero__eyebrow">SimplyEvents</p>
+                <h1 class="hero__title">
+                    Find your next unforgettable event
+                </h1>
+                <p class="hero__subtitle">
+                    Concerts, sports, business events, workshops and more – all in one place.
+                </p>
+
+                <!-- Search card -->
+                <section class="search-card">
+                    <div class="search-grid">
+                        <div class="field">
+                            <label for="searchKeyword" class="field__label">What are you looking for?</label>
+                            <div class="field__input field__input--icon">
+                                <span class="field__icon">🔍</span>
+                                <input id="searchKeyword" type="text" placeholder="Keyword, event name …">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="searchLocation" class="field__label">Location</label>
+                            <div class="field__input field__input--icon">
+                                <span class="field__icon">📍</span>
+                                <input id="searchLocation" type="text" placeholder="City or region">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="searchDate" class="field__label">Date</label>
+                            <div class="field__input field__input--icon">
+                                <span class="field__icon">📅</span>
+                                <input id="searchDate" type="date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="search-actions">
+                        <button type="button" id="searchButton" class="btn btn-primary">
+                            Search events
+                        </button>
+                        <button type="button" id="discoverButton" class="btn btn-outline">
+                            Discover all events
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Categories -->
+                <section class="hero-categories">
+                    <p class="hero-categories__label">Popular categories</p>
+                    <div id="categoryChips" class="chip-row">
+                        <!-- Chips are inserted via JS -->
+                    </div>
+                </section>
+            </div>
+
+            <div class="hero__visual">
+                <div class="hero-card">
+                    <p class="hero-card__label">Trending today</p>
+                    <h2 id="highlightTitle" class="hero-card__title">Loading event…</h2>
+                    <p id="highlightMeta" class="hero-card__meta">–</p>
+                    <p id="highlightLocation" class="hero-card__location">–</p>
+                    <button type="button" id="highlightButton" class="btn btn-secondary btn-full">
+                        View details
+                    </button>
+                    <p class="hero-card__note">Based on current bookings.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container main__sections">
+            <!-- Popular events -->
+            <section class="section">
+                <div class="section__header">
+                    <div>
+                        <h2 class="section__title">Popular events</h2>
+                        <p class="section__subtitle">
+                            A small selection from our current line-up.
+                        </p>
+                    </div>
+                    <button type="button" id="seeAllButton" class="btn btn-link">
+                        Show all events →
+                    </button>
+                </div>
+
+                <div id="popularEventsGrid" class="events-grid">
+                    <!-- Cards via JS -->
+                </div>
+
+                <p id="popularEmpty" class="section__empty hidden">
+                    Events cannot be loaded at the moment. Please try again later.
+                </p>
+            </section>
+
+            <!-- Key figures -->
+            <section class="section section--stats">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 class="stat-card__value" id="statEvents">–</h3>
+                        <p class="stat-card__label">Events available</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="stat-card__value">100.000+</h3>
+                        <p class="stat-card__label">satisfied visitors (target)</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="stat-card__value">500+</h3>
+                        <p class="stat-card__label">organizers (target)</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+
+<script src="/js/landing.js" defer></script>
+</body>
+</html>
