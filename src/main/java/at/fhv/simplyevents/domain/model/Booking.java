@@ -23,8 +23,8 @@ public class Booking {
     private Event event;
 
     @ManyToOne
-    @JoinColumn(name = "enduser_id")
-    private EndUser endUser;
+    @JoinColumn(name = "user_id")
+    private User endUser;
 
     protected Booking(){
 
@@ -92,5 +92,13 @@ public class Booking {
 
     public void setEvent(Event event) {
         this.event = event;
+    }
+
+    public User getEndUser() {
+        return endUser;
+    }
+
+    public void setEndUser(User endUser) {
+        this.endUser = endUser;
     }
 }
