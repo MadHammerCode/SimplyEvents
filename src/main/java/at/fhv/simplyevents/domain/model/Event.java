@@ -22,7 +22,8 @@ public class Event {
     private String location;
     private Integer durationHours;
     private Date date;
-    private int availableSlots;
+    @Column(name = "available_slots")
+    private Integer availableSlots;
     private String description;
     private Date cancellationDeadline;
 
@@ -116,7 +117,7 @@ public class Event {
         this.equipmentNeeded = equipmentNeeded;
     }
 
-    public int getDurationHours() {
+    public Integer getDurationHours() {
         return durationHours;
     }
 
@@ -132,11 +133,11 @@ public class Event {
         this.date = date;
     }
 
-    public int getAvailableSlots() {
+    public Integer getAvailableSlots() {
         return availableSlots;
     }
 
-    public void setAvailableSlots(int availableSlots) {
+    public void setAvailableSlots(Integer availableSlots) {
         this.availableSlots = availableSlots;
     }
 

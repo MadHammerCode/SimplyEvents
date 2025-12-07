@@ -107,10 +107,26 @@ public class EventService {
 
         event.setDescription(dto.description());
         event.setCategory(dto.category());
-        event.setMinParticipants(dto.minParticipants());
-        event.setMaxParticipants(dto.maxParticipants());
-        event.setAvailableSlots(dto.maxParticipants());
-        event.setDurationHours(dto.durationHours());
+
+        // avoid NPEs when DTO integers are null -> provide safe defaults
+        int minP = dto.minParticipants() == null ? 0 : dto.minParticipants();
+        int maxP = dto.maxParticipants() == null ? 0 : dto.maxParticipants();
+        event.setMinParticipants(minP);
+
+        // Determine capacity: prefer explicit capacity field, otherwise fall back to maxParticipants
+        Integer capacity = dto.capacity() != null ? dto.capacity() : (dto.maxParticipants() == null ? null : dto.maxParticipants());
+        // If frontend sent 'capacity' prefer that as maxParticipants; otherwise use maxParticipants field
+        if (capacity != null) {
+            event.setMaxParticipants(capacity);
+        } else {
+            event.setMaxParticipants(maxP);
+        }
+
+        // Set availableSlots initially equal to capacity (or maxParticipants) as requested
+        event.setAvailableSlots(capacity == null ? 0 : capacity);
+
+        event.setDurationHours(dto.durationHours() == null ? 0 : dto.durationHours());
+
         event.setEquipmentNeeded(dto.equipmentNeeded());
         event.setRequirements(dto.requirements());
         event.setCancellationDeadline(cancellationDeadlineDate);
@@ -201,10 +217,38 @@ public class EventService {
         }
         event.setDescription(dto.description());
         event.setCategory(dto.category());
-        event.setMinParticipants(dto.minParticipants());
-        event.setMaxParticipants(dto.maxParticipants());
-        event.setAvailableSlots(dto.maxParticipants() == null ? event.getMaxParticipants() : dto.maxParticipants());
-        event.setDurationHours(dto.durationHours());
+
+        // safe updates to avoid NPEs
+        int newMin = dto.minParticipants() == null ? event.getMinParticipants() : dto.minParticipants();
+        int newMax = dto.maxParticipants() == null ? event.getMaxParticipants() : dto.maxParticipants();
+        event.setMinParticipants(newMin);
+        event.setMaxParticipants(newMax);
+
+        // Handle capacity changes: prefer explicit capacity field; fallback to maxParticipants
+        Integer providedCapacity = dto.capacity() != null ? dto.capacity() : (dto.maxParticipants() == null ? null : dto.maxParticipants());
+        Integer oldCapacity = event.getMaxParticipants();
+        Integer oldAvailable = event.getAvailableSlots();
+
+        if (providedCapacity != null) {
+            // If availableSlots is null, initialize it to providedCapacity
+            if (oldAvailable == null) {
+                event.setAvailableSlots(providedCapacity);
+            } else {
+                // compute delta between new capacity and previous capacity (use oldCapacity if present)
+                int prevCap = oldCapacity == null ? providedCapacity : oldCapacity;
+                int delta = providedCapacity - prevCap;
+                int adjusted = Math.max(0, oldAvailable + delta);
+                event.setAvailableSlots(adjusted);
+            }
+            // Also reflect the capacity in maxParticipants for backward compatibility
+            event.setMaxParticipants(providedCapacity);
+        } else {
+            // no capacity provided: keep existing availableSlots
+            event.setAvailableSlots(oldAvailable == null ? event.getMaxParticipants() : oldAvailable);
+        }
+
+        event.setDurationHours(dto.durationHours() == null ? event.getDurationHours() : dto.durationHours());
+
         event.setEquipmentNeeded(dto.equipmentNeeded());
         event.setRequirements(dto.requirements());
         event.setCancellationDeadline(cancellationDeadlineDate);
@@ -279,6 +323,9 @@ public class EventService {
             bookingEnd = be.format(BOOKING_DATE_FMT);
         }
 
+        Integer capacity = event.getMaxParticipants();
+        // If capacity was explicitly stored in availableSlots originally, keep response capacity from maxParticipants
+
         return new EventResponse(
                 event.getEventId(),
                 event.getTitle(),
@@ -290,6 +337,7 @@ public class EventService {
                 event.getMaxParticipants(),
                 event.getAvailableSlots(),
                 event.getDurationHours(),
+                capacity,
                 event.getCategory(),
                 event.getDescription(),
                 event.getEquipmentNeeded(),
