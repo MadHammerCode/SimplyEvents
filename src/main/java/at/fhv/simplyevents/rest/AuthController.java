@@ -3,10 +3,12 @@ package at.fhv.simplyevents.rest;
 import at.fhv.simplyevents.rest.dto.AuthDtos;
 import at.fhv.simplyevents.service.AuthService;
 import at.fhv.simplyevents.domain.model.User;
+import at.fhv.simplyevents.domain.model.Role;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -20,7 +22,7 @@ public class AuthController {
     }
 
     // simple DTO returned to frontend (no password)
-    public static record UserResponseDTO(Long id, String name, String email, java.util.Set<String> roles) {}
+    public static record UserResponseDTO(Long id, String name, String email, java.util.Set<String> roles, String role) {}
 
     @PostMapping("/register/customer")
     public ResponseEntity<?> registerCustomer(@RequestBody AuthDtos.RegisterCustomerDTO dto) {
@@ -47,8 +49,17 @@ public class AuthController {
     }
 
     private UserResponseDTO toDto(User u) {
-        return new UserResponseDTO(u.getId(), u.getName(), u.getEmail(),
-                u.getRoles().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+        Set<String> roleNames = u.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+        String primary = null;
+        if (roleNames.contains("ROLE_VENDOR")) primary = "BACKOFFICE";
+        else if (roleNames.contains("ROLE_FRONTOFFICE")) primary = "FRONTOFFICE";
+        else if (roleNames.contains("ROLE_CUSTOMER")) primary = "CUSTOMER";
+        else if (!roleNames.isEmpty()) {
+            // fallback: strip ROLE_ prefix if present
+            String any = roleNames.iterator().next();
+            primary = any.startsWith("ROLE_") ? any.substring(5) : any;
+        }
+        return new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), roleNames, primary);
     }
 
     @ExceptionHandler(IllegalStateException.class)

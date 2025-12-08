@@ -5,10 +5,17 @@
     <title>SimplyEvents – Discover Events</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Globale Navbar/Footer Styles (benötigt, damit layout::navbar funktioniert) -->
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+
     <!-- Neue, eigene Styles für das Dashboard -->
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
+<!-- insert global navbar fragment -->
+<div th:insert="layout :: navbar"></div>
+
 <div class="page">
     <!-- Hero / Top-Bereich -->
     <header class="hero">
@@ -108,5 +115,8 @@
 
 <!-- Neues, eigenes JS für das Dashboard -->
 <script src="/js/dashboard.js" defer></script>
+
+<!-- insert footer fragment -->
+<div th:insert="layout :: footer"></div>
 </body>
 </html>
