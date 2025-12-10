@@ -5,29 +5,40 @@ import at.fhv.simplyevents.persistence.EventRepository;
 import at.fhv.simplyevents.rest.dto.EventDtos.CreateEventRequest;
 import at.fhv.simplyevents.rest.dto.EventDtos.EventResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Date;
 import java.time.ZoneId;
-import java.time.Instant;
-
-import java.util.NoSuchElementException;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.time.Instant;
 
 @Service
 public class EventService {
 
     private final EventRepository eventRepository;
     private static final DateTimeFormatter BOOKING_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final String UPLOAD_DIR = "uploads";
+    private static final String DEFAULT_IMAGE_PATH = UPLOAD_DIR + "/coming_soon.png";
+    private static final long MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
 
     public EventService(EventRepository eventRepository) {
         this.eventRepository = eventRepository;
     }
 
     public EventResponse createEvent(CreateEventRequest dto) {
+        return createEvent(dto, null);
+    }
+
+    public EventResponse createEvent(CreateEventRequest dto, MultipartFile imageFile) {
 
         LocalDateTime startDateTime = null;
         if (dto.date() != null && dto.time() != null && !dto.date().isBlank() && !dto.time().isBlank()) {
@@ -134,12 +145,17 @@ public class EventService {
         event.setYearRound(Boolean.TRUE.equals(dto.yearRound()));
         event.setBookingStart(bookingStartDate);
         event.setBookingEnd(bookingEndDate);
+        event.setImagePath(resolveImagePath(imageFile, dto.imagePath(), DEFAULT_IMAGE_PATH));
 
         Event saved = eventRepository.save(event);
         return toResponse(saved);
     }
 
     public EventResponse updateEvent(Long id, CreateEventRequest dto) {
+        return updateEvent(id, dto, null);
+    }
+
+    public EventResponse updateEvent(Long id, CreateEventRequest dto, MultipartFile imageFile) {
         // parse date/time if present
         LocalDateTime startDateTime = null;
         if (dto.date() != null && dto.time() != null && !dto.date().isBlank() && !dto.time().isBlank()) {
@@ -255,6 +271,7 @@ public class EventService {
         event.setYearRound(Boolean.TRUE.equals(dto.yearRound()));
         event.setBookingStart(bookingStartDate);
         event.setBookingEnd(bookingEndDate);
+        event.setImagePath(resolveImagePath(imageFile, dto.imagePath(), event.getImagePath()));
 
         Event saved = eventRepository.save(event);
         return toResponse(saved);
@@ -348,5 +365,45 @@ public class EventService {
                 bookingEnd,
                 event.isYearRound()
         );
+    }
+
+    private String resolveImagePath(MultipartFile uploadedFile, String dtoImagePath, String fallbackPath) {
+        if (uploadedFile != null && !uploadedFile.isEmpty()) {
+            return storeImage(uploadedFile);
+        }
+        if (dtoImagePath != null && !dtoImagePath.isBlank()) {
+            return dtoImagePath;
+        }
+        if (fallbackPath != null && !fallbackPath.isBlank()) {
+            return fallbackPath;
+        }
+        return DEFAULT_IMAGE_PATH;
+    }
+
+    private String storeImage(MultipartFile file) {
+        if (file.getSize() > MAX_IMAGE_SIZE_BYTES) {
+            throw new IllegalArgumentException("Image is too large. Max size is 5 MB.");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            throw new IllegalArgumentException("Image must have a valid extension.");
+        }
+
+        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("Unsupported image type. Allowed: jpg, jpeg, png, gif, webp.");
+        }
+
+        String storedFileName = "event_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().replace("-", "") + "." + extension;
+        Path uploadDir = Paths.get(UPLOAD_DIR);
+        try {
+            Files.createDirectories(uploadDir);
+            Path targetPath = uploadDir.resolve(storedFileName);
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+            return UPLOAD_DIR + "/" + storedFileName;
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not store image file.", e);
+        }
     }
 }

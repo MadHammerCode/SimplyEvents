@@ -37,7 +37,8 @@ public class EventDtos {
             String bookingEnd,
             Boolean yearRound,
             Boolean confirmPast,
-            Integer capacity
+            Integer capacity,
+            String imagePath
     ) {}
 
 
