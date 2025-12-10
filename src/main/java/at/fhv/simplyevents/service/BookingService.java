@@ -4,7 +4,7 @@ import at.fhv.simplyevents.rest.dto.BookingDtos.*;
 import at.fhv.simplyevents.domain.model.ActiveBooking;
 import at.fhv.simplyevents.domain.model.CancelledBooking;
 import at.fhv.simplyevents.domain.model.Event;
-import at.fhv.simplyevents.persistence.BookRepository;
+import at.fhv.simplyevents.persistence.ActiveBookingRepository;
 import at.fhv.simplyevents.persistence.CancelledBookingRepository;
 import at.fhv.simplyevents.persistence.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,11 +19,11 @@ import java.util.UUID;
 public class BookingService {
 
     private final EventRepository eventRepository;
-    private final BookRepository activeBookingRepository;
+    private final ActiveBookingRepository activeBookingRepository;
     private final CancelledBookingRepository cancelledBookingRepository;
 
     public BookingService(EventRepository eventRepository,
-                          BookRepository activeBookingRepository,
+                          ActiveBookingRepository activeBookingRepository,
                           CancelledBookingRepository cancelledBookingRepository) {
         this.eventRepository = eventRepository;
         this.activeBookingRepository = activeBookingRepository;

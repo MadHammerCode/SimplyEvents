@@ -1,8 +1,8 @@
 package at.fhv.simplyevents.domain.model;
 
 import jakarta.persistence.*;
-
 import java.util.*;
+import at.fhv.simplyevents.domain.model.VendorProfile;
 
 @Entity
 @Access(AccessType.FIELD)
@@ -22,7 +22,8 @@ public class Event {
     private String location;
     private Integer durationHours;
     private Date date;
-    private int availableSlots;
+    @Column(name = "available_slots")
+    private Integer availableSlots;
     private String description;
     private Date cancellationDeadline;
 
@@ -38,8 +39,8 @@ public class Event {
     private Date bookingEnd;
 
     @ManyToOne
-    @JoinColumn(name = "vendor_id")
-    private Vendor vendor;
+    @JoinColumn(name = "vendor_profile_id")
+    private VendorProfile vendor;
 
     @Column(name = "image_path")
     private String imagePath;
@@ -116,7 +117,7 @@ public class Event {
         this.equipmentNeeded = equipmentNeeded;
     }
 
-    public int getDurationHours() {
+    public Integer getDurationHours() {
         return durationHours;
     }
 
@@ -132,11 +133,11 @@ public class Event {
         this.date = date;
     }
 
-    public int getAvailableSlots() {
+    public Integer getAvailableSlots() {
         return availableSlots;
     }
 
-    public void setAvailableSlots(int availableSlots) {
+    public void setAvailableSlots(Integer availableSlots) {
         this.availableSlots = availableSlots;
     }
 
@@ -195,4 +196,13 @@ public class Event {
     public void setBookingEnd(Date bookingEnd) {
         this.bookingEnd = bookingEnd;
     }
+
+    public VendorProfile getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(VendorProfile vendor) {
+        this.vendor = vendor;
+    }
 }
+

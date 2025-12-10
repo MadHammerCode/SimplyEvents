@@ -4,28 +4,11 @@ import at.fhv.simplyevents.rest.dto.EventDtos.CreateEventRequest;
 import at.fhv.simplyevents.rest.dto.EventDtos.EventResponse;
 import at.fhv.simplyevents.service.EventService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
- import org.springframework.web.bind.annotation.PutMapping;
-
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import at.fhv.simplyevents.domain.model.Event;
-import at.fhv.simplyevents.persistence.EventRepository;
 
 import java.util.List;
 
@@ -34,16 +17,16 @@ import java.util.List;
 public class EventRestController {
 
     private final EventService eventService;
-    private final EventRepository eventRepository;
 
-    public EventRestController(EventService eventService, EventRepository eventRepository) {
+    public EventRestController(EventService eventService) {
         this.eventService = eventService;
-        this.eventRepository = eventRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<?> createEvent(@Valid @RequestBody CreateEventRequest request,
-                                         BindingResult bindingResult) {
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createEventJson(
+            @Valid @RequestBody CreateEventRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getFieldErrors().stream()
                     .map(err -> err.getField() + ": " + err.getDefaultMessage())
@@ -53,6 +36,27 @@ public class EventRestController {
 
         try {
             EventResponse response = eventService.createEvent(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createEventMultipart(
+            @Valid @RequestPart("event") CreateEventRequest request,
+            BindingResult bindingResult,
+            @RequestPart(value = "file", required = false) MultipartFile imageFile
+    ) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            EventResponse response = eventService.createEvent(request, imageFile);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -69,9 +73,12 @@ public class EventRestController {
         return eventService.getEventById(id);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateEvent(@PathVariable Long id, @Valid @RequestBody CreateEventRequest request,
-                                         BindingResult bindingResult) {
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateEventJson(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateEventRequest request,
+            BindingResult bindingResult
+    ) {
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getFieldErrors().stream()
                     .map(err -> err.getField() + ": " + err.getDefaultMessage())
@@ -87,38 +94,25 @@ public class EventRestController {
         }
     }
 
-    @PostMapping("/{eventId}/image")
-    public ResponseEntity<Void> uploadEventImage(
-            @PathVariable Long eventId,
-            @RequestParam("file") MultipartFile file
-    ) throws IOException {
-
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-
-        Path uploadDir = Paths.get("uploads");
-        Files.createDirectories(uploadDir); // falls noch nicht existiert
-
-
-        String originalFilename = file.getOriginalFilename();
-        String extension = "";
-
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateEventMultipart(
+            @PathVariable Long id,
+            @Valid @RequestPart("event") CreateEventRequest request,
+            BindingResult bindingResult,
+            @RequestPart(value = "file", required = false) MultipartFile imageFile
+    ) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
         }
 
-        String storedFileName = "event_" + eventId + "_" + System.currentTimeMillis() + extension;
-
-        Path targetPath = uploadDir.resolve(storedFileName);
-
-
-        Files.copy(file.getInputStream(), targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-
-        event.setImagePath("uploads/" + storedFileName);
-        eventRepository.save(event);
-
-        return ResponseEntity.ok().build();
+        try {
+            EventResponse response = eventService.updateEvent(id, request, imageFile);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 }

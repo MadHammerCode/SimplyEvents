@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface BookRepository extends JpaRepository<ActiveBooking, Long> {
+public interface ActiveBookingRepository extends JpaRepository<ActiveBooking, Long> {
 
     Optional<ActiveBooking> findByBookingNumber(String bookingNumber);
 

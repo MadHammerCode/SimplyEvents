@@ -118,8 +118,8 @@ function doLogin(payload) {
         showError(null);
         const user = await res.json().catch(() => ({}));
 
-        // User optional im localStorage merken
-        if (remember && user) {
+        // Benutzer im localStorage merken (immer, damit Navbar sich sofort anpasst)
+        if (user) {
             try {
                 window.localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
             } catch {

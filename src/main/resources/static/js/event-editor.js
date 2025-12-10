@@ -74,30 +74,6 @@ function loadEvent(id) {
         });
 }
 
-/* ---------- Image Upload ---------- */
-
-function uploadImage() {
-    const fileInput = document.getElementById("imageFile");
-    const file = fileInput.files[0];
-    if (!file) return Promise.resolve(null);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    return fetch("/api/uploads", {
-        method: "POST",
-        body: formData
-    })
-        .then((res) => {
-            if (!res.ok) throw new Error("Image upload failed");
-            return res.json();
-        })
-        .then((data) => {
-            uploadedImagePath = data.path;
-            return uploadedImagePath;
-        });
-}
-
 /* ---------- Validate ---------- */
 
 function validateForm() {
@@ -112,11 +88,41 @@ function validateForm() {
     if (!title) errors.push("Title is required.");
     if (!category) errors.push("Category is required.");
     if (!location) errors.push("Location is required.");
-    if (!date) errors.push("Date is required.");
-    if (!time) errors.push("Time is required.");
     if (!capacity || Number(capacity) < 1) errors.push("Capacity must be at least 1.");
 
+    const bookingStart = document.getElementById("bookingStart")?.value;
+    const bookingEnd = document.getElementById("bookingEnd")?.value;
+    const yearRound = document.getElementById("yearRound")?.checked;
+
+    const dateAndTimeProvided = date && time;
+    const bookingWindowProvided = bookingStart && bookingEnd;
+
+    if (!dateAndTimeProvided && !bookingWindowProvided && !yearRound) {
+        errors.push("Provide date & time, or booking window, or enable year-round availability.");
+    }
+
+    if (bookingWindowProvided && bookingStart > bookingEnd) {
+        errors.push("Booking window is invalid.");
+    }
+
     return errors;
+}
+
+function buildEventPayload() {
+    return {
+        title: document.getElementById("title").value.trim(),
+        category: document.getElementById("category").value,
+        price: Number(document.getElementById("price").value || 0),
+        location: document.getElementById("location").value.trim(),
+        date: document.getElementById("date").value,
+        time: document.getElementById("time").value,
+        capacity: Number(document.getElementById("capacity").value),
+        description: document.getElementById("description").value.trim(),
+        bookingStart: document.getElementById("bookingStart")?.value || null,
+        bookingEnd: document.getElementById("bookingEnd")?.value || null,
+        yearRound: document.getElementById("yearRound")?.checked || false,
+        imagePath: uploadedImagePath
+    };
 }
 
 /* ---------- Save ---------- */
@@ -129,28 +135,28 @@ function saveEvent() {
     }
     showError(null);
 
-    const body = {
-        title: document.getElementById("title").value.trim(),
-        category: document.getElementById("category").value,
-        price: Number(document.getElementById("price").value || 0),
-        location: document.getElementById("location").value.trim(),
-        date: document.getElementById("date").value,
-        time: document.getElementById("time").value,
-        capacity: Number(document.getElementById("capacity").value),
-        description: document.getElementById("description").value.trim(),
-        imagePath: uploadedImagePath
-    };
+    const eventPayload = buildEventPayload();
+    const formData = new FormData();
+    formData.append("event", new Blob([JSON.stringify(eventPayload)], { type: "application/json" }));
+
+    const file = document.getElementById("imageFile").files[0];
+    if (file) {
+        formData.append("file", file);
+    }
 
     const method = editingId ? "PUT" : "POST";
     const url = editingId ? `/api/events/${editingId}` : "/api/events";
 
     fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        body: formData
     })
         .then((res) => {
-            if (!res.ok) throw new Error("Save failed");
+            if (!res.ok) {
+                return res.json().then((data) => {
+                    throw new Error(typeof data === "string" ? data : "Event could not be saved.");
+                });
+            }
             return res.json().catch(() => ({}));
         })
         .then(() => {
@@ -158,7 +164,7 @@ function saveEvent() {
         })
         .catch((err) => {
             console.error(err);
-            showError("Event could not be saved.");
+            showError(err.message || "Event could not be saved.");
         });
 }
 
@@ -209,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Save
     document.getElementById("btnSave").addEventListener("click", () => {
-        uploadImage().finally(saveEvent);
+        saveEvent();
     });
 
     // Load data if editing

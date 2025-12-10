@@ -1,7 +1,6 @@
 package at.fhv.simplyevents.rest.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -37,7 +36,9 @@ public class EventDtos {
             String bookingStart,
             String bookingEnd,
             Boolean yearRound,
-            Boolean confirmPast
+            Boolean confirmPast,
+            Integer capacity,
+            String imagePath
     ) {}
 
 
@@ -55,6 +56,7 @@ public class EventDtos {
             Integer maxParticipants,
             Integer availableSlots,
             Integer durationHours,
+            Integer capacity,
 
             String category,
             String description,
