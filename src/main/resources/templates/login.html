@@ -1,49 +1,116 @@
-<!doctype html>
-<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Login – SimplyEvents</title>
-
-
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/components.css">
-
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Login & Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="/css/login.css">
-
-    <script src="/js/login.js" defer></script>
 </head>
 <body>
+<div class="page">
+    <main class="auth">
+        <div class="auth__left">
+            <div class="auth__brand">
+                <div class="auth__logo">SE</div>
+                <div>
+                    <h1 class="auth__title">SimplyEvents</h1>
+                    <p class="auth__subtitle">Manage your events, bookings and reviews in one place.</p>
+                </div>
+            </div>
 
-<div th:insert="~{fragments/topbar :: topbar}"></div>
-
-<main class="section">
-    <div class="container auth-container">
-
-        <div class="tab-buttons">
-            <button id="loginTab" class="tab-btn active">Login</button>
-            <button id="registerTab" class="tab-btn">Registrieren</button>
+            <ul class="auth__features">
+                <li>✓ Discover and book events</li>
+                <li>✓ Overview of all bookings</li>
+                <li>✓ Submit and manage reviews</li>
+                <li>✓ Access for customer, front office & back office</li>
+            </ul>
         </div>
 
-        <div id="loginForm" class="auth-form active">
-            <h2>Login</h2>
-            <input type="text" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPassword" placeholder="Passwort">
-            <button class="btn primary" type="button" onclick="login()">Einloggen</button>
-        </div>
+        <section class="auth__card">
+            <div class="auth__tabs">
+                <button type="button" id="tabLogin" class="auth__tab auth__tab--active">
+                    Login
+                </button>
+                <button type="button" id="tabRegister" class="auth__tab">
+                    Register
+                </button>
+            </div>
 
-        <div id="registerForm" class="auth-form">
-            <h2>Account erstellen</h2>
-            <input type="text" id="regEmail" placeholder="Email">
-            <input type="password" id="regPassword" placeholder="Passwort">
-            <input type="password" id="regPassword2" placeholder="Passwort wiederholen">
-            <button class="btn primary" type="button" onclick="register()">Registrieren</button>
-        </div>
+            <div id="errorBox" class="error-box hidden"></div>
 
-    </div>
-</main>
+            <!-- Login form -->
+            <form id="loginForm" class="form" autocomplete="on">
+                <h2 class="form__title">Welcome back</h2>
+                <p class="form__subtitle">Log in with your email and password.</p>
 
+                <div class="form__group">
+                    <label for="loginEmail" class="form__label">Email</label>
+                    <input id="loginEmail" type="email" class="form__input" autocomplete="email">
+                </div>
+
+                <div class="form__group">
+                    <label for="loginPassword" class="form__label">Password</label>
+                    <input id="loginPassword" type="password" class="form__input" autocomplete="current-password">
+                </div>
+
+                <div class="form__row">
+                    <label class="checkbox">
+                        <input id="rememberMe" type="checkbox" class="checkbox__input">
+                        <span class="checkbox__label">Keep me logged in</span>
+                    </label>
+                    <!-- Optional: later "Forgot password" link -->
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="loginSubmit">
+                    Login
+                </button>
+            </form>
+
+            <!-- Registration form -->
+            <form id="registerForm" class="form hidden" autocomplete="on">
+                <h2 class="form__title">Create account</h2>
+                <p class="form__subtitle">Create an account to book and manage events.</p>
+
+                <div class="form__group">
+                    <label for="registerName" class="form__label">Name</label>
+                    <input id="registerName" type="text" class="form__input" autocomplete="name">
+                </div>
+
+                <div class="form__group">
+                    <label for="registerEmail" class="form__label">Email</label>
+                    <input id="registerEmail" type="email" class="form__input" autocomplete="email">
+                </div>
+
+                <div class="form__group">
+                    <label for="registerPassword" class="form__label">Password</label>
+                    <input id="registerPassword" type="password" class="form__input" autocomplete="new-password">
+                </div>
+
+                <div class="form__group">
+                    <label for="registerPasswordRepeat" class="form__label">Repeat password</label>
+                    <input id="registerPasswordRepeat" type="password" class="form__input" autocomplete="new-password">
+                </div>
+
+                <!-- Optional: address for end user -->
+                <div class="form__group">
+                    <label for="registerAddress" class="form__label">Address (optional)</label>
+                    <input id="registerAddress" type="text" class="form__input" autocomplete="street-address">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="registerSubmit">
+                    Create account
+                </button>
+            </form>
+
+            <p class="auth__footer-note">
+                By signing in you accept our terms of use and privacy policy.
+            </p>
+        </section>
+    </main>
+</div>
+
+
+<script src="/js/login.js" defer></script>
 </body>
 </html>

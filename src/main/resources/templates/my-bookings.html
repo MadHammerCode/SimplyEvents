@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – My bookings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/my-bookings.css">
+</head>
+<body>
+<div class="page">
+    <!-- Header -->
+    <header class="mb-header">
+        <div class="container mb-header__inner">
+            <div>
+                <h1 class="mb-title">My bookings</h1>
+                <p class="mb-subtitle">
+                    Keep track of your upcoming, past and cancelled bookings.
+                </p>
+            </div>
+            <nav class="mb-nav">
+                <button type="button" id="btnToDashboard" class="btn btn-outline">Discover events</button>
+                <button type="button" id="btnToProfile" class="btn btn-outline">Profile</button>
+                <button type="button" id="btnLogout" class="btn btn-danger">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Filter bar -->
+    <section class="mb-filterbar">
+        <div class="container mb-filterbar__inner">
+            <div class="mb-filter-tabs">
+                <button type="button" class="filter-tab filter-tab--active" data-filter="all">All</button>
+                <button type="button" class="filter-tab" data-filter="upcoming">Upcoming</button>
+                <button type="button" class="filter-tab" data-filter="past">Past</button>
+                <button type="button" class="filter-tab" data-filter="cancelled">Cancelled</button>
+            </div>
+            <div class="mb-filter-search">
+                <input id="searchInput" type="text" class="search-input"
+                       placeholder="Search by event, location or booking number…">
+            </div>
+        </div>
+    </section>
+
+    <main class="mb-main">
+        <div class="container mb-main__inner">
+
+            <!-- Stats -->
+            <section class="mb-stats">
+                <article class="mb-stat-card">
+                    <p class="mb-stat-card__label">Upcoming events</p>
+                    <p id="statUpcoming" class="mb-stat-card__value">–</p>
+                </article>
+                <article class="mb-stat-card mb-stat-card--highlight">
+                    <p class="mb-stat-card__label">Total bookings</p>
+                    <p id="statTotal" class="mb-stat-card__value">–</p>
+                </article>
+                <article class="mb-stat-card">
+                    <p class="mb-stat-card__label">Cancelled bookings</p>
+                    <p id="statCancelled" class="mb-stat-card__value">–</p>
+                </article>
+            </section>
+
+            <!-- List -->
+            <section class="mb-list-section">
+                <div id="bookingsList" class="mb-list">
+                    <!-- cards are inserted via JS -->
+                </div>
+                <p id="bookingsEmpty" class="mb-empty">
+                    There are currently no bookings available.
+                </p>
+            </section>
+        </div>
+    </main>
+</div>
+
+
+<script src="/js/my-bookings.js" defer></script>
+</body>
+</html>

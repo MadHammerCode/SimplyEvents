@@ -1,53 +1,122 @@
-<!doctype html>
-<html lang="de">
-<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SimplyEvents</title>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Discover Events</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Globale Navbar/Footer Styles (benötigt, damit layout::navbar funktioniert) -->
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
 
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/forms.css">
+    <!-- Neue, eigene Styles für das Dashboard -->
     <link rel="stylesheet" href="/css/dashboard.css">
-    <link rel="stylesheet" href="/css/event-details.css">
-
-
-    <script src="/js/modal.js" defer></script>
-    <script src="/js/event-detail.js" defer></script>
-    <script src="/js/events-list.js" defer></script>
-    <script src="/js/create-event.js" defer></script>
 </head>
 <body>
+<!-- insert global navbar fragment -->
+<div th:insert="layout :: navbar"></div>
 
-<div th:insert="~{fragments/topbar :: topbar}"></div>
+<div class="page">
+    <!-- Hero / Top-Bereich -->
+    <header class="hero">
+        <div class="container">
+            <h1 class="hero__title">Discover Unforgettable Events</h1>
+            <p class="hero__subtitle">
+                Thousands of events are waiting for you – find your perfect experience
+            </p>
 
-<section class="hero">
-    <div class="hero-inner">
-        <h1>Find your Event</h1>
+            <!-- Suchkarte -->
+            <section class="search-card">
+                <div class="search-grid">
+                    <!-- Suchfeld -->
+                    <div class="field">
+                        <label for="searchInput" class="field__label">Search</label>
+                        <div class="field__input field__input--icon">
+                            <span class="field__icon">🔍</span>
+                            <input
+                                    id="searchInput"
+                                    type="text"
+                                    placeholder="Search events..."
+                                    autocomplete="off"
+                            >
+                        </div>
+                    </div>
 
-        <form id="searchForm" class="search">
-            <span class="search-icon">🔍</span>
-            <input id="searchInput" type="text" placeholder="Search Event" />
-            <button type="submit">Search</button>
-        </form>
-    </div>
-</section>
+                    <!-- Ort (optional als Filter) -->
+                    <div class="field">
+                        <label for="locationInput" class="field__label">Location</label>
+                        <div class="field__input field__input--icon">
+                            <span class="field__icon">📍</span>
+                            <input
+                                    id="locationInput"
+                                    type="text"
+                                    placeholder="Location"
+                                    autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Datum (optional als Filter) -->
+                    <div class="field">
+                        <label for="dateInput" class="field__label">Date</label>
+                        <div class="field__input field__input--icon">
+                            <span class="field__icon">📅</span>
+                            <input
+                                    id="dateInput"
+                                    type="date"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Kategorien-Chips -->
+            <section class="category-bar">
+                <div id="categoryContainer" class="category-scroll">
+                    <!-- Chips werden per JS dynamisch eingefügt -->
+                </div>
+            </section>
+        </div>
+    </header>
+
+    <!-- Hauptbereich mit Ergebnisliste -->
+    <main class="main">
+        <div class="container">
+            <!-- Kopfzeile Ergebnisse -->
+            <section class="results-header">
+                <div>
+                    <h2 id="resultsTitle" class="results-title">All Events</h2>
+                    <p class="results-count">
+                        <span id="resultsCount">0</span> events found
+                    </p>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm">
+                    <span class="btn__icon">⚙️</span>
+                    <span>Filters</span>
+                </button>
+            </section>
+
+            <!-- Event-Grid -->
+            <section id="eventsSection">
+                <div id="eventsGrid" class="events-grid">
+                    <!-- Event-Karten werden per JS eingefügt -->
+                </div>
+
+                <!-- Leerer Zustand -->
+                <div id="emptyState" class="empty-state hidden">
+                    <p class="empty-state__title">No events found</p>
+                    <p class="empty-state__text">Try different search criteria</p>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
 
 
-<div th:replace="~{fragments/create-event-modal :: create-event-modal}"></div>
+<!-- Neues, eigenes JS für das Dashboard -->
+<script src="/js/dashboard.js" defer></script>
 
-<div th:replace="~{fragments/event-detail-modal :: event-detail-modal}"></div>
-
-<main class="section">
-    <div class="container">
-        <h2>Event List</h2>
-        <ul id="eventList" class="event-list"></ul>
-        <p id="eventEmptyState" class="event-empty">No event saved yet.</p>
-    </div>
-</main>
-
+<!-- insert footer fragment -->
+<div th:insert="layout :: footer"></div>
 </body>
 </html>

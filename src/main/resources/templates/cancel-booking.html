@@ -1,46 +1,18 @@
 <!doctype html>
-<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<html lang="de">
 <head>
-    <meta charset="utf-8" />
-    <title>Cancel Booking</title>
-
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/forms.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <script src="/js/cancel-booking.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stornieren — SimplyEvents</title>
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/layout.css" />
+  <link rel="stylesheet" href="/css/components.css" />
 </head>
 <body>
-
-<div th:insert="~{fragments/topbar :: topbar}"></div>
-
-<main class="section">
-    <div class="container">
-        <h1>Cancel booking</h1>
-
-        <form id="cancelForm" class="form" novalidate>
-            <div class="form-grid">
-                <div class="full">
-                    <label for="bookingNumber">Booking number *</label>
-                    <input id="bookingNumber" name="bookingNumber" type="text" required />
-                </div>
-
-                <div class="full">
-                    <label for="cancelReason">Cancel reason *</label>
-                    <textarea id="cancelReason" name="cancelReason" rows="3" required></textarea>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button type="submit" class="btn danger">Cancel booking</button>
-            </div>
-        </form>
-
-        <div id="cancelResult" class="booking-result" style="display:none;">
-            <h2>Booking cancelled</h2>
-            <p>Booking <strong id="cancelResultNumber"></strong> has been cancelled.</p>
-        </div>
-    </div>
-</main>
+<div class="page-shell page-inner">
+  <h1>Stornierung</h1>
+  <p>Hier kannst du deine Buchung stornieren. (Platzhalter-Seite)</p>
+  <p><a href="/dashboard">Zurück zum Dashboard</a></p>
+</div>
 </body>
 </html>

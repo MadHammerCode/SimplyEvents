@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Event Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/event-editor.css">
+</head>
+<body>
+<div class="page">
+
+    <!-- HEADER -->
+    <header class="editor-header">
+        <div class="container editor-header__inner">
+            <h1 id="editorTitle" class="editor-title">Create new event</h1>
+
+            <nav class="editor-nav">
+                <button type="button" id="btnBack" class="btn btn-outline">Back</button>
+                <button type="button" id="btnDelete" class="btn btn-danger hidden">Delete event</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="editor-main">
+        <div class="container editor-main__inner">
+
+            <!-- FORM CARD -->
+            <section class="editor-card">
+                <h2 class="editor-card__title">Event details</h2>
+
+                <div id="errorBox" class="error-box hidden"></div>
+
+                <!-- FORM -->
+                <form id="eventForm" enctype="multipart/form-data">
+
+                    <div class="form-grid">
+
+                        <!-- Title -->
+                        <div class="form-group span-2">
+                            <label for="title" class="form-label">Title *</label>
+                            <input id="title" type="text" class="form-input">
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label for="category" class="form-label">Category *</label>
+                            <select id="category" class="form-input">
+                                <option value="">Please select…</option>
+                                <option value="Music">Music</option>
+                                <option value="Sport">Sport</option>
+                                <option value="Workshop">Workshop</option>
+                                <option value="Business">Business</option>
+                                <option value="Festival">Festival</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="form-group">
+                            <label for="price" class="form-label">Price (€)</label>
+                            <input id="price" type="number" class="form-input" min="0" step="0.01">
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-group span-2">
+                            <label for="location" class="form-label">Location *</label>
+                            <input id="location" type="text" class="form-input">
+                        </div>
+
+                        <!-- Date -->
+                        <div class="form-group">
+                            <label for="date" class="form-label">Date *</label>
+                            <input id="date" type="date" class="form-input">
+                        </div>
+
+                        <!-- Time -->
+                        <div class="form-group">
+                            <label for="time" class="form-label">Time *</label>
+                            <input id="time" type="time" class="form-input">
+                        </div>
+
+                        <!-- Capacity -->
+                        <div class="form-group">
+                            <label for="capacity" class="form-label">Capacity *</label>
+                            <input id="capacity" type="number" min="1" class="form-input">
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group span-2">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" class="form-textarea" rows="4"></textarea>
+                        </div>
+
+                        <!-- Image upload -->
+                        <div class="form-group span-2">
+                            <label class="form-label">Event image</label>
+
+                            <div class="image-upload">
+                                <input type="file" id="imageFile" accept="image/*">
+                                <div id="imagePreview" class="image-preview hidden">
+                                    <img id="previewImg" alt="Preview">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="editor-actions">
+                        <button type="button" id="btnSave" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </section>
+
+        </div>
+    </main>
+
+</div>
+
+
+<script src="/js/event-editor.js" defer></script>
+</body>
+</html>

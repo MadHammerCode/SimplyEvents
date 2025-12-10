@@ -13,8 +13,8 @@ public class Wishlist {
     private Long wishlistId;
 
     @OneToOne
-    @JoinColumn(name = "enduser_id")
-    private EndUser endUser;
+    @JoinColumn(name = "user_id")
+    private User endUser;
 
     @ManyToMany
     @JoinTable(
@@ -25,4 +25,13 @@ public class Wishlist {
     private List<Event> events;
 
     private LocalDate createdAt;
+
+    public Long getWishlistId() { return wishlistId; }
+    public void setWishlistId(Long wishlistId) { this.wishlistId = wishlistId; }
+    public User getEndUser() { return endUser; }
+    public void setEndUser(User endUser) { this.endUser = endUser; }
+    public List<Event> getEvents() { return events; }
+    public void setEvents(List<Event> events) { this.events = events; }
+    public LocalDate getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
 }
