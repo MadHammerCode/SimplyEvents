@@ -1,0 +1,12 @@
+trigger:
+- main
+
+pool:
+  name: Self-Host
+
+steps:
+  - script: |
+      echo "Hello from self-hosted agent"
+      whoami
+      hostname
+    displayName: "Smoke test"
