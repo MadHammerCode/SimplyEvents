@@ -67,6 +67,7 @@ public class EventDtos {
             String imagePath,
             String bookingStart,
             String bookingEnd,
-            Boolean yearRound
+            Boolean yearRound,
+            String status
     ) {}
 }

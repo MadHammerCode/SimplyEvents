@@ -28,6 +28,7 @@ function setStep(step) {
     const prevBtn = document.getElementById("prevButton");
     const nextBtn = document.getElementById("nextButton");
     const cancelBtn = document.getElementById("cancelButton");
+    const dashboardBtn = document.getElementById("dashboardButton");
 
     if (!step1 || !step2 || !step3 || !prevBtn || !nextBtn || !cancelBtn) return;
 
@@ -35,14 +36,17 @@ function setStep(step) {
     step2.classList.toggle("hidden", step !== 2);
     step3.classList.toggle("hidden", step !== 3);
 
-    prevBtn.classList.toggle("hidden", step === 1);
+    prevBtn.classList.toggle("hidden", step === 1 || step === 3);
     cancelBtn.classList.toggle("hidden", step === 3);
+    if (dashboardBtn) {
+        dashboardBtn.classList.toggle("hidden", step !== 3);
+    }
 
     if (step === 3) {
         nextBtn.classList.add("hidden");
     } else {
         nextBtn.classList.remove("hidden");
-        nextBtn.textContent = step === 2 ? "Jetzt buchen" : "Weiter";
+        nextBtn.textContent = step === 2 ? "Book now" : "Next step";
     }
 
     // Step Indicators
@@ -343,6 +347,7 @@ function setupNavigation() {
     const nextBtn = document.getElementById("nextButton");
     const prevBtn = document.getElementById("prevButton");
     const cancelBtn = document.getElementById("cancelButton");
+    const dashboardBtn = document.getElementById("dashboardButton");
     const ticketInput = document.getElementById("ticketCount");
 
     if (ticketInput) {
@@ -392,6 +397,12 @@ function setupNavigation() {
             } else if (currentStep === 3) {
                 setStep(2);
             }
+        });
+    }
+
+    if (dashboardBtn) {
+        dashboardBtn.addEventListener("click", () => {
+            window.location.href = "/dashboard";
         });
     }
 

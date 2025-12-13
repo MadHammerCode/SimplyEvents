@@ -1,6 +1,7 @@
 package at.fhv.simplyevents.service;
 
 import at.fhv.simplyevents.domain.model.Event;
+import at.fhv.simplyevents.domain.model.EventStatus;
 import at.fhv.simplyevents.persistence.EventRepository;
 import at.fhv.simplyevents.rest.dto.EventDtos.CreateEventRequest;
 import at.fhv.simplyevents.rest.dto.EventDtos.EventResponse;
@@ -107,7 +108,7 @@ public class EventService {
             bookingEndDate = Date.from(be.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
-        Event event = new Event();
+        Event event = Event.createDraft();
         event.setTitle(dto.title());
         event.setDate(startDate);
         event.setLocation(dto.location());
@@ -284,6 +285,17 @@ public class EventService {
                 .toList();
     }
 
+    // Backoffice: filter events by a specific status (e.g. PLANNED, PUBLISHED, ACTIVE, FULL, CANCELLED)
+    public List<EventResponse> getEventsByStatus(EventStatus status) {
+        if (status == null) {
+            return getAllEvents();
+        }
+        return eventRepository.findByStatus(status)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public EventResponse getEventById(Long id) {
         var event = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
@@ -310,6 +322,32 @@ public class EventService {
             }
         }
         return toResponse(event);
+    }
+
+    public List<EventResponse> getPublicEvents() {
+        List<EventStatus> visibleStatuses = List.of(EventStatus.PUBLISHED, EventStatus.ACTIVE, EventStatus.FULL);
+        return eventRepository.findByStatusIn(visibleStatuses)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public EventResponse publishEvent(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+        if (event.getStatus() == EventStatus.CANCELLED) {
+            throw new IllegalArgumentException("Cancelled events cannot be published.");
+        }
+        event.setStatus(EventStatus.PUBLISHED);
+        Event saved = eventRepository.save(event);
+        return toResponse(saved);
+    }
+
+    public void deleteEvent(Long id) {
+        if (!eventRepository.existsById(id)) {
+            throw new NoSuchElementException("Event not found with id " + id);
+        }
+        eventRepository.deleteById(id);
     }
 
     private EventResponse toResponse(Event event) {
@@ -363,7 +401,8 @@ public class EventService {
                 event.getImagePath(),
                 bookingStart,
                 bookingEnd,
-                event.isYearRound()
+                event.isYearRound(),
+                event.getStatus() == null ? EventStatus.PLANNED.name() : event.getStatus().name()
         );
     }
 

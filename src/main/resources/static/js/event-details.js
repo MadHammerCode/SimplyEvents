@@ -113,7 +113,7 @@ function renderEvent(event) {
     if (capacityEl) {
         const available = event.availableSlots != null ? event.availableSlots : "-";
         const max = event.maxParticipants != null ? event.maxParticipants : "-";
-        capacityEl.textContent = `${available} von ${max}`;
+        capacityEl.textContent = `${available} from ${max}`;
     }
 
     const priceText = formatPrice(event.price);
