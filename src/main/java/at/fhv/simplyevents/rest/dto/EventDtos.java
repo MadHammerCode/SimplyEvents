@@ -15,7 +15,6 @@ public class EventDtos {
             String title,
             String date,
             String time,
-            @NotBlank (message = "Location must not be blank")
             String location,
 
             @DecimalMin(value = "0.0", inclusive = true, message = "Price must be greater than 0")
@@ -38,7 +37,9 @@ public class EventDtos {
             Boolean yearRound,
             Boolean confirmPast,
             Integer capacity,
-            String imagePath
+            String imagePath,
+            Boolean publishNow,
+            String status
     ) {}
 
 

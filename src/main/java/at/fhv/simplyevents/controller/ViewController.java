@@ -66,4 +66,12 @@ public class ViewController {
     public String frontofficeCheckin() {
         return "frontoffice-checkin";
     }
+
+    @GetMapping("/user-profile")
+    public String userProfile() {
+        return "user-profile";}
+
+    @GetMapping("/my-bookings")
+    public String myBookings() {
+        return "my-bookings";}
 }

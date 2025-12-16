@@ -40,25 +40,45 @@ public class EventService {
     }
 
     public EventResponse createEvent(CreateEventRequest dto, MultipartFile imageFile) {
+        boolean publishNow = Boolean.TRUE.equals(dto.publishNow());
+        boolean yearRound = Boolean.TRUE.equals(dto.yearRound());
+
+        if (dto.title() == null || dto.title().isBlank()) {
+            throw new IllegalArgumentException("Title is required.");
+        }
+        if (publishNow && (dto.location() == null || dto.location().isBlank())) {
+            throw new IllegalArgumentException("Location is required to publish an event.");
+        }
+        if (publishNow && (dto.category() == null || dto.category().isBlank())) {
+            throw new IllegalArgumentException("Category is required to publish an event.");
+        }
+
+        Integer rawCapacity = dto.capacity() != null ? dto.capacity() : dto.maxParticipants();
+        if (publishNow && (rawCapacity == null || rawCapacity < 1)) {
+            throw new IllegalArgumentException("Capacity must be at least 1 to publish an event.");
+        }
+        int resolvedCapacity = rawCapacity == null ? 0 : Math.max(0, rawCapacity);
+
+        boolean hasDate = dto.date() != null && !dto.date().isBlank();
+        boolean hasTime = dto.time() != null && !dto.time().isBlank();
+        boolean bookingWindowProvided = dto.bookingStart() != null && !dto.bookingStart().isBlank()
+                && dto.bookingEnd() != null && !dto.bookingEnd().isBlank();
 
         LocalDateTime startDateTime = null;
-        if (dto.date() != null && dto.time() != null && !dto.date().isBlank() && !dto.time().isBlank()) {
+        if (hasDate && hasTime) {
             LocalDate date = LocalDate.parse(dto.date());
             LocalTime time = LocalTime.parse(dto.time());
             startDateTime = LocalDateTime.of(date, time);
         }
 
-        // validate that at least one scheduling method is provided
-        boolean dateAndTimeProvided = startDateTime != null;
-        boolean yearRound = Boolean.TRUE.equals(dto.yearRound());
-        boolean bookingWindowProvided = dto.bookingStart() != null && !dto.bookingStart().isBlank()
-                && dto.bookingEnd() != null && !dto.bookingEnd().isBlank();
-
-        if (!dateAndTimeProvided && !yearRound && !bookingWindowProvided) {
-            throw new IllegalArgumentException("Please enter either date + time, or activate 'Available all year', or fill in both 'Booking from' and 'Booking until'.");
+        if (publishNow) {
+            if (!hasDate || !hasTime) {
+                if (!bookingWindowProvided && !yearRound) {
+                    throw new IllegalArgumentException("Provide date & time, booking window, or enable year-round availability to publish.");
+                }
+            }
         }
 
-        // if booking window provided, validate ordering
         if (bookingWindowProvided) {
             LocalDate bs = LocalDate.parse(dto.bookingStart());
             LocalDate be = LocalDate.parse(dto.bookingEnd());
@@ -67,14 +87,12 @@ public class EventService {
             }
         }
 
-        // Server-side: if startDateTime is in the past and client didn't confirm, block creation
-        if (startDateTime != null) {
+        if (publishNow && startDateTime != null) {
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
             if (startDateTime.isBefore(now)) {
-                // if confirmPast is missing or false, reject
                 Boolean confirmed = dto.confirmPast();
                 if (confirmed == null || !confirmed) {
-                    throw new IllegalArgumentException("The event is in the past. If you still want to create it, confirm this.");
+                    throw new IllegalArgumentException("The event is in the past. If you still want to publish it, confirm this.");
                 }
             }
         }
@@ -83,7 +101,6 @@ public class EventService {
         if (dto.cancellationDeadline() != null && !dto.cancellationDeadline().isBlank()) {
             cancellationDeadline = LocalDateTime.parse(dto.cancellationDeadline());
         }
-
 
         Date startDate = null;
         if (startDateTime != null) {
@@ -94,7 +111,6 @@ public class EventService {
         if (cancellationDeadline != null) {
             cancellationDeadlineDate = Date.from(cancellationDeadline.atZone(ZoneId.systemDefault()).toInstant());
         }
-
 
         Date bookingStartDate = null;
         if (dto.bookingStart() != null && !dto.bookingStart().isBlank()) {
@@ -120,33 +136,20 @@ public class EventService {
         event.setDescription(dto.description());
         event.setCategory(dto.category());
 
-        // avoid NPEs when DTO integers are null -> provide safe defaults
-        int minP = dto.minParticipants() == null ? 0 : dto.minParticipants();
-        int maxP = dto.maxParticipants() == null ? 0 : dto.maxParticipants();
-        event.setMinParticipants(minP);
-
-        // Determine capacity: prefer explicit capacity field, otherwise fall back to maxParticipants
-        Integer capacity = dto.capacity() != null ? dto.capacity() : (dto.maxParticipants() == null ? null : dto.maxParticipants());
-        // If frontend sent 'capacity' prefer that as maxParticipants; otherwise use maxParticipants field
-        if (capacity != null) {
-            event.setMaxParticipants(capacity);
-        } else {
-            event.setMaxParticipants(maxP);
-        }
-
-        // Set availableSlots initially equal to capacity (or maxParticipants) as requested
-        event.setAvailableSlots(capacity == null ? 0 : capacity);
+        event.setMinParticipants(dto.minParticipants() == null ? 0 : dto.minParticipants());
+        event.setMaxParticipants(resolvedCapacity);
+        event.setAvailableSlots(resolvedCapacity);
 
         event.setDurationHours(dto.durationHours() == null ? 0 : dto.durationHours());
-
         event.setEquipmentNeeded(dto.equipmentNeeded());
         event.setRequirements(dto.requirements());
         event.setCancellationDeadline(cancellationDeadlineDate);
 
-        event.setYearRound(Boolean.TRUE.equals(dto.yearRound()));
+        event.setYearRound(yearRound);
         event.setBookingStart(bookingStartDate);
         event.setBookingEnd(bookingEndDate);
         event.setImagePath(resolveImagePath(imageFile, dto.imagePath(), DEFAULT_IMAGE_PATH));
+        event.setStatus(publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED);
 
         Event saved = eventRepository.save(event);
         return toResponse(saved);

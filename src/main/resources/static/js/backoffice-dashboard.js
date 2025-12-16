@@ -164,10 +164,10 @@ function updateStats(events) {
     const statUtilizationChange = document.getElementById("statUtilizationChange");
     const statRevenueChange = document.getElementById("statRevenueChange");
 
-    if (statEventsChange) statEventsChange.textContent = "Vs. previous period (mock)";
-    if (statBookingsChange) statBookingsChange.textContent = "Trend data follow (mock)";
-    if (statUtilizationChange) statUtilizationChange.textContent = "Trend data follow (Mock)";
-    if (statRevenueChange) statRevenueChange.textContent = "Trend Data follow (Mock)";
+    if (statEventsChange) statEventsChange.textContent = "Vs. previous period";
+    if (statBookingsChange) statBookingsChange.textContent = "Trend data follow";
+    if (statUtilizationChange) statUtilizationChange.textContent = "Trend data follow";
+    if (statRevenueChange) statRevenueChange.textContent = "Trend Data follow";
 }
 
 // ------- Charts -------

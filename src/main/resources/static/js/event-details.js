@@ -1,26 +1,6 @@
 // Einfache Mock-Bewertungen, bis das Bewertungssystem im Backend existiert
 const MOCK_REVIEWS = [
-    {
-        id: 1,
-        userName: "Anna M.",
-        date: "12.10.2025",
-        rating: 5,
-        comment: "Super organisiert, tolle Atmosphäre und ein sehr freundliches Team!"
-    },
-    {
-        id: 2,
-        userName: "Lukas P.",
-        date: "05.10.2025",
-        rating: 4,
-        comment: "Das Event war sehr gut, nur das Catering hätte besser sein können."
-    },
-    {
-        id: 3,
-        userName: "Sophie K.",
-        date: "25.09.2025",
-        rating: 5,
-        comment: "Absolut empfehlenswert! Ich komme auf jeden Fall wieder."
-    }
+
 ];
 
 const WISHLIST_KEY = "simplyevents_wishlist";
