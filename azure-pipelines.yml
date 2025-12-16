@@ -5,8 +5,11 @@ pool:
   name: Self-Host
 
 steps:
-  - script: |
-      echo "Hello from self-hosted agent"
-      whoami
-      hostname
-    displayName: "Smoke test"
+  - task: Gradle@3
+    inputs:
+      gradleWrapperFile: 'gradlew'
+      tasks: 'build'
+      publishJUnitResults: true
+      testResultsFiles: '**/TEST-*.xml'
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.21'
