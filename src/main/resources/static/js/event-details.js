@@ -82,7 +82,7 @@ function renderEvent(event) {
     const imagePath = event.imagePath ? `/${event.imagePath}` : "/images/default-event.jpg";
     if (imageEl) {
         imageEl.src = imagePath;
-        imageEl.alt = event.title || "Event Bild";
+        imageEl.alt = event.title || "Event Picture";
     }
 
     if (titleEl) titleEl.textContent = event.title || "Event";
