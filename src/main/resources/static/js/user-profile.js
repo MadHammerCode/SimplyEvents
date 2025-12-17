@@ -39,7 +39,7 @@ function showSuccess(boxId, msg) {
 /* ------ Load user data ------ */
 
 function loadProfile() {
-    fetch("/api/users/me")
+    fetch("/api/users/me", { credentials: 'same-origin' })
         .then((res) => {
             if (!res.ok) throw new Error("Error loading profile");
             return res.json();
@@ -94,6 +94,7 @@ function saveProfile() {
 
     fetch("/api/users/me", {
         method: "PUT",
+        credentials: 'same-origin',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
     })
@@ -131,6 +132,7 @@ function changePassword() {
 
     fetch("/api/users/me/password", {
         method: "PUT",
+        credentials: 'same-origin',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             currentPassword: current,

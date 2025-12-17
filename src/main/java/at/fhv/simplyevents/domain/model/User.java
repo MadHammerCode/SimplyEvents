@@ -13,7 +13,10 @@ public class User {
     private Long id;
 
     @Column(nullable = false)
-    private String name;
+    private String fname;
+
+    @Column(nullable = false)
+    private String lname;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -45,8 +48,10 @@ public class User {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getFname() { return fname; }
+    public void setFname(String name) { this.fname = name; }
+    public String getLname() { return lname; }
+    public void setLname(String lname) { this.lname = lname; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
@@ -58,4 +63,3 @@ public class User {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }
-

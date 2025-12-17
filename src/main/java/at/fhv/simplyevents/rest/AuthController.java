@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -21,8 +27,8 @@ public class AuthController {
         this.auth = auth;
     }
 
-    // simple DTO returned to frontend (no password)
-    public static record UserResponseDTO(Long id, String name, String email, java.util.Set<String> roles, String role) {}
+    // simple DTO returned to frontend (no password); expose firstName and lastName separately
+    public static record UserResponseDTO(Long id, String firstName, String lastName, String email, java.util.Set<String> roles, String role) {}
 
     @PostMapping("/register/customer")
     public ResponseEntity<?> registerCustomer(@RequestBody AuthDtos.RegisterCustomerDTO dto) {
@@ -43,8 +49,22 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthDtos.LoginDTO dto) {
+    public ResponseEntity<?> login(@RequestBody AuthDtos.LoginDTO dto, HttpServletRequest request) {
         User u = auth.login(dto);
+
+        // build authorities from roles
+        Set<SimpleGrantedAuthority> authorities = u.getRoles().stream()
+                .map(Role::getName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(u.getEmail(), null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // store security context in session so subsequent requests are authenticated
+        HttpSession session = request.getSession(true);
+        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+
         return ResponseEntity.ok(toDto(u));
     }
 
@@ -59,7 +79,7 @@ public class AuthController {
             String any = roleNames.iterator().next();
             primary = any.startsWith("ROLE_") ? any.substring(5) : any;
         }
-        return new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), roleNames, primary);
+        return new UserResponseDTO(u.getId(), u.getFname(), u.getLname(), u.getEmail(), roleNames, primary);
     }
 
     @ExceptionHandler(IllegalStateException.class)
