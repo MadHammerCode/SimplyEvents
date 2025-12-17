@@ -22,14 +22,8 @@ public class UserService {
     public UserProfileDto getUserProfile(String email) {
         User user = users.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        String fullName = user.getName() == null ? "" : user.getName().trim();
-        String firstName = "";
-        String lastName = "";
-        if (!fullName.isEmpty()) {
-            String[] parts = fullName.split("\\s+", 2);
-            firstName = parts[0];
-            if (parts.length > 1) lastName = parts[1];
-        }
+        String firstName = user.getFname() == null ? "" : user.getFname().trim();
+        String lastName = user.getLname() == null ? "" : user.getLname().trim();
 
         String phone = "";
         String address = "";
@@ -54,13 +48,11 @@ public class UserService {
     public UserProfileDto updateUserProfile(String email, UserProfileDto dto) {
         User user = users.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // Update name from first+last
+        // Update first and last name directly from DTO
         String f = dto.getFirstName() == null ? "" : dto.getFirstName().trim();
         String l = dto.getLastName() == null ? "" : dto.getLastName().trim();
-        String newName = (f + " " + l).trim();
-        if (!newName.isEmpty()) {
-            user.setName(newName);
-        }
+        user.setFname(f);
+        user.setLname(l);
 
         // Do not allow changing email through this endpoint for safety
         // Update vendor contact info if vendor profile exists
@@ -74,4 +66,3 @@ public class UserService {
         return getUserProfile(saved.getEmail());
     }
 }
-

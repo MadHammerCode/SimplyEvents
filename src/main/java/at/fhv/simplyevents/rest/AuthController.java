@@ -27,8 +27,8 @@ public class AuthController {
         this.auth = auth;
     }
 
-    // simple DTO returned to frontend (no password)
-    public static record UserResponseDTO(Long id, String name, String email, java.util.Set<String> roles, String role) {}
+    // simple DTO returned to frontend (no password); expose firstName and lastName separately
+    public static record UserResponseDTO(Long id, String firstName, String lastName, String email, java.util.Set<String> roles, String role) {}
 
     @PostMapping("/register/customer")
     public ResponseEntity<?> registerCustomer(@RequestBody AuthDtos.RegisterCustomerDTO dto) {
@@ -79,7 +79,7 @@ public class AuthController {
             String any = roleNames.iterator().next();
             primary = any.startsWith("ROLE_") ? any.substring(5) : any;
         }
-        return new UserResponseDTO(u.getId(), u.getName(), u.getEmail(), roleNames, primary);
+        return new UserResponseDTO(u.getId(), u.getFname(), u.getLname(), u.getEmail(), roleNames, primary);
     }
 
     @ExceptionHandler(IllegalStateException.class)

@@ -135,7 +135,10 @@ function doLogin(payload) {
 /* ---------- Register ---------- */
 
 function validateRegisterForm() {
-    const nameEl = document.getElementById("registerName");
+
+    const firstNameEl = document.getElementById("registerFirstName");
+    const lastNameEl = document.getElementById("registerLastName");
+
     const emailEl = document.getElementById("registerEmail");
     const pwEl = document.getElementById("registerPassword");
     const pwRepeatEl = document.getElementById("registerPasswordRepeat");
@@ -143,13 +146,20 @@ function validateRegisterForm() {
 
     const errors = [];
 
-    const name = nameEl?.value.trim();
+    // OLD: const name = nameEl?.value.trim();
+    // NEW: Get values from new fields
+    const firstName = firstNameEl?.value.trim();
+    const lastName = lastNameEl?.value.trim();
+
     const email = emailEl?.value.trim();
     const pw = pwEl?.value;
     const pwRepeat = pwRepeatEl?.value;
     const address = addressEl?.value.trim();
 
-    if (!name) errors.push("Name must not be empty.");
+    // OLD: if (!name) errors.push("Name must not be empty.");
+    // NEW: Validate both fields
+    if (!firstName) errors.push("First name is required.");
+    if (!lastName) errors.push("Last name is required.");
 
     if (!email) {
         errors.push("Email must not be empty.");
@@ -173,7 +183,15 @@ function validateRegisterForm() {
     }
 
     showError(null);
-    return { name, email, password: pw, address: address || null };
+
+    // IMPORTANT: Return 'firstName' and 'lastName' keys to match your Java DTO
+    return {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: pw,
+        address: address || null
+    };
 }
 
 function doRegister(payload) {
