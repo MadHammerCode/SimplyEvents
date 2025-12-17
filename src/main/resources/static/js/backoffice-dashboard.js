@@ -25,8 +25,9 @@ let selectedCategory = "all";
 
 // ------- Data Loading -------
 
-function loadEvents() {
-    return fetch("/api/events")
+function loadEvents(statusFilter = "ALL") {
+    const url = statusFilter && statusFilter !== "ALL" ? `/api/events/backoffice?status=${encodeURIComponent(statusFilter)}` : "/api/events/backoffice";
+    return fetch(url)
         .then((res) => {
             if (!res.ok) throw new Error("Events could not be loaded");
             return res.json();
@@ -76,10 +77,20 @@ function initCategoryFilter(events) {
 function applyFilters() {
     const period = document.getElementById("filterPeriod")?.value || "all";
     const category = document.getElementById("filterCategory")?.value || "all";
+    const statusFilter = document.getElementById("filterStatus")?.value || "ALL";
     const search = document.getElementById("eventSearch")?.value.trim().toLowerCase() || "";
 
     selectedCategory = category;
 
+    if (statusFilter !== "ALL") {
+        loadEvents(statusFilter).then(() => filterAndRender(period, category, search));
+        return;
+    }
+
+    filterAndRender(period, category, search);
+}
+
+function filterAndRender(period, category, search) {
     filteredEvents = allEvents.filter((ev) => {
         // Category
         const cat = (ev.category || "").trim();
@@ -153,10 +164,10 @@ function updateStats(events) {
     const statUtilizationChange = document.getElementById("statUtilizationChange");
     const statRevenueChange = document.getElementById("statRevenueChange");
 
-    if (statEventsChange) statEventsChange.textContent = "Vs. previous period (mock)";
-    if (statBookingsChange) statBookingsChange.textContent = "Trend data follow (mock)";
-    if (statUtilizationChange) statUtilizationChange.textContent = "Trend data follow (Mock)";
-    if (statRevenueChange) statRevenueChange.textContent = "Trend Data follow (Mock)";
+    if (statEventsChange) statEventsChange.textContent = "Vs. previous period";
+    if (statBookingsChange) statBookingsChange.textContent = "Trend data follow";
+    if (statUtilizationChange) statUtilizationChange.textContent = "Trend data follow";
+    if (statRevenueChange) statRevenueChange.textContent = "Trend Data follow";
 }
 
 // ------- Charts -------
@@ -314,6 +325,10 @@ function renderTable(events) {
         const date = escapeHtml(ev.date || "");
         const capacity = ev.capacity ?? "–";
         const price = formatPrice(ev.price);
+        const status = escapeHtml(ev.status || "PLANNED");
+        const publishButton = status === "PLANNED"
+            ? `<button type="button" class="action-btn action-btn--publish" data-publish="${id}">Publish</button>`
+            : "";
 
         return `
       <tr data-id="${id}">
@@ -323,10 +338,12 @@ function renderTable(events) {
         <td>${date}</td>
         <td>${capacity}</td>
         <td>${price}</td>
+        <td>${status}</td>
         <td>
           <div class="event-actions">
             <button type="button" class="action-btn action-btn--edit" data-edit="${id}">Edit</button>
             <button type="button" class="action-btn action-btn--delete" data-delete="${id}">Delete</button>
+            ${publishButton}
           </div>
         </td>
       </tr>
@@ -416,6 +433,31 @@ function setupRowActions() {
                 });
         });
     });
+
+    document.querySelectorAll("[data-publish]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-publish");
+            if (!id) return;
+            if (!confirm("Do you really want to publish this event?")) return;
+
+            fetch(`/api/events/${encodeURIComponent(id)}/publish`, { method: "POST" })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Publishing failed");
+                    return res.json();
+                })
+                .then((updated) => {
+                    const idx = allEvents.findIndex((ev) => String(ev.id) === String(id));
+                    if (idx >= 0) {
+                        allEvents[idx] = updated;
+                    }
+                    applyFilters();
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert("Event could not be published.");
+                });
+        });
+    });
 }
 
 // ------- Navigation -------
@@ -455,10 +497,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const periodSel = document.getElementById("filterPeriod");
     const categorySel = document.getElementById("filterCategory");
+    const statusSel = document.getElementById("filterStatus");
     const searchInput = document.getElementById("eventSearch");
 
     if (periodSel) periodSel.addEventListener("change", applyFilters);
     if (categorySel) categorySel.addEventListener("change", applyFilters);
+    if (statusSel) statusSel.addEventListener("change", applyFilters);
     if (searchInput) searchInput.addEventListener("input", applyFilters);
 
     loadEvents();

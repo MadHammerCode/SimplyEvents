@@ -1,26 +1,6 @@
 // Einfache Mock-Bewertungen, bis das Bewertungssystem im Backend existiert
 const MOCK_REVIEWS = [
-    {
-        id: 1,
-        userName: "Anna M.",
-        date: "12.10.2025",
-        rating: 5,
-        comment: "Super organisiert, tolle Atmosphäre und ein sehr freundliches Team!"
-    },
-    {
-        id: 2,
-        userName: "Lukas P.",
-        date: "05.10.2025",
-        rating: 4,
-        comment: "Das Event war sehr gut, nur das Catering hätte besser sein können."
-    },
-    {
-        id: 3,
-        userName: "Sophie K.",
-        date: "25.09.2025",
-        rating: 5,
-        comment: "Absolut empfehlenswert! Ich komme auf jeden Fall wieder."
-    }
+
 ];
 
 const WISHLIST_KEY = "simplyevents_wishlist";
@@ -102,7 +82,7 @@ function renderEvent(event) {
     const imagePath = event.imagePath ? `/${event.imagePath}` : "/images/default-event.jpg";
     if (imageEl) {
         imageEl.src = imagePath;
-        imageEl.alt = event.title || "Event Bild";
+        imageEl.alt = event.title || "Event Picture";
     }
 
     if (titleEl) titleEl.textContent = event.title || "Event";
@@ -113,7 +93,7 @@ function renderEvent(event) {
     if (capacityEl) {
         const available = event.availableSlots != null ? event.availableSlots : "-";
         const max = event.maxParticipants != null ? event.maxParticipants : "-";
-        capacityEl.textContent = `${available} von ${max}`;
+        capacityEl.textContent = `${available} from ${max}`;
     }
 
     const priceText = formatPrice(event.price);

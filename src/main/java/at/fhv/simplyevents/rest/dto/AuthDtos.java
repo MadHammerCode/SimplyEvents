@@ -5,13 +5,15 @@ import jakarta.validation.constraints.NotBlank;
 
 public class AuthDtos {
     public record RegisterCustomerDTO(
-            @NotBlank String name,
+            @NotBlank String firstName,
+            @NotBlank String lastName,
             @NotBlank @Email String email,
             @NotBlank String password
     ) {}
 
     public record RegisterVendorDTO(
-            @NotBlank String name,
+            @NotBlank String firstName,
+            @NotBlank String lastName,
             @NotBlank @Email String email,
             @NotBlank String password,
             @NotBlank String companyId,
@@ -23,4 +25,3 @@ public class AuthDtos {
             @NotBlank String password
     ) {}
 }
-

@@ -274,7 +274,7 @@ function setupNavigation() {
 
     if (btnProfile) {
         btnProfile.addEventListener("click", () => {
-            window.location.href = "/profile";
+            window.location.href = "/user-profile";
         });
     }
 

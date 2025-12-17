@@ -33,7 +33,8 @@ public class AuthService {
             Role r = new Role(); r.setName("ROLE_CUSTOMER"); return roles.save(r);
         });
         User user = new User();
-        user.setName(dto.name());
+        user.setFname(dto.firstName());
+        user.setLname(dto.lastName());
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
         user.setRoles(Set.of(customerRole));
@@ -46,7 +47,8 @@ public class AuthService {
             Role r = new Role(); r.setName("ROLE_VENDOR"); return roles.save(r);
         });
         User user = new User();
-        user.setName(dto.name());
+        user.setFname(dto.firstName());
+        user.setLname(dto.lastName());
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
         user.setRoles(Set.of(vendorRole));

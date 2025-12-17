@@ -44,6 +44,17 @@
                     <!-- will be filled with real categories via JS -->
                 </select>
             </div>
+            <div class="filter-group">
+                <label for="filterStatus">Status</label>
+                <select id="filterStatus">
+                    <option value="ALL">All statuses</option>
+                    <option value="PLANNED">Planned</option>
+                    <option value="PUBLISHED">Published</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="FULL">Full</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </div>
         </div>
     </section>
 
@@ -54,7 +65,7 @@
             <section class="stats-grid">
                 <article class="stat-card">
                     <div class="stat-card__icon stat-card__icon--primary">📅</div>
-                    <p class="stat-card__label">Aktive Events</p>
+                    <p class="stat-card__label">Aktiv Events</p>
                     <p id="statEvents" class="stat-card__value">–</p>
                     <p id="statEventsChange" class="stat-card__trend">–</p>
                 </article>
@@ -80,12 +91,12 @@
 
             <!-- Charts -->
             <section class="charts-grid">
-                <!-- Umsatzentwicklung -->
+
                 <article class="chart-card">
                     <div class="chart-card__header">
                         <div class="chart-card__title-group">
                             <span class="chart-card__icon">📊</span>
-                            <h2 class="chart-card__title">Umsatzentwicklung</h2>
+                            <h2 class="chart-card__title">Sales development</h2>
                         </div>
                     </div>
                     <div id="revenueChart" class="chart chart--bars">
@@ -139,6 +150,7 @@
                                 <th>Date</th>
                                 <th>Capacity</th>
                                 <th>Price</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>

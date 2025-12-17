@@ -73,8 +73,11 @@
                 <p class="form__subtitle">Create an account to book and manage events.</p>
 
                 <div class="form__group">
-                    <label for="registerName" class="form__label">Name</label>
-                    <input id="registerName" type="text" class="form__input" autocomplete="name">
+                    <label class="form__label">Name</label>
+                    <div class="form__row-inputs">
+                        <input id="registerFirstName" type="text" class="form__input" placeholder="First name" autocomplete="given-name">
+                        <input id="registerLastName" type="text" class="form__input" placeholder="Last name" autocomplete="family-name">
+                    </div>
                 </div>
 
                 <div class="form__group">

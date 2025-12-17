@@ -1,5 +1,6 @@
 let editingId = null;
 let uploadedImagePath = null;
+let saveMode = "planned";
 
 function getEventIdFromUrl() {
     // Optional: falls per Model-Attribute übergeben → window.eventId = {id}
@@ -76,7 +77,7 @@ function loadEvent(id) {
 
 /* ---------- Validate ---------- */
 
-function validateForm() {
+function validateForm(mode) {
     const errors = [];
     const title = document.getElementById("title").value.trim();
     const category = document.getElementById("category").value;
@@ -86,9 +87,13 @@ function validateForm() {
     const capacity = document.getElementById("capacity").value;
 
     if (!title) errors.push("Title is required.");
-    if (!category) errors.push("Category is required.");
-    if (!location) errors.push("Location is required.");
-    if (!capacity || Number(capacity) < 1) errors.push("Capacity must be at least 1.");
+    if (mode === "publish") {
+        if (!category) errors.push("Category is required to publish.");
+        if (!location) errors.push("Location is required to publish.");
+        if (!capacity || Number(capacity) < 1) {
+            errors.push("Capacity must be at least 1.");
+        }
+    }
 
     const bookingStart = document.getElementById("bookingStart")?.value;
     const bookingEnd = document.getElementById("bookingEnd")?.value;
@@ -97,18 +102,24 @@ function validateForm() {
     const dateAndTimeProvided = date && time;
     const bookingWindowProvided = bookingStart && bookingEnd;
 
-    if (!dateAndTimeProvided && !bookingWindowProvided && !yearRound) {
-        errors.push("Provide date & time, or booking window, or enable year-round availability.");
-    }
+    if (mode === "publish") {
+        if (!dateAndTimeProvided && !bookingWindowProvided && !yearRound) {
+            errors.push("Provide date & time, or booking window, or enable year-round availability.");
+        }
 
-    if (bookingWindowProvided && bookingStart > bookingEnd) {
-        errors.push("Booking window is invalid.");
+        if (bookingWindowProvided && bookingStart > bookingEnd) {
+            errors.push("Booking window is invalid.");
+        }
     }
 
     return errors;
 }
 
-function buildEventPayload() {
+function buildEventPayload(mode) {
+    const capacityInput = document.getElementById("capacity");
+    const capacityValue = capacityInput ? capacityInput.value.trim() : "";
+    const capacity = capacityValue === "" ? null : Number(capacityValue);
+
     return {
         title: document.getElementById("title").value.trim(),
         category: document.getElementById("category").value,
@@ -116,26 +127,27 @@ function buildEventPayload() {
         location: document.getElementById("location").value.trim(),
         date: document.getElementById("date").value,
         time: document.getElementById("time").value,
-        capacity: Number(document.getElementById("capacity").value),
+        capacity,
         description: document.getElementById("description").value.trim(),
         bookingStart: document.getElementById("bookingStart")?.value || null,
         bookingEnd: document.getElementById("bookingEnd")?.value || null,
         yearRound: document.getElementById("yearRound")?.checked || false,
-        imagePath: uploadedImagePath
+        imagePath: uploadedImagePath,
+        publishNow: mode === "publish"
     };
 }
 
 /* ---------- Save ---------- */
 
-function saveEvent() {
-    const errors = validateForm();
+function saveEvent(mode) {
+    const errors = validateForm(mode);
     if (errors.length) {
         showError(errors);
         return;
     }
     showError(null);
 
-    const eventPayload = buildEventPayload();
+    const eventPayload = buildEventPayload(mode);
     const formData = new FormData();
     formData.append("event", new Blob([JSON.stringify(eventPayload)], { type: "application/json" }));
 
@@ -214,8 +226,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Save
-    document.getElementById("btnSave").addEventListener("click", () => {
-        saveEvent();
+    document.getElementById("btnSavePlanned").addEventListener("click", () => {
+        saveMode = "planned";
+        saveEvent("planned");
+    });
+
+    document.getElementById("btnPublish").addEventListener("click", () => {
+        saveMode = "publish";
+        saveEvent("publish");
     });
 
     // Load data if editing

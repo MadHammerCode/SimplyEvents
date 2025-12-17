@@ -45,6 +45,18 @@ public class Event {
     @Column(name = "image_path")
     private String imagePath;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EventStatus status;
+
+    protected Event() {
+        this.status = EventStatus.PLANNED;
+    }
+
+    public static Event createDraft() {
+        return new Event();
+    }
+
     public String getImagePath() {
         return imagePath;
     }
@@ -204,5 +216,12 @@ public class Event {
     public void setVendor(VendorProfile vendor) {
         this.vendor = vendor;
     }
-}
 
+    public EventStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EventStatus status) {
+        this.status = status;
+    }
+}
