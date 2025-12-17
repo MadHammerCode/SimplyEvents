@@ -66,4 +66,10 @@ public class ViewController {
     public String frontofficeCheckin() {
         return "frontoffice-checkin";
     }
+
+    // Serve the user profile page at /user-profile (frontend expects this exact path)
+    @GetMapping("/user-profile")
+    public String userProfilePage() {
+        return "user-profile";
+    }
 }

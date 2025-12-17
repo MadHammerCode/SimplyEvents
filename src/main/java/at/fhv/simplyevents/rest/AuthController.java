@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -43,8 +49,22 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthDtos.LoginDTO dto) {
+    public ResponseEntity<?> login(@RequestBody AuthDtos.LoginDTO dto, HttpServletRequest request) {
         User u = auth.login(dto);
+
+        // build authorities from roles
+        Set<SimpleGrantedAuthority> authorities = u.getRoles().stream()
+                .map(Role::getName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(u.getEmail(), null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // store security context in session so subsequent requests are authenticated
+        HttpSession session = request.getSession(true);
+        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+
         return ResponseEntity.ok(toDto(u));
     }
 
