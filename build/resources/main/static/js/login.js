@@ -135,7 +135,7 @@ function doLogin(payload) {
 /* ---------- Register ---------- */
 
 function validateRegisterForm() {
-    
+
     const firstNameEl = document.getElementById("registerFirstName");
     const lastNameEl = document.getElementById("registerLastName");
 
