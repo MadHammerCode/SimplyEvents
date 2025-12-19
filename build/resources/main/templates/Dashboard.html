@@ -14,7 +14,7 @@
 </head>
 <body>
 <!-- insert global navbar fragment -->
-<div th:insert="layout :: navbar"></div>
+<div th:replace="layout :: navbar"></div>
 
 <div class="page">
     <!-- Hero / Top-Bereich -->
@@ -117,6 +117,7 @@
 <script src="/js/dashboard.js" defer></script>
 
 <!-- insert footer fragment -->
-<div th:insert="layout :: footer"></div>
+<div th:replace="layout :: footer"></div>
+<div th:replace="~{layout :: scripts}"></div>
 </body>
 </html>
