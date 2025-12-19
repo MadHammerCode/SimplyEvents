@@ -17,17 +17,20 @@ public class ViewController {
 
     @GetMapping("/dashboard")
     public String authorsView() {
-        return "Dashboard"; }
+        return "Dashboard";
+    }
 
 
     @GetMapping("/events")
     public String eventList() {
         // There is no 'eventlist' template in src/main/resources/templates; use 'landing' which exists
-        return "landing"; }
+        return "landing";
+    }
 
     @GetMapping("/login")
     public String showLoginPage() {
-        return "login"; }
+        return "login";
+    }
 
     @GetMapping("/booking")
     public String showBookingPage() {
@@ -49,7 +52,9 @@ public class ViewController {
 
     // Unified create/edit event page: use the same editor view for creating and editing events
     @GetMapping("/create-event")
-    public String createEventPage() { return "event-editor"; }
+    public String createEventPage() {
+        return "event-editor";
+    }
 
     @GetMapping("/edit-event/{id}")
     public String editEventPage(@PathVariable Long id, Model model) {
@@ -71,5 +76,10 @@ public class ViewController {
     @GetMapping("/user-profile")
     public String userProfilePage() {
         return "user-profile";
+    }
+
+    @GetMapping("/wishlist")
+    public String wishlistPage() {
+        return "wishlist";
     }
 }

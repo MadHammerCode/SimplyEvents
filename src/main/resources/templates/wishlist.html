@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Wishlist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/wishlist.css">
+
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+</head>
+
+<body>
+<div class="page">
+    <header th:replace="layout :: navbar"></header>
+
+    <main class="main">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title">My Wishlist</h2>
+                <p class="section__subtitle">Events you saved for later.</p>
+            </div>
+
+            <div id="wishlistGrid" class="events-grid">
+            </div>
+
+            <div id="wishlistEmpty" class="section__empty hidden">
+                <p>Your wishlist is currently empty.</p>
+                <a href="/dashboard" class="btn view-details-btn" style="width: auto; margin-top: 1rem; display: inline-block;">Discover Events</a>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="layout :: footer"></footer>
+</div>
+
+<script src="/js/wishlist.js" defer></script>
+</body>
+</html>
