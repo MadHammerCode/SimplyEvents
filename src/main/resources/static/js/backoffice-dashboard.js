@@ -191,10 +191,17 @@ function buildRevenueByMonth(events) {
 
 function buildCategoryDistribution(events) {
     const map = new Map();
+
     events.forEach((ev) => {
         const cat = (ev.category || "Other").trim() || "Other";
-        map.set(cat, (map.get(cat) || 0) + 1);
+
+        const capacity = Number(ev.capacity ?? 0);
+        const available = Number(ev.availableSlots ?? capacity);
+        const bookedSeats = Math.max(0, capacity - available);
+
+        map.set(cat, (map.get(cat) || 0) + bookedSeats);
     });
+
     return Array.from(map.entries()).map(([category, count]) => ({ category, count }));
 }
 
@@ -563,6 +570,7 @@ function setupRowActions() {
 function setupNavigation() {
     const goToCreateEvent = document.getElementById("goToCreateEvent");
     const goToFrontoffice = document.getElementById("goToFrontoffice");
+    const goToDashboard = document.getElementById("goToDashboard");
     const logoutBtn = document.getElementById("logoutBtn");
 
     if (goToCreateEvent) {
@@ -573,8 +581,13 @@ function setupNavigation() {
 
     if (goToFrontoffice) {
         goToFrontoffice.addEventListener("click", () => {
-            // here e.g. Frontoffice-View (/frontoffice-dashboard)
             window.location.href = "/frontoffice-checkin";
+        });
+    }
+
+    if (goToDashboard) {
+        goToDashboard.addEventListener("click", () => {
+            window.location.href = "/dashboard";
         });
     }
 

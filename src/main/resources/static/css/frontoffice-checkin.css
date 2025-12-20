@@ -322,6 +322,11 @@ body {
     color: #374151;
 }
 
+.btn-small--delete {
+    background-color: var(--color-danger);
+    color: #ffffff;
+}
+
 .empty-msg {
     margin: 0;
     padding: 0.8rem;

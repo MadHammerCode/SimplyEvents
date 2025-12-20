@@ -155,12 +155,31 @@ function fillSummary(event) {
 
     const available = event.availableSlots != null ? event.availableSlots : "-";
     const capacity = event.capacity != null ? event.capacity : "-";
+    const soldOut = typeof event.availableSlots === "number" && event.availableSlots <= 0;
     if (availEl) {
-        availEl.textContent = `Available places: ${available} from ${capacity}`;
+        availEl.textContent = soldOut ? "Sold out" : `Available places: ${available} from ${capacity}`;
     }
 
-    if (ticketHint && event.availableSlots != null) {
-        ticketHint.textContent = `Maximum available: ${event.availableSlots} Tickets.`;
+    if (ticketHint) {
+        ticketHint.textContent = soldOut
+            ? "This event is fully booked."
+            : event.availableSlots != null
+                ? `Maximum available: ${event.availableSlots} Tickets.`
+                : "";
+    }
+
+    if (soldOut) {
+        document.body.dataset.bookingDisabled = "true";
+        showError("This event is already sold out – booking is no longer possible.");
+        const nextBtn = document.getElementById("nextButton");
+        const cancelBtn = document.getElementById("cancelButton");
+        if (nextBtn) {
+            nextBtn.disabled = true;
+            nextBtn.textContent = "Sold out";
+        }
+        if (cancelBtn) {
+            cancelBtn.textContent = "Back to event";
+        }
     }
 
     if (cancelEl) {
@@ -361,6 +380,9 @@ function setupNavigation() {
 
     if (nextBtn) {
         nextBtn.addEventListener("click", () => {
+            if (document.body.dataset.bookingDisabled === "true") {
+                return;
+            }
             const currentStep = Number(document.body.dataset.currentStep || "1");
 
             if (currentStep === 1) {
@@ -427,3 +449,4 @@ document.addEventListener("DOMContentLoaded", () => {
     setupNavigation();
     loadEventAndPrefill();
 });
+

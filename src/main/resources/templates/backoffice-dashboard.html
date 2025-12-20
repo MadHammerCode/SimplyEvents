@@ -19,7 +19,8 @@
 
             <nav class="admin-nav">
                 <button type="button" id="goToCreateEvent" class="btn btn-primary">+ New event</button>
-                <button type="button" id="goToFrontoffice" class="btn btn-outline">Front office</button>
+                <button type="button" id="goToDashboard" class="btn btn-outline">Dashboard</button>
+                <button type="button" id="goToFrontoffice" class="btn btn-outline">Frontoffice</button>
                 <button type="button" id="logoutBtn" class="btn btn-danger">Logout</button>
             </nav>
         </div>
@@ -71,7 +72,7 @@
                 </article>
                 <article class="stat-card">
                     <div class="stat-card__icon stat-card__icon--success">👥</div>
-                    <p class="stat-card__label">Total bookings (estimated)</p>
+                    <p class="stat-card__label">Total bookings</p>
                     <p id="statBookings" class="stat-card__value"></p>
                     <p id="statBookingsChange" class="stat-card__trend"></p>
                 </article>
@@ -103,7 +104,7 @@
                         <!-- bars are generated via JS -->
                     </div>
                     <p class="chart-card__hint">
-                        Monthly revenue based on event prices and capacity (simplified calculation in the frontend).
+                        Monthly revenue based on booked places per event.
                     </p>
                 </article>
 

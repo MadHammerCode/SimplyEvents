@@ -275,4 +275,18 @@ public class CheckInService {
         );
         return new NewBookingResponse(dto);
     }
+
+    public void deleteBooking(Long bookingId) {
+        ActiveBooking booking = activeBookings.findById(bookingId)
+                .orElseThrow(() -> new NoSuchElementException("Booking not found"));
+
+        Event event = booking.getEvent();
+        participants.deleteByBookingId(bookingId);
+        checkedInParticipants.deleteByBookingId(bookingId);
+        activeBookings.delete(booking);
+
+        int alreadyBooked = activeBookings.sumParticipantsByEventId(event.getEventId());
+        event.setAvailableSlots(event.getMaxParticipants() - alreadyBooked);
+        events.save(event);
+    }
 }

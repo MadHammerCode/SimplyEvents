@@ -68,4 +68,10 @@ public class CheckInController {
         var created = service.createBookingForEvent(eventId, request);
         return ResponseEntity.ok(created);
     }
+
+    @DeleteMapping("/bookings/{bookingId}")
+    public ResponseEntity<Void> deleteBooking(@PathVariable Long bookingId) {
+        service.deleteBooking(bookingId);
+        return ResponseEntity.noContent().build();
+    }
 }

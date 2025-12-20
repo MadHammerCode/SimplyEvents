@@ -189,6 +189,11 @@ function renderTable() {
                     data-checkin-booking="${b.bookingId}">
               ${btnLabel}
             </button>
+            <button type="button"
+                    class="btn-small btn-small--delete"
+                    data-delete-booking="${b.bookingId}">
+              Delete
+            </button>
           </div>
         </td>
       </tr>
@@ -451,6 +456,32 @@ function setupRowActions() {
                 .catch((err) => {
                     console.error(err);
                     alert("Participants could not be loaded. Please try again.");
+                });
+        });
+    });
+
+    document.querySelectorAll("[data-delete-booking]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const bookingId = btn.getAttribute("data-delete-booking");
+            if (!bookingId) return;
+            if (!confirm("Delete this booking and free the seats?")) return;
+
+            fetch(`/api/checkin/bookings/${encodeURIComponent(bookingId)}`, {
+                method: "DELETE"
+            })
+                .then((res) => {
+                    if (!res.ok) {
+                        return res.text().then((text) => {
+                            throw new Error(text || "Deletion failed");
+                        });
+                    }
+                })
+                .then(() => {
+                    allBookings = allBookings.filter((b) => String(b.bookingId) !== String(bookingId));
+                    applyFilters();
+                })
+                .catch((err) => {
+                    alert(err.message || "Booking could not be deleted.");
                 });
         });
     });
