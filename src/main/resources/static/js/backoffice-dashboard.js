@@ -164,10 +164,6 @@ function updateStats(events) {
     const statUtilizationChange = document.getElementById("statUtilizationChange");
     const statRevenueChange = document.getElementById("statRevenueChange");
 
-    if (statEventsChange) statEventsChange.textContent = "Vs. previous period";
-    if (statBookingsChange) statBookingsChange.textContent = "Trend data follow";
-    if (statUtilizationChange) statUtilizationChange.textContent = "Trend data follow";
-    if (statRevenueChange) statRevenueChange.textContent = "Trend Data follow";
 }
 
 // ------- Charts -------
@@ -180,8 +176,11 @@ function buildRevenueByMonth(events) {
         if (!dateStr) return;
         const key = dateStr.slice(0, 7); // "YYYY-MM"
         const capacity = Number(ev.capacity ?? 0);
+        const available = Number(ev.availableSlots ?? capacity);
+        const bookedSeats = Math.max(0, capacity - available);
+
         const price = Number(ev.price ?? 0);
-        const revenue = capacity * (isNaN(price) ? 0 : price);
+        const revenue = bookedSeats * (isNaN(price) ? 0 : price);
 
         map.set(key, (map.get(key) || 0) + revenue);
     });
@@ -215,30 +214,129 @@ function renderRevenueChart(events) {
         return;
     }
 
-    const max = Math.max(...data.map((d) => d.revenue));
-    if (max <= 0) {
+    const max = Math.max(...data.map(d => Number(d.revenue || 0)));
+    if (!isFinite(max) || max <= 0) {
         container.textContent = "No sales data for the selected period.";
         return;
     }
 
-    data.forEach((d) => {
-        const bar = document.createElement("div");
-        bar.className = "chart-bar";
+    // SVG sizing (responsive via viewBox)
+    const W = 640;
+    const H = 280;
+    const padL = 56;
+    const padR = 18;
+    const padT = 18;
+    const padB = 46;
 
-        const fill = document.createElement("div");
-        fill.className = "chart-bar__fill";
-        const heightPercent = (d.revenue / max) * 100;
-        fill.style.height = `${heightPercent}%`;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
 
-        const label = document.createElement("div");
-        label.className = "chart-bar__label";
-        // d.month is "YYYY-MM" -> show only MM
-        label.textContent = d.month.slice(5);
+    const maxY = max * 1.05; // headroom
+    const minY = 0;
 
-        bar.appendChild(fill);
-        bar.appendChild(label);
-        container.appendChild(bar);
+    const xForIndex = (i) => {
+        if (data.length === 1) return padL + innerW / 2;
+        return padL + (i / (data.length - 1)) * innerW;
+    };
+
+    const yForValue = (v) => {
+        const n = Number(v || 0);
+        const t = (n - minY) / (maxY - minY);
+        const clamped = Math.min(1, Math.max(0, t));
+        return padT + (1 - clamped) * innerH;
+    };
+
+    const monthLabel = (yyyyMM) => {
+        const mm = (yyyyMM || "").slice(5, 7);
+        const map = {
+            "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr",
+            "05": "Mai", "06": "Jun", "07": "Jul", "08": "Aug",
+            "09": "Sep", "10": "Okt", "11": "Nov", "12": "Dez"
+        };
+        return map[mm] || mm;
+    };
+
+    const formatYLabel = (n) => String(Math.round(Number(n || 0)));
+
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.setAttribute("class", "line-chart");
+    svg.setAttribute("role", "img");
+
+    // Grid + Y labels
+    const gridLines = 5;
+    for (let i = 0; i <= gridLines; i++) {
+        const frac = i / gridLines;
+        const y = padT + frac * innerH;
+        const value = (1 - frac) * maxY;
+
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", String(padL));
+        line.setAttribute("x2", String(W - padR));
+        line.setAttribute("y1", String(y));
+        line.setAttribute("y2", String(y));
+        line.setAttribute("class", "line-chart__grid");
+        svg.appendChild(line);
+
+        const text = document.createElementNS(svgNS, "text");
+        text.setAttribute("x", String(padL - 10));
+        text.setAttribute("y", String(y + 4));
+        text.setAttribute("text-anchor", "end");
+        text.setAttribute("class", "line-chart__ylabel");
+        text.textContent = formatYLabel(value);
+        svg.appendChild(text);
+    }
+
+    // X axis baseline
+    const axis = document.createElementNS(svgNS, "line");
+    axis.setAttribute("x1", String(padL));
+    axis.setAttribute("x2", String(W - padR));
+    axis.setAttribute("y1", String(padT + innerH));
+    axis.setAttribute("y2", String(padT + innerH));
+    axis.setAttribute("class", "line-chart__axis");
+    svg.appendChild(axis);
+
+    // Path
+    const points = data.map((d, i) => ({
+        x: xForIndex(i),
+        y: yForValue(d.revenue),
+        raw: d
+    }));
+
+    const dPath = points
+        .map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+        .join(" ");
+
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", dPath);
+    path.setAttribute("class", "line-chart__path");
+    svg.appendChild(path);
+
+    // Dots + X labels + tooltips
+    points.forEach((p) => {
+        const dot = document.createElementNS(svgNS, "circle");
+        dot.setAttribute("cx", String(p.x));
+        dot.setAttribute("cy", String(p.y));
+        dot.setAttribute("r", "5");
+        dot.setAttribute("class", "line-chart__dot");
+
+        const title = document.createElementNS(svgNS, "title");
+        title.textContent = `${p.raw.month}: ${formatPrice(p.raw.revenue)}`;
+        dot.appendChild(title);
+
+        svg.appendChild(dot);
+
+        const xText = document.createElementNS(svgNS, "text");
+        xText.setAttribute("x", String(p.x));
+        xText.setAttribute("y", String(padT + innerH + 28));
+        xText.setAttribute("text-anchor", "middle");
+        xText.setAttribute("class", "line-chart__xlabel");
+        xText.textContent = monthLabel(p.raw.month);
+        svg.appendChild(xText);
     });
+
+    container.appendChild(svg);
 }
 
 function renderCategoryChart(events) {
