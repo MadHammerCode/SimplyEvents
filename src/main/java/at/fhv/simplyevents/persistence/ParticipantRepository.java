@@ -7,5 +7,8 @@ import java.util.List;
 
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
     List<Participant> findByEventEventId(Long eventId);
+    List<Participant> findByBookingId(Long bookingId);
+    long countByBookingId(Long bookingId);
+    long countByBookingIdAndCheckedInTrue(Long bookingId);
+    void deleteByBookingId(Long bookingId);
 }
-

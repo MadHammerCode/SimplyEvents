@@ -38,7 +38,7 @@
             </div>
             <div class="fo-event-meta">
                 <p id="eventMetaTitle" class="fo-event-meta__title">No event selected</p>
-                <p id="eventMetaInfo" class="fo-event-meta__info">Please select an event to display participants.</p>
+                <p id="eventMetaInfo" class="fo-event-meta__info">Please select an event to display bookings.</p>
             </div>
         </div>
     </section>
@@ -49,7 +49,7 @@
             <!-- Stat cards -->
             <section class="fo-stats">
                 <article class="fo-stat-card">
-                    <p class="fo-stat-card__label">Total participants</p>
+                    <p class="fo-stat-card__label">Total seats</p>
                     <p id="statTotal" class="fo-stat-card__value">–</p>
                 </article>
                 <article class="fo-stat-card fo-stat-card--success">
@@ -57,7 +57,7 @@
                     <p id="statCheckedIn" class="fo-stat-card__value">–</p>
                 </article>
                 <article class="fo-stat-card fo-stat-card--warning">
-                    <p class="fo-stat-card__label">Open</p>
+                    <p class="fo-stat-card__label">Open seats</p>
                     <p id="statOpen" class="fo-stat-card__value">–</p>
                 </article>
             </section>
@@ -67,11 +67,11 @@
                 <div class="fo-filters__left">
                     <label class="checkbox">
                         <input type="checkbox" id="filterOnlyOpen" class="checkbox__input">
-                        <span class="checkbox__label">Show only not checked-in participants</span>
+                        <span class="checkbox__label">Show only bookings with open seats</span>
                     </label>
                 </div>
                 <div class="fo-filters__right">
-                    <input id="searchInput" type="text" class="search-input" placeholder="Search by name, email or booking number…">
+                    <input id="searchInput" type="text" class="search-input" placeholder="Search by booking no., name or e-mail">
                 </div>
             </section>
 
@@ -82,26 +82,78 @@
                         <thead>
                         <tr>
                             <th>Booking no.</th>
-                            <th>Participant</th>
+                            <th>Booker</th>
                             <th>E-Mail</th>
-                            <th>Status</th>
-                            <th>Check-in time</th>
+                            <th>Seats</th>
+                            <th>Check-in</th>
                             <th>Action</th>
                         </tr>
                         </thead>
-                        <tbody id="participantTableBody">
-                        <!-- filled via JS -->
-                        </tbody>
+                        <tbody id="bookingTableBody"></tbody>
                     </table>
                     <p id="tableEmpty" class="empty-msg">
-                        No participants found. Select an event or adjust your filters.
+                        No bookings found. Select an event or adjust your filters.
                     </p>
+                </div>
+                <div class="fo-new-booking">
+                    <h3>Create additional booking</h3>
+                    <form id="newBookingForm">
+                        <input id="newBookingFirst" type="text" class="fo-input" placeholder="First name" required>
+                        <input id="newBookingLast" type="text" class="fo-input" placeholder="Last name" required>
+                        <input id="newBookingEmail" type="email" class="fo-input" placeholder="Email" required>
+                        <input id="newBookingSeats" type="number" min="1" class="fo-input" placeholder="Seats" required>
+                        <button type="submit" class="btn btn-primary">Add booking</button>
+                    </form>
+                    <p id="newBookingError" class="fo-modal__error hidden"></p>
                 </div>
             </section>
         </div>
     </main>
 </div>
 
+<!-- Check-in modal -->
+<div id="checkinModal" class="fo-modal hidden">
+    <div class="fo-modal__backdrop" data-close-modal></div>
+    <div class="fo-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="checkinModalTitle">
+        <button type="button" class="fo-modal__close" data-close-modal aria-label="Close check-in dialog">×</button>
+        <header class="fo-modal__header">
+            <p class="fo-modal__eyebrow">Check-in</p>
+            <h2 id="checkinModalTitle" class="fo-modal__title">Check in participants</h2>
+            <p id="checkinModalSubtitle" class="fo-modal__subtitle"></p>
+        </header>
+        <form id="checkinForm" class="fo-modal__form">
+            <div class="fo-capacity">
+                <span class="fo-capacity__label">Seats</span>
+                <div class="fo-capacity__controls">
+                    <button type="button" id="seatMinus" class="btn btn-outline" aria-label="Decrease seats">−</button>
+                    <span id="seatCount" class="fo-capacity__value">0</span>
+                    <button type="button" id="seatPlus" class="btn btn-outline" aria-label="Increase seats">+</button>
+                </div>
+            </div>
+            <div id="participantFields" class="fo-seat-list"></div>
+            <div class="fo-modal__tools">
+                <button type="button" id="addSeatBtn" class="btn btn-outline">Add participant</button>
+            </div>
+            <p id="checkinFormError" class="fo-modal__error hidden"></p>
+            <div class="fo-modal__actions">
+                <button type="button" class="btn btn-outline" data-close-modal>Cancel</button>
+                <button type="submit" id="checkinSubmitBtn" class="btn btn-primary">Save check-in</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<template id="seatRowTemplate">
+    <div class="fo-seat-row">
+        <div class="fo-seat-row__badge"></div>
+        <div class="fo-seat-row__fields">
+            <input type="text" class="fo-input" data-seat-first placeholder="First name" required>
+            <input type="text" class="fo-input" data-seat-last placeholder="Last name" required>
+            <input type="email" class="fo-input" data-seat-email placeholder="Email" required>
+        </div>
+        <button type="button" class="fo-seat-row__remove" data-seat-remove aria-label="Remove participant">✕</button>
+    </div>
+</template>
 
 <script src="/js/frontoffice-checkin.js" defer></script>
 </body>

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface ActiveBookingRepository extends JpaRepository<ActiveBooking, Long> {
 
@@ -17,4 +18,13 @@ public interface ActiveBookingRepository extends JpaRepository<ActiveBooking, Lo
            where b.event.eventId = :eventId
            """)
     int sumParticipantsByEventId(@Param("eventId") Long eventId);
+
+    @Query("""
+           select coalesce(sum(b.numParticipants), 0)
+           from ActiveBooking b
+           where b.event.eventId = :eventId and b.id <> :bookingId
+           """)
+    int sumParticipantsByEventIdExcludingBooking(@Param("eventId") Long eventId, @Param("bookingId") Long bookingId);
+
+    List<ActiveBooking> findByEventEventId(Long eventId);
 }
