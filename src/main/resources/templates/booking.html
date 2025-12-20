@@ -183,12 +183,16 @@
                     <button type="button" id="nextButton" class="btn btn-primary">
                         Next
                     </button>
-                </div>
-            </section>
+                    <button type="button" id="payButton" class="btn btn-primary hidden" disabled>
+                        Pay now
+                    </button>
+                 </div>
+             </section>
 
-            <!-- Right column: event summary -->
-            <aside class="booking-main__sidebar">
-                <section class="card card--summary">
+             <!-- Right column: event summary -->
+             <aside class="booking-main__sidebar">
+                <div id="paymentStatusBanner" class="status-banner hidden"></div>
+                 <section class="card card--summary">
                     <h2 class="card__title">Your booking</h2>
 
                     <div class="summary-event">

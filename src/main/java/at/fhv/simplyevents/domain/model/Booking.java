@@ -17,6 +17,7 @@ public class Booking {
     private Date optionDate;
     private PaymentMethod paymentMethod;
     private double priceTotal;
+    private String paymentReference;
 
     @OneToOne
     @JoinColumn(name = "event_Id")
@@ -84,6 +85,14 @@ public class Booking {
 
     public void setPriceTotal(double priceTotal) {
         this.priceTotal = priceTotal;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
     }
 
     public Event getEvent() {

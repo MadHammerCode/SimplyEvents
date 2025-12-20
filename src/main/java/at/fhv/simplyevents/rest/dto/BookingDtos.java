@@ -18,12 +18,12 @@ public class BookingDtos {
             String phone,
             @Min(value = 1, message = "Number of participants must be at least 1")
             Integer numParticipants,
-            @NotBlank(message = "Payment method must not be blank")
             String paymentMethod
     ) {}
 
 
     public record BookingResponse(
+            Long bookingId,
             String bookingNumber,
             Long eventId,
             String eventTitle,
@@ -47,5 +47,22 @@ public class BookingDtos {
             String eventTitle,
             Integer numParticipants,
             String cancelReason
+    ) {}
+
+
+    public record PendingBookingResponse(
+            String pendingId,
+            String bookingNumber,
+            Long eventId,
+            Integer numParticipants,
+            BigDecimal priceTotal
+    ) {}
+
+
+    public record ConfirmBookingRequest(
+            @NotBlank(message = "Pending ID must not be blank")
+            String pendingId,
+            @NotBlank(message = "Payment method must not be blank")
+            String paymentMethod
     ) {}
 }
