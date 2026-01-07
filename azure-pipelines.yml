@@ -5,11 +5,15 @@ pool:
   name: Self-Host
 
 steps:
+  - script: chmod +x gradlew
+    displayName: 'Make gradlew executable'
+
   - task: Gradle@3
     inputs:
       gradleWrapperFile: 'gradlew'
       tasks: 'build'
       publishJUnitResults: true
       testResultsFiles: '**/TEST-*.xml'
-      javaHomeOption: 'JDKVersion'
-      jdkVersionOption: '1.21'
+      
+      javaHomeOption: 'Path'
+      jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
