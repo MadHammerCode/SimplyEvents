@@ -18,7 +18,6 @@ public class WishlistJpaEntity {
     @Column(name = "created_at")
     private LocalDate createdAt;
 
-    // No join to events here; manage linking table separately if needed
 
     public Long getWishlistId() { return wishlistId; }
     public void setWishlistId(Long wishlistId) { this.wishlistId = wishlistId; }

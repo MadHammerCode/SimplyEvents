@@ -38,9 +38,6 @@ public class Event {
         return new Event();
     }
 
-    /**
-     * Rehydrates identifiers from persistence without weakening invariants.
-     */
     public void loadIdentifiers(Long eventId, Long vendorProfileId, Long bookingId) {
         this.eventId = eventId;
         this.vendorProfileId = vendorProfileId;

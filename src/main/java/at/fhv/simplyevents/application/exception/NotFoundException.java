@@ -1,9 +1,6 @@
 package at.fhv.simplyevents.application.exception;
 
-/**
- * Application-level runtime exception indicating a requested resource was not found.
- * Provides helpers to standardize error messages across the application.
- */
+
 public class NotFoundException extends RuntimeException {
 
     private NotFoundException(String message) {

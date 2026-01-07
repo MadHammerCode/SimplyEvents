@@ -63,7 +63,6 @@ public class LocalFileStorageAdapter implements FileStoragePort {
         try {
             Files.deleteIfExists(target);
         } catch (IOException ignored) {
-            // swallow deletion issues to avoid breaking business flow
         }
     }
 

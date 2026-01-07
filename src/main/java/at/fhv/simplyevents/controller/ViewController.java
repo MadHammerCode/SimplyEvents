@@ -22,7 +22,6 @@ public class ViewController {
 
     @GetMapping("/events")
     public String eventList() {
-        // There is no 'eventlist' template in src/main/resources/templates; use 'landing' which exists
         return "landing"; }
 
     @GetMapping("/login")
@@ -41,13 +40,11 @@ public class ViewController {
 
     @GetMapping("/event-details/{id}")
     public String showEventDetails(@PathVariable Long id, Model model) {
-        // Load event and add to model so the template can render its details
         var eventResponse = eventUseCase.getEventById(id);
         model.addAttribute("event", eventResponse);
         return "event-details";
     }
 
-    // Unified create/edit event page: use the same editor view for creating and editing events
     @GetMapping("/create-event")
     public String createEventPage() { return "event-editor"; }
 

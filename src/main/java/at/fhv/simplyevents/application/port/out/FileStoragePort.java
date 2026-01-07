@@ -1,8 +1,5 @@
 package at.fhv.simplyevents.application.port.out;
 
-/**
- * Abstraction for storing and deleting files.
- */
 public interface FileStoragePort {
     /**
      * Stores the given content under a generated target name derived from the original filename.

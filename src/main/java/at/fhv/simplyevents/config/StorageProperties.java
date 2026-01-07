@@ -4,13 +4,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "storage")
 public class StorageProperties {
-    /** Base directory for stored files. */
+
     private String uploadDir = "uploads";
 
-    /** Max allowed file size in bytes. */
+
     private long maxSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-    /** Allowed file extensions, comma-separated. */
+
     private String allowedExtensions = "jpg,jpeg,png,gif,webp";
 
     public String getUploadDir() {

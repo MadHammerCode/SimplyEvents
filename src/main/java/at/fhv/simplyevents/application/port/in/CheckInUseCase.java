@@ -1,6 +1,6 @@
 package at.fhv.simplyevents.application.port.in;
 
-import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.BookingCapacityCommand;
+
 import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.BookingDto;
 import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.CreateParticipantCommand;
 import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.NewBookingRequestCommand;

@@ -23,7 +23,6 @@ public class ActiveBookingMapper {
         domain.setPriceTotal(entity.getPriceTotal());
         domain.setStatus(entity.getStatus());
         domain.setCreatedAt(entity.getCreatedAt());
-        // event relationship handled via eventId in service; domain keeps Event reference for now
         return domain;
     }
 
