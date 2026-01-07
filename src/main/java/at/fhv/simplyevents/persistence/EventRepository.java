@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+@Deprecated // Legacy repository removed from scan. Domain Event is not an @Entity. Use EventJpaRepository via adapter.
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByStatusIn(List<EventStatus> status);
 

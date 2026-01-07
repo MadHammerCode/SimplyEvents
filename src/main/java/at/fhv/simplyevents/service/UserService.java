@@ -1,68 +1,75 @@
 package at.fhv.simplyevents.service;
 
+import at.fhv.simplyevents.application.exception.NotFoundException;
+import at.fhv.simplyevents.application.port.in.UserUseCase;
 import at.fhv.simplyevents.domain.model.Role;
 import at.fhv.simplyevents.domain.model.User;
-import at.fhv.simplyevents.persistence.UserRepository;
-import at.fhv.simplyevents.rest.dto.UserProfileDto;
+import at.fhv.simplyevents.domain.model.VendorProfile;
+import at.fhv.simplyevents.domain.repository.RoleRepositoryPort;
+import at.fhv.simplyevents.domain.repository.UserRepositoryPort;
+import at.fhv.simplyevents.domain.repository.VendorProfileRepositoryPort;
 import org.springframework.stereotype.Service;
-import jakarta.persistence.EntityNotFoundException;
+
+import java.util.Optional;
 
 @Service
-public class UserService {
+public class UserService implements UserUseCase {
 
-    private final UserRepository users;
+    private final UserRepositoryPort users;
+    private final RoleRepositoryPort roles;
+    private final VendorProfileRepositoryPort vendorProfiles;
 
-    public UserService(UserRepository users) {
+    public UserService(UserRepositoryPort users, RoleRepositoryPort roles, VendorProfileRepositoryPort vendorProfiles) {
         this.users = users;
+        this.roles = roles;
+        this.vendorProfiles = vendorProfiles;
     }
 
-    /**
-     * Find user by email and map to UserProfileDto.
-     */
-    public UserProfileDto getUserProfile(String email) {
-        User user = users.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found"));
+    @Override
+    public UserProfileResult getUserProfile(String email) {
+        User user = users.findByEmail(email).orElseThrow(() -> NotFoundException.forEntityAndField("User", "email", email));
 
         String firstName = user.getFname() == null ? "" : user.getFname().trim();
         String lastName = user.getLname() == null ? "" : user.getLname().trim();
 
         String phone = "";
         String address = "";
-        if (user.getVendorProfile() != null) {
-            String contact = user.getVendorProfile().getContactInfo();
-            if (contact != null) phone = contact;
+        if (user.getVendorProfileId() != null) {
+            Optional<VendorProfile> vp = vendorProfiles.findById(user.getVendorProfileId());
+            phone = vp.map(VendorProfile::getContactInfo).orElse("");
         }
 
-        String role = user.getRoles().stream()
-                .map(Role::getName)
-                .findFirst()
-                .map(r -> r.startsWith("ROLE_") ? r.substring(5) : r)
-                .orElse("");
+        String role = "";
+        if (user.getRoleIds() != null) {
+            role = user.getRoleIds().stream()
+                    .map(roles::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(Role::getName)
+                    .findFirst()
+                    .map(r -> r.startsWith("ROLE_") ? r.substring(5) : r)
+                    .orElse("");
+        }
 
-        return new UserProfileDto(firstName, lastName, user.getEmail(), phone, address, role);
+        return new UserProfileResult(firstName, lastName, user.getEmail(), phone, address, role);
     }
 
-    /**
-     * Update user's profile fields (name and vendor contact info if present).
-     * Email changes are not allowed here (to avoid identity complications).
-     */
-    public UserProfileDto updateUserProfile(String email, UserProfileDto dto) {
-        User user = users.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found"));
+    @Override
+    public UserProfileResult updateUserProfile(String email, UpdateUserProfileCommand command) {
+        User user = users.findByEmail(email).orElseThrow(() -> NotFoundException.forEntityAndField("User", "email", email));
 
-        // Update first and last name directly from DTO
-        String f = dto.getFirstName() == null ? "" : dto.getFirstName().trim();
-        String l = dto.getLastName() == null ? "" : dto.getLastName().trim();
-        user.setFname(f);
-        user.setLname(l);
+        String f = command.firstName() == null ? "" : command.firstName().trim();
+        String l = command.lastName() == null ? "" : command.lastName().trim();
+        User updatedUser = user.withUpdatedProfile(f, l);
 
-        // Do not allow changing email through this endpoint for safety
-        // Update vendor contact info if vendor profile exists
-        if (user.getVendorProfile() != null) {
-            user.getVendorProfile().setContactInfo(dto.getPhone());
+        if (updatedUser.getVendorProfileId() != null) {
+            VendorProfile vp = vendorProfiles.findById(updatedUser.getVendorProfileId())
+                    .map(existing -> existing.withUpdatedContact(existing.getCompanyId(), command.phone()))
+                    .orElseGet(() -> VendorProfile.create(updatedUser.getId(), null, command.phone()));
+            vendorProfiles.save(vp);
         }
 
-        User saved = users.save(user);
-
-        // Map back to DTO (reuse getUserProfile mapping)
-        return getUserProfile(saved.getEmail());
+        users.save(updatedUser);
+        return getUserProfile(updatedUser.getEmail());
     }
 }

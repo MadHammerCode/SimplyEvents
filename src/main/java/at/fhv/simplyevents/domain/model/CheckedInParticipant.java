@@ -1,41 +1,19 @@
 package at.fhv.simplyevents.domain.model;
 
-import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.Objects;
 
-@Entity
-@Table(name = "checked_in_participant", indexes = {
-        @Index(name = "idx_checked_in_participant_event", columnList = "event_id"),
-        @Index(name = "idx_checked_in_participant_booking", columnList = "booking_id")
-})
 public class CheckedInParticipant {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
     private String firstName;
-
-    @Column(nullable = false)
     private String lastName;
-
-    @Column(nullable = false)
     private String email;
-
-    @Column(nullable = false)
     private boolean checkedIn;
-
     private Instant checkInTime;
+    private Long eventId;
+    private Long bookingId;
+    private String bookingNumber;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private Event event;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id")
-    private ActiveBooking booking;
-
-    // getters/setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFirstName() { return firstName; }
@@ -48,8 +26,21 @@ public class CheckedInParticipant {
     public void setCheckedIn(boolean checkedIn) { this.checkedIn = checkedIn; }
     public Instant getCheckInTime() { return checkInTime; }
     public void setCheckInTime(Instant checkInTime) { this.checkInTime = checkInTime; }
-    public Event getEvent() { return event; }
-    public void setEvent(Event event) { this.event = event; }
-    public ActiveBooking getBooking() { return booking; }
-    public void setBooking(ActiveBooking booking) { this.booking = booking; }
+    public Long getEventId() { return eventId; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
+    public Long getBookingId() { return bookingId; }
+    public void setBookingId(Long bookingId) { this.bookingId = bookingId; }
+    public String getBookingNumber() { return bookingNumber; }
+    public void setBookingNumber(String bookingNumber) { this.bookingNumber = bookingNumber; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CheckedInParticipant)) return false;
+        CheckedInParticipant that = (CheckedInParticipant) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id); }
 }

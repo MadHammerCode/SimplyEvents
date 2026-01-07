@@ -1,8 +1,8 @@
 package at.fhv.simplyevents.rest;
 
+import at.fhv.simplyevents.application.exception.NotFoundException;
+import at.fhv.simplyevents.application.port.in.UserUseCase;
 import at.fhv.simplyevents.rest.dto.UserProfileDto;
-import at.fhv.simplyevents.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +15,10 @@ public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    private final UserService userService;
+    private final UserUseCase userUseCase;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
+    public UserController(UserUseCase userUseCase) {
+        this.userUseCase = userUseCase;
     }
 
     @GetMapping("/me")
@@ -31,9 +31,9 @@ public class UserController {
         String email = authentication.getName();
         logger.info("Fetching profile for principal/email={}", email);
         try {
-            UserProfileDto dto = userService.getUserProfile(email);
-            return ResponseEntity.ok(dto);
-        } catch (EntityNotFoundException e) {
+            var result = userUseCase.getUserProfile(email);
+            return ResponseEntity.ok(toDto(result));
+        } catch (NotFoundException e) {
             logger.warn("User not found for email={}", email);
             return ResponseEntity.notFound().build();
         }
@@ -48,14 +48,22 @@ public class UserController {
         }
         String email = authentication.getName();
         try {
-            UserProfileDto updated = userService.updateUserProfile(email, dto);
-            return ResponseEntity.ok(updated);
-        } catch (EntityNotFoundException e) {
+            var result = userUseCase.updateUserProfile(email, toCommand(dto));
+            return ResponseEntity.ok(toDto(result));
+        } catch (NotFoundException e) {
             logger.warn("User not found during update for email={}", email);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             logger.error("Error updating profile for email={}: {}", email, e.getMessage());
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    private UserProfileDto toDto(UserUseCase.UserProfileResult r) {
+        return new UserProfileDto(r.firstName(), r.lastName(), r.email(), r.phone(), r.address(), r.role());
+    }
+
+    private UserUseCase.UpdateUserProfileCommand toCommand(UserProfileDto dto) {
+        return new UserUseCase.UpdateUserProfileCommand(dto.getFirstName(), dto.getLastName(), dto.getPhone(), dto.getAddress());
     }
 }

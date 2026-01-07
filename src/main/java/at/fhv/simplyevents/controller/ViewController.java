@@ -1,6 +1,6 @@
 package at.fhv.simplyevents.controller;
 
-import at.fhv.simplyevents.service.EventService;
+import at.fhv.simplyevents.application.port.in.EventUseCase;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 @Controller
 public class ViewController {
 
-    private final EventService eventService;
+    private final EventUseCase eventUseCase;
 
-    public ViewController(EventService eventService) {
-        this.eventService = eventService;
+    public ViewController(EventUseCase eventUseCase) {
+        this.eventUseCase = eventUseCase;
     }
 
     @GetMapping("/dashboard")
@@ -42,7 +42,7 @@ public class ViewController {
     @GetMapping("/event-details/{id}")
     public String showEventDetails(@PathVariable Long id, Model model) {
         // Load event and add to model so the template can render its details
-        var eventResponse = eventService.getEventById(id);
+        var eventResponse = eventUseCase.getEventById(id);
         model.addAttribute("event", eventResponse);
         return "event-details";
     }

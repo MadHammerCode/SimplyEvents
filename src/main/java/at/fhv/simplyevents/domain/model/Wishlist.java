@@ -1,37 +1,35 @@
 package at.fhv.simplyevents.domain.model;
 
-import jakarta.persistence.*;
-
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
-@Entity
 public class Wishlist {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long wishlistId;
-
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User endUser;
-
-    @ManyToMany
-    @JoinTable(
-            name = "wishlist_events",
-            joinColumns = @JoinColumn(name = "wishlist_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id")
-    )
-    private List<Event> events;
-
+    private Long userId;
+    private List<Long> eventIds;
     private LocalDate createdAt;
 
     public Long getWishlistId() { return wishlistId; }
     public void setWishlistId(Long wishlistId) { this.wishlistId = wishlistId; }
-    public User getEndUser() { return endUser; }
-    public void setEndUser(User endUser) { this.endUser = endUser; }
-    public List<Event> getEvents() { return events; }
-    public void setEvents(List<Event> events) { this.events = events; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public List<Long> getEventIds() { return eventIds; }
+    public void setEventIds(List<Long> eventIds) { this.eventIds = eventIds; }
     public LocalDate getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Wishlist)) return false;
+        Wishlist wishlist = (Wishlist) o;
+        return Objects.equals(wishlistId, wishlist.wishlistId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(wishlistId);
+    }
 }

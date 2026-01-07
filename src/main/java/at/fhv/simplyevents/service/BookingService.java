@@ -1,15 +1,15 @@
 package at.fhv.simplyevents.service;
 
-import at.fhv.simplyevents.rest.dto.BookingDtos.*;
+import at.fhv.simplyevents.application.exception.NotFoundException;
+import at.fhv.simplyevents.application.port.in.BookingUseCase;
 import at.fhv.simplyevents.domain.model.ActiveBooking;
 import at.fhv.simplyevents.domain.model.CancelledBooking;
 import at.fhv.simplyevents.domain.model.Event;
 import at.fhv.simplyevents.domain.model.Status;
-import at.fhv.simplyevents.persistence.ActiveBookingRepository;
-import at.fhv.simplyevents.persistence.CancelledBookingRepository;
-import at.fhv.simplyevents.persistence.EventRepository;
+import at.fhv.simplyevents.domain.repository.ActiveBookingRepositoryPort;
+import at.fhv.simplyevents.domain.repository.CancelledBookingRepositoryPort;
+import at.fhv.simplyevents.domain.repository.EventRepositoryPort;
 import at.fhv.simplyevents.service.PendingBookingCache.PendingBooking;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,16 +18,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-public class BookingService {
+public class BookingService implements BookingUseCase {
 
-    private final EventRepository eventRepository;
-    private final ActiveBookingRepository activeBookingRepository;
-    private final CancelledBookingRepository cancelledBookingRepository;
+    private final EventRepositoryPort eventRepository;
+    private final ActiveBookingRepositoryPort activeBookingRepository;
+    private final CancelledBookingRepositoryPort cancelledBookingRepository;
     private final PendingBookingCache pendingBookingCache;
 
-    public BookingService(EventRepository eventRepository,
-                          ActiveBookingRepository activeBookingRepository,
-                          CancelledBookingRepository cancelledBookingRepository,
+    public BookingService(EventRepositoryPort eventRepository,
+                          ActiveBookingRepositoryPort activeBookingRepository,
+                          CancelledBookingRepositoryPort cancelledBookingRepository,
                           PendingBookingCache pendingBookingCache) {
         this.eventRepository = eventRepository;
         this.activeBookingRepository = activeBookingRepository;
@@ -36,10 +36,10 @@ public class BookingService {
     }
 
     @Transactional
-    public PendingBookingResponse createBooking(CreateBookingRequest request) {
-        Event event = eventRepository.findById(request.eventId())
-                .orElseThrow(() -> new EntityNotFoundException("Event not found: " + request.eventId()));
-
+    @Override
+    public PendingBookingResponse createBooking(CreateBookingCommand command) {
+        Event event = eventRepository.findById(command.eventId())
+                .orElseThrow(() -> NotFoundException.forEntity("Event", command.eventId()));
 
         int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
         int max = event.getMaxParticipants();
@@ -48,21 +48,21 @@ public class BookingService {
         if (remaining <= 0) {
             throw new IllegalArgumentException("Event is fully booked.");
         }
-        if (request.numParticipants() > remaining) {
+        if (command.numParticipants() > remaining) {
             throw new IllegalArgumentException("Only " + remaining + " places left for this event.");
         }
 
         BigDecimal pricePerPerson = BigDecimal.valueOf(event.getPrice());
-        BigDecimal total = pricePerPerson.multiply(BigDecimal.valueOf(request.numParticipants()));
+        BigDecimal total = pricePerPerson.multiply(BigDecimal.valueOf(command.numParticipants()));
 
         String bookingNumber = UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
         PendingBooking pending = pendingBookingCache.register(
                 event.getEventId(),
-                request.firstName(),
-                request.lastName(),
-                request.email(),
-                request.phone(),
-                request.numParticipants(),
+                command.firstName(),
+                command.lastName(),
+                command.email(),
+                command.phone(),
+                command.numParticipants(),
                 total,
                 bookingNumber
         );
@@ -71,40 +71,34 @@ public class BookingService {
                 pending.id(),
                 pending.bookingNumber(),
                 event.getEventId(),
-                request.numParticipants(),
+                command.numParticipants(),
                 pending.priceTotal()
         );
     }
 
     @Transactional(readOnly = true)
-    public BookingResponse getBooking(Long bookingId) {
+    @Override
+    public ActiveBooking getBooking(Long bookingId) {
         ActiveBooking booking = activeBookingRepository.findById(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found: " + bookingId));
-        Event event = booking.getEvent();
-        return new BookingResponse(
-                booking.getId(),
-                booking.getBookingNumber(),
-                event != null ? event.getEventId() : null,
-                event != null ? event.getTitle() : null,
-                event != null && event.getDate() != null ? event.getDate().toString() : null,
-                "",
-                event != null ? event.getLocation() : null,
-                booking.getNumParticipants(),
-                booking.getPriceTotal()
-        );
+                .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
+        Event event = eventRepository.findById(booking.getEventId())
+                .orElse(null);
+        // enrich booking with event data if needed elsewhere
+        return booking;
     }
 
     @Transactional
-    public CancelledBookingResponse cancelBooking(CancelBookingRequest request) {
-        ActiveBooking booking = activeBookingRepository.findByBookingNumber(request.bookingNumber())
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found: " + request.bookingNumber()));
+    @Override
+    public CancelledBooking cancelBooking(CancelBookingCommand command) {
+        ActiveBooking booking = activeBookingRepository.findByBookingNumber(command.bookingNumber())
+                .orElseThrow(() -> NotFoundException.forEntityAndField("Booking", "bookingNumber", command.bookingNumber()));
 
-        Event event = booking.getEvent();
-
+        Event event = eventRepository.findById(booking.getEventId())
+                .orElseThrow(() -> NotFoundException.forEntity("Event", booking.getEventId()));
 
         CancelledBooking cancelled = new CancelledBooking();
         cancelled.setBookingNumber(booking.getBookingNumber());
-        cancelled.setEvent(event);
+        cancelled.setEventId(event.getEventId());
         cancelled.setNumParticipants(booking.getNumParticipants());
         cancelled.setFirstName(booking.getFirstName());
         cancelled.setLastName(booking.getLastName());
@@ -115,38 +109,29 @@ public class BookingService {
         cancelled.setPaymentMethod(booking.getPaymentMethod());
         cancelled.setPriceTotal(booking.getPriceTotal());
         cancelled.setStatus("CANCELLED");
-        cancelled.setCancelReason(request.cancelReason());
+        cancelled.setCancelReason(command.cancelReason());
         cancelled.setCancelledAt(LocalDateTime.now());
         cancelled.setOriginalCreatedAt(booking.getCreatedAt());
 
         cancelledBookingRepository.save(cancelled);
-
-
         activeBookingRepository.delete(booking);
-
 
         int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
         int remaining = event.getMaxParticipants() - alreadyBooked;
-
-
         event.setAvailableSlots(remaining);
         eventRepository.save(event);
 
-        return new CancelledBookingResponse(
-                cancelled.getBookingNumber(),
-                event.getTitle(),
-                cancelled.getNumParticipants(),
-                cancelled.getCancelReason()
-        );
+        return cancelled;
     }
 
     @Transactional
-    public BookingResponse confirmPendingBooking(ConfirmBookingRequest request) {
-        PendingBooking pending = pendingBookingCache.get(request.pendingId())
-                .orElseThrow(() -> new EntityNotFoundException("Pending booking not found: " + request.pendingId()));
+    @Override
+    public ActiveBooking confirmPendingBooking(ConfirmBookingCommand command) {
+        PendingBooking pending = pendingBookingCache.get(command.pendingId())
+                .orElseThrow(() -> NotFoundException.forEntity("PendingBooking", command.pendingId()));
 
         Event event = eventRepository.findById(pending.eventId())
-                .orElseThrow(() -> new EntityNotFoundException("Event not found for pending booking: " + pending.eventId()));
+                .orElseThrow(() -> NotFoundException.forEntity("Event", pending.eventId()));
 
         int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
         int remaining = event.getMaxParticipants() - alreadyBooked;
@@ -158,35 +143,24 @@ public class BookingService {
 
         ActiveBooking booking = new ActiveBooking();
         booking.setBookingNumber(pending.bookingNumber());
-        booking.setEvent(event);
+        booking.setEventId(event.getEventId());
         booking.setNumParticipants(requestedSeats);
         booking.setFirstName(pending.firstName());
         booking.setLastName(pending.lastName());
         booking.setEmail(pending.email());
         booking.setPhone(pending.phone());
-        booking.setPaymentMethod(request.paymentMethod());
+        booking.setPaymentMethod(command.paymentMethod());
         booking.setPriceTotal(pending.priceTotal());
         booking.setStatus(Status.PENDING_PAYMENT.name());
         booking.setCreatedAt(LocalDateTime.now());
 
-        activeBookingRepository.save(booking);
-        pendingBookingCache.remove(request.pendingId());
+        ActiveBooking savedBooking = activeBookingRepository.save(booking);
+        pendingBookingCache.remove(command.pendingId());
 
         int newRemaining = remaining - requestedSeats;
         event.setAvailableSlots(Math.max(newRemaining, 0));
         eventRepository.save(event);
 
-        return new BookingResponse(
-                booking.getId(),
-                booking.getBookingNumber(),
-                event.getEventId(),
-                event.getTitle(),
-                event.getDate() != null ? event.getDate().toString() : null,
-                "",
-                event.getLocation(),
-                booking.getNumParticipants(),
-                booking.getPriceTotal()
-        );
+        return savedBooking;
     }
 }
-

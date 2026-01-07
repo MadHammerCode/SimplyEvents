@@ -1,6 +1,15 @@
 package at.fhv.simplyevents.rest;
 
-import at.fhv.simplyevents.service.CheckInService;
+import at.fhv.simplyevents.application.port.in.CheckInUseCase;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.BookingCapacityCommand;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.BookingDto;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.CreateParticipantCommand;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.NewBookingRequestCommand;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.NewBookingResponse;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.ParticipantDto;
+import at.fhv.simplyevents.rest.dto.CheckInRestDtos.CheckInUpdateDto;
+import at.fhv.simplyevents.rest.dto.CheckInRestDtos.NewBookingRequestDto;
+import at.fhv.simplyevents.rest.dto.CheckInRestDtos.ParticipantCreateDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,62 +19,60 @@ import java.util.List;
 @RequestMapping("/api/checkin")
 public class CheckInController {
 
-    private final CheckInService service;
+    private final CheckInUseCase service;
 
-    public CheckInController(CheckInService service) {
+    public CheckInController(CheckInUseCase service) {
         this.service = service;
     }
 
     @GetMapping("/event/{eventId}/participants")
-    public ResponseEntity<List<CheckInService.ParticipantDTO>> participantsForEvent(@PathVariable Long eventId) {
-        List<CheckInService.ParticipantDTO> list = service.findParticipantsForEvent(eventId);
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<ParticipantDto>> participantsForEvent(@PathVariable Long eventId) {
+        return ResponseEntity.ok(service.findParticipantsForEvent(eventId));
     }
 
     @GetMapping("/event/{eventId}/bookings")
-    public ResponseEntity<List<CheckInService.BookingDTO>> bookingsForEvent(@PathVariable Long eventId) {
-        List<CheckInService.BookingDTO> list = service.findBookingsForEvent(eventId);
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<BookingDto>> bookingsForEvent(@PathVariable Long eventId) {
+        return ResponseEntity.ok(service.findBookingsForEvent(eventId));
     }
 
-    public static record CheckInUpdateDTO(boolean checkedIn) {}
-
     @PostMapping("/bookings/{bookingId}/participants")
-    public ResponseEntity<List<CheckInService.ParticipantDTO>> createParticipants(
+    public ResponseEntity<List<ParticipantDto>> createParticipants(
             @PathVariable Long bookingId,
-            @RequestBody List<CheckInService.CreateParticipantDTO> dtos
+            @RequestBody List<ParticipantCreateDto> dtos
     ) {
-        List<CheckInService.ParticipantDTO> created = service.createParticipantsForBooking(bookingId, dtos);
-        return ResponseEntity.ok(created);
+        List<CreateParticipantCommand> commands = dtos.stream()
+                .map(dto -> new CreateParticipantCommand(dto.firstName(), dto.lastName(), dto.email()))
+                .toList();
+        return ResponseEntity.ok(service.createParticipantsForBooking(bookingId, commands));
     }
 
     @PutMapping("/participants/{id}")
-    public ResponseEntity<?> updateParticipant(@PathVariable Long id, @RequestBody CheckInUpdateDTO dto) {
+    public ResponseEntity<ParticipantDto> updateParticipant(@PathVariable Long id, @RequestBody CheckInUpdateDto dto) {
         var updated = service.updateCheckedIn(id, dto.checkedIn());
         return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/bookings/{bookingId}/participants")
-    public ResponseEntity<List<CheckInService.ParticipantDTO>> participantsForBooking(@PathVariable Long bookingId) {
-        List<CheckInService.ParticipantDTO> list = service.findParticipantsForBooking(bookingId);
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<ParticipantDto>> participantsForBooking(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(service.findParticipantsForBooking(bookingId));
     }
 
     @PatchMapping("/bookings/{bookingId}/capacity")
-    public ResponseEntity<CheckInService.BookingDTO> updateCapacity(
+    public ResponseEntity<BookingDto> updateCapacity(
             @PathVariable Long bookingId,
-            @RequestBody CheckInService.BookingCapacityDTO dto
+            @RequestBody BookingCapacityCommand dto
     ) {
         var updated = service.updateBookingCapacity(bookingId, dto.requestedSeats());
         return ResponseEntity.ok(updated);
     }
 
     @PostMapping("/event/{eventId}/bookings")
-    public ResponseEntity<CheckInService.NewBookingResponse> createBooking(
+    public ResponseEntity<NewBookingResponse> createBooking(
             @PathVariable Long eventId,
-            @RequestBody CheckInService.NewBookingRequest request
+            @RequestBody NewBookingRequestDto request
     ) {
-        var created = service.createBookingForEvent(eventId, request);
+        NewBookingRequestCommand cmd = new NewBookingRequestCommand(request.firstName(), request.lastName(), request.email(), request.seats());
+        var created = service.createBookingForEvent(eventId, cmd);
         return ResponseEntity.ok(created);
     }
 

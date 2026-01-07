@@ -1,93 +1,94 @@
 package at.fhv.simplyevents.service;
 
+import at.fhv.simplyevents.application.exception.NotFoundException;
+import at.fhv.simplyevents.application.port.in.CheckInUseCase;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.BookingDto;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.CreateParticipantCommand;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.NewBookingRequestCommand;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.NewBookingResponse;
+import at.fhv.simplyevents.application.port.in.dto.CheckInDtos.ParticipantDto;
 import at.fhv.simplyevents.domain.model.Participant;
 import at.fhv.simplyevents.domain.model.Event;
 import at.fhv.simplyevents.domain.model.ActiveBooking;
 import at.fhv.simplyevents.domain.model.CheckedInParticipant;
-import at.fhv.simplyevents.persistence.ParticipantRepository;
-import at.fhv.simplyevents.persistence.EventRepository;
-import at.fhv.simplyevents.persistence.ActiveBookingRepository;
-import at.fhv.simplyevents.persistence.CheckedInParticipantRepository;
+import at.fhv.simplyevents.domain.repository.ActiveBookingRepositoryPort;
+import at.fhv.simplyevents.domain.repository.CheckedInParticipantRepositoryPort;
+import at.fhv.simplyevents.domain.repository.EventRepositoryPort;
+import at.fhv.simplyevents.domain.repository.ParticipantRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class CheckInService {
+public class CheckInService implements CheckInUseCase {
 
-    private final ParticipantRepository participants;
-    private final EventRepository events;
-    private final ActiveBookingRepository activeBookings;
-    private final CheckedInParticipantRepository checkedInParticipants;
+    private final ParticipantRepositoryPort participants;
+    private final EventRepositoryPort events;
+    private final ActiveBookingRepositoryPort activeBookings;
+    private final CheckedInParticipantRepositoryPort checkedInParticipants;
 
-    public CheckInService(ParticipantRepository participants, EventRepository events, ActiveBookingRepository activeBookings,
-                          CheckedInParticipantRepository checkedInParticipants) {
+    public CheckInService(ParticipantRepositoryPort participants, EventRepositoryPort events, ActiveBookingRepositoryPort activeBookings,
+                          CheckedInParticipantRepositoryPort checkedInParticipants) {
         this.participants = participants;
         this.events = events;
         this.activeBookings = activeBookings;
         this.checkedInParticipants = checkedInParticipants;
     }
 
-    public static record ParticipantDTO(
-            Long id,
-            String bookingNumber,
-            String firstName,
-            String lastName,
-            String participantEmail,
-            String bookerEmail,
-            boolean checkedIn,
-            Instant checkInTime
-    ) {}
-
-    public List<ParticipantDTO> findParticipantsForEvent(Long eventId) {
+    @Override
+    public List<ParticipantDto> findParticipantsForEvent(Long eventId) {
         // ensure event exists
-        events.findById(eventId).orElseThrow(() -> new NoSuchElementException("Event not found"));
-        return participants.findByEventEventId(eventId).stream()
-                .map(p -> new ParticipantDTO(
+        events.findById(eventId).orElseThrow(() -> NotFoundException.forEntity("Event", eventId));
+        return participants.findByEventId(eventId).stream()
+                .map(p -> new ParticipantDto(
                         p.getId(),
-                        p.getBooking() != null ? p.getBooking().getBookingNumber() : null,
+                        p.getBookingNumber(),
                         p.getFirstName(),
                         p.getLastName(),
                         p.getEmail(),
-                        p.getBooking() != null ? p.getBooking().getEmail() : null,
+                        p.getBookerEmail(),
                         p.isCheckedIn(),
                         p.getCheckInTime()
                 ))
                 .collect(Collectors.toList());
     }
 
-    public ParticipantDTO updateCheckedIn(Long participantId, boolean checkedIn) {
-        Participant p = participants.findById(participantId).orElseThrow(() -> new NoSuchElementException("Participant not found"));
-        p.setCheckedIn(checkedIn);
-        p.setCheckInTime(checkedIn ? Instant.now() : null);
+    @Override
+    public ParticipantDto updateCheckedIn(Long participantId, boolean checkedIn) {
+        Participant p = participants.findById(participantId).orElseThrow(() -> NotFoundException.forEntity("Participant", participantId));
+        if (checkedIn) {
+            p.markCheckedIn(Instant.now());
+        } else {
+            p.markCheckedOut();
+        }
         participants.save(p);
-        return new ParticipantDTO(
+        return new ParticipantDto(
                 p.getId(),
-                p.getBooking() != null ? p.getBooking().getBookingNumber() : null,
+                p.getBookingNumber(),
                 p.getFirstName(),
                 p.getLastName(),
                 p.getEmail(),
-                p.getBooking() != null ? p.getBooking().getEmail() : null,
+                p.getBookerEmail(),
                 p.isCheckedIn(),
                 p.getCheckInTime()
         );
     }
 
-    public List<BookingDTO> findBookingsForEvent(Long eventId) {
+    @Override
+    public List<BookingDto> findBookingsForEvent(Long eventId) {
         // ensure event exists
-        events.findById(eventId).orElseThrow(() -> new NoSuchElementException("Event not found"));
+        events.findById(eventId).orElseThrow(() -> NotFoundException.forEntity("Event", eventId));
 
-        return activeBookings.findByEventEventId(eventId).stream()
+        return activeBookings.findByEventId(eventId).stream()
                 .map(b -> {
                     long created = participants.countByBookingId(b.getId());
                     long checked = participants.countByBookingIdAndCheckedInTrue(b.getId());
                     int seats = b.getNumParticipants() != null ? b.getNumParticipants() : 0;
-                    return new BookingDTO(
+                    return new BookingDto(
                             b.getId(),
                             b.getBookingNumber(),
                             b.getFirstName(),
@@ -101,9 +102,10 @@ public class CheckInService {
                 .collect(Collectors.toList());
     }
 
-    public List<ParticipantDTO> createParticipantsForBooking(Long bookingId, List<CreateParticipantDTO> createDtos) {
+    @Override
+    public List<ParticipantDto> createParticipantsForBooking(Long bookingId, List<CreateParticipantCommand> createDtos) {
         ActiveBooking booking = activeBookings.findById(bookingId)
-                .orElseThrow(() -> new NoSuchElementException("Booking not found"));
+                .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
 
         int max = booking.getNumParticipants() != null ? booking.getNumParticipants() : 0;
 
@@ -119,7 +121,7 @@ public class CheckInService {
         checkedInParticipants.deleteByBookingId(bookingId);
 
         Instant now = Instant.now();
-        for (CreateParticipantDTO dto : createDtos) {
+        for (CreateParticipantCommand dto : createDtos) {
             // Participant email is optional; fall back to booker email if not provided
             String participantEmail = dto.email();
             if (participantEmail != null) {
@@ -129,19 +131,22 @@ public class CheckInService {
                 participantEmail = booking.getEmail() != null ? booking.getEmail().trim() : null;
             }
 
-            Participant p = new Participant();
-            p.setEvent(booking.getEvent());
-            p.setBooking(booking);
-            p.setFirstName(dto.firstName());
-            p.setLastName(dto.lastName());
-            p.setEmail(participantEmail);
-            p.setCheckedIn(true);
-            p.setCheckInTime(now);
+            Participant p = Participant.create(
+                    booking.getEventId(),
+                    booking.getId(),
+                    booking.getBookingNumber(),
+                    booking.getEmail(),
+                    dto.firstName(),
+                    dto.lastName(),
+                    participantEmail
+            );
+            p.markCheckedIn(now);
             participants.save(p);
 
             CheckedInParticipant cip = new CheckedInParticipant();
-            cip.setEvent(booking.getEvent());
-            cip.setBooking(booking);
+            cip.setEventId(booking.getEventId());
+            cip.setBookingId(booking.getId());
+            cip.setBookingNumber(booking.getBookingNumber());
             cip.setFirstName(dto.firstName());
             cip.setLastName(dto.lastName());
             cip.setEmail(participantEmail);
@@ -151,60 +156,49 @@ public class CheckInService {
         }
 
         return participants.findByBookingId(bookingId).stream()
-                .map(p -> new ParticipantDTO(
+                .map(p -> new ParticipantDto(
                         p.getId(),
-                        p.getBooking() != null ? p.getBooking().getBookingNumber() : null,
+                        p.getBookingNumber(),
                         p.getFirstName(),
                         p.getLastName(),
                         p.getEmail(),
-                        p.getBooking() != null ? p.getBooking().getEmail() : null,
+                        p.getBookerEmail(),
                         p.isCheckedIn(),
                         p.getCheckInTime()
                 ))
                 .collect(Collectors.toList());
     }
 
-    public List<ParticipantDTO> findParticipantsForBooking(Long bookingId) {
-        ActiveBooking booking = activeBookings.findById(bookingId)
-                .orElseThrow(() -> new NoSuchElementException("Booking not found"));
+    @Override
+    public List<ParticipantDto> findParticipantsForBooking(Long bookingId) {
+        activeBookings.findById(bookingId)
+                .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
         return participants.findByBookingId(bookingId).stream()
-                .map(p -> new ParticipantDTO(
+                .map(p -> new ParticipantDto(
                         p.getId(),
-                        booking.getBookingNumber(),
+                        p.getBookingNumber(),
                         p.getFirstName(),
                         p.getLastName(),
                         p.getEmail(),
-                        booking.getEmail(),
+                        p.getBookerEmail(),
                         p.isCheckedIn(),
                         p.getCheckInTime()
                 ))
                 .collect(Collectors.toList());
     }
 
-    public static record BookingDTO(
-            Long bookingId,
-            String bookingNumber,
-            String bookerFirstName,
-            String bookerLastName,
-            String bookerEmail,
-            int numParticipants,
-            long participantsCreated,
-            long participantsCheckedIn
-    ) {}
-
-    public static record CreateParticipantDTO(String firstName, String lastName, String email) {}
-
-    public static record BookingCapacityDTO(int requestedSeats) {}
-
-    public BookingDTO updateBookingCapacity(Long bookingId, int requestedSeats) {
+    @Override
+    public BookingDto updateBookingCapacity(Long bookingId, int requestedSeats) {
         ActiveBooking booking = activeBookings.findById(bookingId)
-                .orElseThrow(() -> new NoSuchElementException("Booking not found"));
+                .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
         if (requestedSeats <= 0) {
             throw new IllegalArgumentException("Seat count must be greater than zero");
         }
 
-        Event event = booking.getEvent();
-        int alreadyBookedOther = activeBookings.sumParticipantsByEventIdExcludingBooking(event.getEventId(), bookingId);
+        Long eventId = booking.getEventId();
+        Event event = events.findById(eventId)
+                .orElseThrow(() -> NotFoundException.forEntity("Event", eventId));
+        int alreadyBookedOther = activeBookings.sumParticipantsByEventIdExcludingBooking(eventId, bookingId);
         int max = event.getMaxParticipants();
         int possible = max - alreadyBookedOther;
         if (requestedSeats > possible) {
@@ -215,7 +209,7 @@ public class CheckInService {
         activeBookings.save(booking);
 
         long checked = participants.countByBookingIdAndCheckedInTrue(bookingId);
-        return new BookingDTO(
+        return new BookingDto(
                 booking.getId(),
                 booking.getBookingNumber(),
                 booking.getFirstName(),
@@ -227,10 +221,8 @@ public class CheckInService {
         );
     }
 
-    public static record NewBookingRequest(String firstName, String lastName, String email, int seats) {}
-    public static record NewBookingResponse(BookingDTO booking) {}
-
-    public NewBookingResponse createBookingForEvent(Long eventId, NewBookingRequest request) {
+    @Override
+    public NewBookingResponse createBookingForEvent(Long eventId, NewBookingRequestCommand request) {
         if (request == null) {
             throw new IllegalArgumentException("Missing booking data");
         }
@@ -238,7 +230,7 @@ public class CheckInService {
             throw new IllegalArgumentException("Seat count must be greater than zero");
         }
         Event event = events.findById(eventId)
-                .orElseThrow(() -> new NoSuchElementException("Event not found"));
+                .orElseThrow(() -> NotFoundException.forEntity("Event", eventId));
 
         int alreadyBooked = activeBookings.sumParticipantsByEventId(eventId);
         int remaining = event.getMaxParticipants() - alreadyBooked;
@@ -251,7 +243,7 @@ public class CheckInService {
 
         ActiveBooking booking = new ActiveBooking();
         booking.setBookingNumber(UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase());
-        booking.setEvent(event);
+        booking.setEventId(event.getEventId());
         booking.setNumParticipants(request.seats());
         booking.setFirstName(request.firstName());
         booking.setLastName(request.lastName());
@@ -263,7 +255,7 @@ public class CheckInService {
         event.setAvailableSlots(remaining - request.seats());
         events.save(event);
 
-        BookingDTO dto = new BookingDTO(
+        BookingDto dto = new BookingDto(
                 booking.getId(),
                 booking.getBookingNumber(),
                 booking.getFirstName(),
@@ -276,11 +268,13 @@ public class CheckInService {
         return new NewBookingResponse(dto);
     }
 
+    @Override
     public void deleteBooking(Long bookingId) {
         ActiveBooking booking = activeBookings.findById(bookingId)
-                .orElseThrow(() -> new NoSuchElementException("Booking not found"));
+                .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
 
-        Event event = booking.getEvent();
+        Event event = events.findById(booking.getEventId())
+                .orElseThrow(() -> NotFoundException.forEntity("Event", booking.getEventId()));
         participants.deleteByBookingId(bookingId);
         checkedInParticipants.deleteByBookingId(bookingId);
         activeBookings.delete(booking);
@@ -290,3 +284,4 @@ public class CheckInService {
         events.save(event);
     }
 }
+

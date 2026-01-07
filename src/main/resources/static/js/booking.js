@@ -628,4 +628,3 @@ document.addEventListener("DOMContentLoaded", () => {
     loadEventAndPrefill();
     handleCallbackParams();
 });
-

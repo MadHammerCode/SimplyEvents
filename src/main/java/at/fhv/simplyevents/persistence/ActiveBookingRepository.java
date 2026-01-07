@@ -8,6 +8,10 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.List;
 
+/**
+ * Deprecated legacy repository using domain model; replaced by ActiveBookingJpaRepository.
+ */
+@Deprecated
 public interface ActiveBookingRepository extends JpaRepository<ActiveBooking, Long> {
 
     Optional<ActiveBooking> findByBookingNumber(String bookingNumber);

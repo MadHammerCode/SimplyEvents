@@ -1,9 +1,13 @@
 package at.fhv.simplyevents.rest;
 
+import at.fhv.simplyevents.application.exception.NotFoundException;
+import at.fhv.simplyevents.application.port.in.EventUseCase;
+import at.fhv.simplyevents.application.port.in.EventUseCase.CreateEventCommand;
+import at.fhv.simplyevents.application.port.in.EventUseCase.EventResult;
+import at.fhv.simplyevents.application.port.in.EventUseCase.ImageUpload;
+import at.fhv.simplyevents.domain.model.EventStatus;
 import at.fhv.simplyevents.rest.dto.EventDtos.CreateEventRequest;
 import at.fhv.simplyevents.rest.dto.EventDtos.EventResponse;
-import at.fhv.simplyevents.service.EventService;
-import at.fhv.simplyevents.domain.model.EventStatus;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,16 +15,19 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
 public class EventRestController {
 
-    private final EventService eventService;
+    private final EventUseCase eventUseCase;
 
-    public EventRestController(EventService eventService) {
-        this.eventService = eventService;
+    public EventRestController(EventUseCase eventUseCase) {
+        this.eventUseCase = eventUseCase;
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -36,8 +43,8 @@ public class EventRestController {
         }
 
         try {
-            EventResponse response = eventService.createEvent(request);
-            return ResponseEntity.ok(response);
+            EventResult result = eventUseCase.createEvent(toCommand(request));
+            return ResponseEntity.ok(toResponse(result));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
@@ -57,37 +64,42 @@ public class EventRestController {
         }
 
         try {
-            EventResponse response = eventService.createEvent(request, imageFile);
-            return ResponseEntity.ok(response);
+            EventResult result = eventUseCase.createEventWithImage(toCommand(request), toImage(imageFile));
+            return ResponseEntity.ok(toResponse(result));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 
-    // Public endpoint: only events visible for everyone (e.g. PUBLISHED / ACTIVE / FULL)
     @GetMapping
     public List<EventResponse> getPublicEvents() {
-        return eventService.getPublicEvents();
+        return eventUseCase.getPublicEvents().stream().map(this::toResponse).toList();
     }
 
-    // Backoffice endpoint: filter all events by status (e.g. PLANNED, PUBLISHED, ACTIVE, FULL, CANCELLED)
     @GetMapping("/backoffice")
     public List<EventResponse> getBackofficeEvents(@RequestParam(required = false) EventStatus status) {
         if (status == null) {
-            return eventService.getAllEvents();
+            return eventUseCase.getAllEvents().stream().map(this::toResponse).toList();
         }
-        return eventService.getEventsByStatus(status);
+        return eventUseCase.getEventsByStatus(status).stream().map(this::toResponse).toList();
     }
 
     @GetMapping("/{id}")
-    public EventResponse getEventById(@PathVariable Long id) {
-        return eventService.getEventById(id);
+    public ResponseEntity<EventResponse> getEventById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(toResponse(eventUseCase.getEventById(id)));
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    // Backoffice: publish an event so it becomes publicly visible
     @PostMapping("/{id}/publish")
-    public EventResponse publishEvent(@PathVariable Long id) {
-        return eventService.publishEvent(id);
+    public ResponseEntity<EventResponse> publishEvent(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(toResponse(eventUseCase.publishEvent(id)));
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -104,8 +116,10 @@ public class EventRestController {
         }
 
         try {
-            EventResponse response = eventService.updateEvent(id, request);
-            return ResponseEntity.ok(response);
+            EventResult result = eventUseCase.updateEvent(id, toCommand(request));
+            return ResponseEntity.ok(toResponse(result));
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
@@ -126,8 +140,10 @@ public class EventRestController {
         }
 
         try {
-            EventResponse response = eventService.updateEvent(id, request, imageFile);
-            return ResponseEntity.ok(response);
+            EventResult result = eventUseCase.updateEventWithImage(id, toCommand(request), toImage(imageFile));
+            return ResponseEntity.ok(toResponse(result));
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
@@ -135,7 +151,80 @@ public class EventRestController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
-        return ResponseEntity.noContent().build();
+        try {
+            eventUseCase.deleteEvent(id);
+            return ResponseEntity.noContent().build();
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private CreateEventCommand toCommand(CreateEventRequest dto) {
+        LocalDate date = dto.date() == null || dto.date().isBlank() ? null : LocalDate.parse(dto.date());
+        LocalTime time = dto.time() == null || dto.time().isBlank() ? null : LocalTime.parse(dto.time());
+        LocalDate bookingStart = dto.bookingStart() == null || dto.bookingStart().isBlank() ? null : LocalDate.parse(dto.bookingStart());
+        LocalDate bookingEnd = dto.bookingEnd() == null || dto.bookingEnd().isBlank() ? null : LocalDate.parse(dto.bookingEnd());
+        LocalDateTime cancellationDeadline = dto.cancellationDeadline() == null || dto.cancellationDeadline().isBlank()
+                ? null : LocalDateTime.parse(dto.cancellationDeadline());
+        return new CreateEventCommand(
+                dto.title(),
+                date,
+                time,
+                dto.location(),
+                dto.price(),
+                dto.minParticipants(),
+                dto.maxParticipants(),
+                dto.durationHours(),
+                dto.category(),
+                dto.description(),
+                dto.equipmentNeeded(),
+                dto.requirements(),
+                cancellationDeadline,
+                bookingStart,
+                bookingEnd,
+                dto.yearRound(),
+                dto.confirmPast(),
+                dto.capacity(),
+                dto.imagePath(),
+                dto.publishNow(),
+                dto.status()
+        );
+    }
+
+    private ImageUpload toImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+        try {
+            return new ImageUpload(file.getOriginalFilename(), file.getBytes());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Could not read uploaded file.", e);
+        }
+    }
+
+    private EventResponse toResponse(EventResult r) {
+        return new EventResponse(
+                r.id(),
+                r.title(),
+                r.date(),
+                r.time(),
+                r.location(),
+                r.price(),
+                r.minParticipants(),
+                r.maxParticipants(),
+                r.availableSlots(),
+                r.durationHours(),
+                r.capacity(),
+                r.category(),
+                r.description(),
+                r.equipmentNeeded(),
+                r.requirements(),
+                r.cancellationDeadline(),
+                r.imagePath(),
+                r.bookingStart(),
+                r.bookingEnd(),
+                r.yearRound(),
+                r.status()
+        );
     }
 }

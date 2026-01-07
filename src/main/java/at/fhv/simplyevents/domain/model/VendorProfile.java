@@ -1,30 +1,49 @@
 package at.fhv.simplyevents.domain.model;
 
-import jakarta.persistence.*;
+import at.fhv.simplyevents.domain.DomainValidationException;
+import java.util.Objects;
 
-@Entity
-@Table(name = "vendor_profiles")
 public class VendorProfile {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id;
+    private final Long userId;
+    private final String companyId;
+    private final String contactInfo;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    private VendorProfile(Long id, Long userId, String companyId, String contactInfo) {
+        if (userId == null) {
+            throw new DomainValidationException("userId is required");
+        }
+        this.id = id;
+        this.userId = userId;
+        this.companyId = companyId;
+        this.contactInfo = contactInfo;
+    }
 
-    @Column(nullable = false)
-    private String companyId;
+    public static VendorProfile create(Long userId, String companyId, String contactInfo) {
+        return new VendorProfile(null, userId, companyId, contactInfo);
+    }
 
-    private String contactInfo;
+    public static VendorProfile restore(Long id, Long userId, String companyId, String contactInfo) {
+        return new VendorProfile(id, userId, companyId, contactInfo);
+    }
 
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public Long getUserId() { return userId; }
     public String getCompanyId() { return companyId; }
-    public void setCompanyId(String companyId) { this.companyId = companyId; }
     public String getContactInfo() { return contactInfo; }
-    public void setContactInfo(String contactInfo) { this.contactInfo = contactInfo; }
-}
 
+    public VendorProfile withUpdatedContact(String companyId, String contactInfo) {
+        return new VendorProfile(this.id, this.userId, companyId, contactInfo);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VendorProfile)) return false;
+        VendorProfile that = (VendorProfile) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id); }
+}
