@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  app:
+    image: localhost:5000/simplyevents:latest
+    container_name: simplyevents_app
+    restart: always
+    ports:
+      - "8080:8080"
