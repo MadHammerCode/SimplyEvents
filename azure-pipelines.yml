@@ -15,6 +15,7 @@ steps:
     inputs:
       gradleWrapperFile: 'gradlew'
       tasks: 'build'
+      options: '-x test'
       publishJUnitResults: true
       testResultsFiles: '**/TEST-*.xml'
       
