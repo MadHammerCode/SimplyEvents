@@ -14,6 +14,8 @@ COPY src ./src
 
 RUN ./gradlew build -x test --no-daemon
 
+RUN rm -f build/libs/*-plain.jar
+
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
