@@ -6,15 +6,10 @@ pool:
 
 steps:
 
-# Debug: List all files so we can see where gradlew is hiding
   - script: |
-      echo "Current working directory:"
-      pwd
-      echo "Listing all files:"
-      ls -R
-    displayName: 'Debug: List Files'
-  - script: chmod +x gradlew
-    displayName: 'Make gradlew executable'
+      chmod +x gradlew
+      sed -i 's/\r$//' gradlew
+    displayName: 'Fix permissions and line endings'
 
   - task: Gradle@3
     inputs:
