@@ -5,19 +5,12 @@ pool:
   name: Self-Host
 
 steps:
-
-  - script: |
-      chmod +x gradlew
-      sed -i 's/\r$//' gradlew
-    displayName: 'Fix permissions and line endings'
-
-  - task: Gradle@3
+  - task: Docker@2
+    displayName: 'Build Docker Image'
     inputs:
-      gradleWrapperFile: 'gradlew'
-      tasks: 'build'
-      options: '-x test'
-      publishJUnitResults: true
-      testResultsFiles: '**/TEST-*.xml'
-      
-      javaHomeOption: 'Path'
-      jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
+      repository: 'simplyevents' 
+      command: 'build'        
+      Dockerfile: '**/Dockerfile'
+      tags: |
+        latest
+        $(Build.BuildId)      
