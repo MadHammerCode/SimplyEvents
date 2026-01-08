@@ -4,9 +4,31 @@ trigger:
 pool:
   name: Self-Host
 
-steps:
-  - script: |
-      echo "Hello from self-hosted agent"
-      whoami
-      hostname
-    displayName: "Smoke test"
+stages:
+- stage: Build
+  displayName: 'Build and Push'
+  jobs:
+  - job: Build
+    steps:
+    - task: Docker@2
+      displayName: 'Build and Push to Registry'
+      inputs:
+        command: 'buildAndPush'
+        repository: 'localhost:5000/simplyevents'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          latest
+          $(Build.BuildId)
+
+- stage: Deploy
+  displayName: 'Deploy to Server'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: Deploy
+    steps:
+    - script: |
+        echo "Deploying with Docker Compose..."
+        # We use the hyphenated command 'docker-compose' because we installed the binary manually
+        docker-compose -f docker-compose.yml -p simplyevents up -d --pull always
+      displayName: 'Run Application'
