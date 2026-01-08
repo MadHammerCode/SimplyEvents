@@ -22,16 +22,13 @@ stages:
 
 - stage: Deploy
   displayName: 'Deploy to Server'
-  dependsOn: Build   
+  dependsOn: Build
   condition: succeeded()
   jobs:
   - job: Deploy
     steps:
-    - task: DockerCompose@0
+    - script: |
+        echo "Deploying with Docker Compose..."
+        # We use the hyphenated command 'docker-compose' because we installed the binary manually
+        docker-compose -f docker-compose.yml -p simplyevents up -d --pull always
       displayName: 'Run Application'
-      inputs:
-        containerregistrytype: 'Container Registry'
-        dockerComposeFile: '**/docker-compose.yml'
-        action: 'Run a Docker Compose service'
-        serviceName: 'app'
-        dockerComposeCommand: 'up -d --pull always'
