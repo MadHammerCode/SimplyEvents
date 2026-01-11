@@ -46,7 +46,8 @@ public class BookingRestController {
                         request.lastName(),
                         request.email(),
                         request.phone(),
-                        request.numParticipants()
+                        request.numParticipants(),
+                        request.attendanceDate()
                 )
         );
         return ResponseEntity.ok(response);
@@ -76,7 +77,8 @@ public class BookingRestController {
                     "",
                     null,
                     cancelled.getNumParticipants(),
-                    cancelled.getPriceTotal()
+                    cancelled.getPriceTotal(),
+                    null
             ));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();
@@ -107,7 +109,8 @@ public class BookingRestController {
                     "",
                     null,
                     booking.getNumParticipants(),
-                    booking.getPriceTotal()
+                    booking.getPriceTotal(),
+                    booking.getAttendanceDate()
             ));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();
@@ -127,7 +130,8 @@ public class BookingRestController {
                     "",
                     null,
                     booking.getNumParticipants(),
-                    booking.getPriceTotal()
+                    booking.getPriceTotal(),
+                    booking.getAttendanceDate()
             ));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();

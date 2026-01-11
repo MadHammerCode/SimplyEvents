@@ -7,6 +7,7 @@ import at.fhv.simplyevents.persistence.model.ActiveBookingJpaEntity;
 import at.fhv.simplyevents.persistence.springdata.ActiveBookingJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,5 +54,10 @@ public class ActiveBookingRepositoryAdapter implements ActiveBookingRepositoryPo
     @Override
     public List<ActiveBooking> findByEventId(Long eventId) {
         return delegate.findByEventId(eventId).stream().map(ActiveBookingMapper::toDomain).toList();
+    }
+
+    @Override
+    public int sumParticipantsByEventIdAndDate(Long eventId, LocalDate date) {
+        return delegate.sumParticipantsByEventIdAndDate(eventId, date);
     }
 }

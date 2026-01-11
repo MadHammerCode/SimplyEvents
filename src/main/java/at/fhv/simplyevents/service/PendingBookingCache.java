@@ -3,6 +3,7 @@ package at.fhv.simplyevents.service;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,7 +24,8 @@ public class PendingBookingCache {
             String paymentMethod,
             Instant createdAt,
             Instant expiresAt,
-            Status state
+            Status state,
+            LocalDate attendanceDate
     ) {
         public enum Status {
             CREATED,
@@ -49,7 +51,8 @@ public class PendingBookingCache {
             String phone,
             int numParticipants,
             BigDecimal priceTotal,
-            String bookingNumber
+            String bookingNumber,
+            LocalDate attendanceDate
     ) {
         cleanupExpired();
         String id = UUID.randomUUID().toString();
@@ -67,7 +70,8 @@ public class PendingBookingCache {
                 null,
                 now,
                 now.plus(ttl),
-                PendingBooking.Status.CREATED
+                PendingBooking.Status.CREATED,
+                attendanceDate
         );
         pending.put(id, booking);
         return booking;
@@ -93,7 +97,8 @@ public class PendingBookingCache {
                         oldValue.paymentMethod(),
                         oldValue.createdAt(),
                         oldValue.expiresAt(),
-                        newState
+                        newState,
+                        oldValue.attendanceDate()
                 ));
     }
 
@@ -112,7 +117,8 @@ public class PendingBookingCache {
                         newPaymentMethod,
                         oldValue.createdAt(),
                         oldValue.expiresAt(),
-                        newState
+                        newState,
+                        oldValue.attendanceDate()
                 ));
     }
 

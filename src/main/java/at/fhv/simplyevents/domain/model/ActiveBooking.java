@@ -21,6 +21,7 @@ public class ActiveBooking {
     private BigDecimal priceTotal;
     private String status;
     private LocalDateTime createdAt;
+    private LocalDate attendanceDate;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,6 +51,8 @@ public class ActiveBooking {
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDate getAttendanceDate() { return attendanceDate; }
+    public void setAttendanceDate(LocalDate attendanceDate) { this.attendanceDate = attendanceDate; }
 
     @Override
     public boolean equals(Object o) {

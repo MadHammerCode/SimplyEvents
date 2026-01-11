@@ -73,20 +73,35 @@
 
                         <!-- Date -->
                         <div class="form-group">
-                            <label for="date" class="form-label">Date <span class="optional-note">(required for publish unless year-round or booking window)</span></label>
-                            <input id="date" type="date" class="form-input">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="yearRound" name="yearRound" style="width: auto;" th:checked="${event?.yearRound}">
+                                <label for="yearRound" class="form-label" style="margin-bottom: 0;">
+                                    This is a Year-Round Event
+                                </label>
+                            </div>
+                            <small style="display: block; margin-top: 5px; color: #666;">
+                                Select this for daily events like equipment rentals or parks.
+                            </small>
                         </div>
 
+                        <div id="dateSpecificFields">
+                            <div class="form-group">
+                                <label for="date" class="form-label">Date <span class="optional-note">(required)</span></label>
+                                <input id="date" name="date" type="date" class="form-input" th:value="${event?.date}">
+                            </div>
+
                         <!-- Time -->
-                        <div class="form-group">
-                            <label for="time" class="form-label">Time <span class="optional-note">(required for publish unless year-round or booking window)</span></label>
-                            <input id="time" type="time" class="form-input">
+                            <div class="form-group">
+                                <label for="time" class="form-label">Time <span class="optional-note">(required)</span></label>
+                                <input id="time" name="time" type="time" class="form-input" th:value="${event?.time}">
+                            </div>
                         </div>
 
                         <!-- Capacity -->
                         <div class="form-group">
-                            <label for="capacity" class="form-label">Capacity <span class="optional-note">(required for publish)</span></label>
-                            <input id="capacity" type="number" min="1" class="form-input">
+                            <label for="capacity" id="capacityLabel" class="form-label">Capacity <span class="optional-note">(required for publish)</span></label>
+                            <input id="capacity" name="maxParticipants" type="number" min="1" class="form-input" th:value="${event?.maxParticipants}">
+                            <small id="capacityHelp" style="color: #666;"></small>
                         </div>
 
                         <!-- Description -->

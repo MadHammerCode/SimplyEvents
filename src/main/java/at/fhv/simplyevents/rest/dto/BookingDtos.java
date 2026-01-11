@@ -1,6 +1,8 @@
 package at.fhv.simplyevents.rest.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import jakarta.validation.constraints.*;
 
 public class BookingDtos {
@@ -18,7 +20,8 @@ public class BookingDtos {
             String phone,
             @Min(value = 1, message = "Number of participants must be at least 1")
             Integer numParticipants,
-            String paymentMethod
+            String paymentMethod,
+            LocalDate attendanceDate
     ) {}
 
 
@@ -31,7 +34,8 @@ public class BookingDtos {
             String time,
             String location,
             Integer numParticipants,
-            BigDecimal priceTotal
+            BigDecimal priceTotal,
+            LocalDate attendanceDate
     ) {}
 
 

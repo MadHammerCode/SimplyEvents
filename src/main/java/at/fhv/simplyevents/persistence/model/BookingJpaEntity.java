@@ -1,6 +1,9 @@
 package at.fhv.simplyevents.persistence.model;
 
 import jakarta.persistence.*;
+import org.hibernate.validator.constraints.br.CPF;
+
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -38,6 +41,9 @@ public class BookingJpaEntity {
 
     @Column(name = "user_id")
     private Long userId;
+
+    @Column(name = "attendance_date")
+    private LocalDate attendanceDate;
 
     public Long getBookingId() { return bookingId; }
     public void setBookingId(Long bookingId) { this.bookingId = bookingId; }

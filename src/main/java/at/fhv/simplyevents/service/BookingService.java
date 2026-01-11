@@ -2,10 +2,7 @@ package at.fhv.simplyevents.service;
 
 import at.fhv.simplyevents.application.exception.NotFoundException;
 import at.fhv.simplyevents.application.port.in.BookingUseCase;
-import at.fhv.simplyevents.domain.model.ActiveBooking;
-import at.fhv.simplyevents.domain.model.CancelledBooking;
-import at.fhv.simplyevents.domain.model.Event;
-import at.fhv.simplyevents.domain.model.Status;
+import at.fhv.simplyevents.domain.model.*;
 import at.fhv.simplyevents.domain.repository.ActiveBookingRepositoryPort;
 import at.fhv.simplyevents.domain.repository.CancelledBookingRepositoryPort;
 import at.fhv.simplyevents.domain.repository.EventRepositoryPort;
@@ -14,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -41,21 +40,44 @@ public class BookingService implements BookingUseCase {
         Event event = eventRepository.findById(command.eventId())
                 .orElseThrow(() -> NotFoundException.forEntity("Event", command.eventId()));
 
-        int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
-        int max = event.getMaxParticipants();
-        int remaining = max - alreadyBooked;
+        int remaining;
+        boolean isYearRound = Boolean.TRUE.equals(event.isYearRound());
+
+        // --- 1. CAPACITY CHECK LOGIC ---
+        if (isYearRound) {
+            // Case A: Year-Round Event (Check Daily Capacity)
+            if (command.attendanceDate() == null) {
+                throw new IllegalArgumentException("Date is required for year-round events.");
+            }
+
+            // You must add this method to your ActiveBookingRepositoryPort interface!
+            int bookedForDate = activeBookingRepository.sumParticipantsByEventIdAndDate(
+                    event.getEventId(),
+                    command.attendanceDate()
+            );
+
+            // For year-round, maxParticipants acts as the daily limit
+            remaining = event.getMaxParticipants() - bookedForDate;
+
+        } else {
+            // Case B: Standard Event (Check Total Capacity)
+            int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
+            remaining = event.getMaxParticipants() - alreadyBooked;
+        }
 
         if (remaining <= 0) {
-            throw new IllegalArgumentException("Event is fully booked.");
+            throw new IllegalArgumentException("Fully booked" + (isYearRound ? " for this date." : "."));
         }
         if (command.numParticipants() > remaining) {
-            throw new IllegalArgumentException("Only " + remaining + " places left for this event.");
+            throw new IllegalArgumentException("Only " + remaining + " places left" + (isYearRound ? " for this date." : "."));
         }
 
         BigDecimal pricePerPerson = BigDecimal.valueOf(event.getPrice());
         BigDecimal total = pricePerPerson.multiply(BigDecimal.valueOf(command.numParticipants()));
 
         String bookingNumber = UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
+
+
         PendingBooking pending = pendingBookingCache.register(
                 event.getEventId(),
                 command.firstName(),
@@ -64,7 +86,9 @@ public class BookingService implements BookingUseCase {
                 command.phone(),
                 command.numParticipants(),
                 total,
-                bookingNumber
+                bookingNumber,
+                isYearRound ? command.attendanceDate() : convertToLocalDate(event.getDate())
+
         );
 
         return new PendingBookingResponse(
@@ -81,9 +105,7 @@ public class BookingService implements BookingUseCase {
     public ActiveBooking getBooking(Long bookingId) {
         ActiveBooking booking = activeBookingRepository.findById(bookingId)
                 .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
-        Event event = eventRepository.findById(booking.getEventId())
-                .orElse(null);
-        // enrich booking with event data if needed elsewhere
+        // Optional: enrich booking with event data if needed
         return booking;
     }
 
@@ -96,30 +118,18 @@ public class BookingService implements BookingUseCase {
         Event event = eventRepository.findById(booking.getEventId())
                 .orElseThrow(() -> NotFoundException.forEntity("Event", booking.getEventId()));
 
-        CancelledBooking cancelled = new CancelledBooking();
-        cancelled.setBookingNumber(booking.getBookingNumber());
-        cancelled.setEventId(event.getEventId());
-        cancelled.setNumParticipants(booking.getNumParticipants());
-        cancelled.setFirstName(booking.getFirstName());
-        cancelled.setLastName(booking.getLastName());
-        cancelled.setEmail(booking.getEmail());
-        cancelled.setPhone(booking.getPhone());
-        cancelled.setBookingType(booking.getBookingType());
-        cancelled.setOptionDate(booking.getOptionDate());
-        cancelled.setPaymentMethod(booking.getPaymentMethod());
-        cancelled.setPriceTotal(booking.getPriceTotal());
-        cancelled.setStatus("CANCELLED");
-        cancelled.setCancelReason(command.cancelReason());
-        cancelled.setCancelledAt(LocalDateTime.now());
-        cancelled.setOriginalCreatedAt(booking.getCreatedAt());
+        CancelledBooking cancelled = mapToCancelled(booking, command.cancelReason());
 
         cancelledBookingRepository.save(cancelled);
         activeBookingRepository.delete(booking);
 
-        int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
-        int remaining = event.getMaxParticipants() - alreadyBooked;
-        event.setAvailableSlots(remaining);
-        eventRepository.save(event);
+        // Update available slots ONLY for standard events
+        if (!Boolean.TRUE.equals(event.isYearRound())) {
+            int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
+            int remaining = event.getMaxParticipants() - alreadyBooked;
+            event.setAvailableSlots(remaining);
+            eventRepository.save(event);
+        }
 
         return cancelled;
     }
@@ -133,12 +143,23 @@ public class BookingService implements BookingUseCase {
         Event event = eventRepository.findById(pending.eventId())
                 .orElseThrow(() -> NotFoundException.forEntity("Event", pending.eventId()));
 
-        int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
-        int remaining = event.getMaxParticipants() - alreadyBooked;
-        int requestedSeats = pending.numParticipants();
+        int remaining;
+        boolean isYearRound = Boolean.TRUE.equals(event.isYearRound());
 
-        if (remaining <= 0 || requestedSeats > remaining) {
-            throw new IllegalArgumentException("Only " + Math.max(remaining, 0) + " places left for this event.");
+        if (isYearRound) {
+            int bookedForDate = activeBookingRepository.sumParticipantsByEventIdAndDate(
+                    event.getEventId(),
+                    pending.attendanceDate()
+            );
+            remaining = event.getMaxParticipants() - bookedForDate;
+        } else {
+            int alreadyBooked = activeBookingRepository.sumParticipantsByEventId(event.getEventId());
+            remaining = event.getMaxParticipants() - alreadyBooked;
+        }
+
+        int requestedSeats = pending.numParticipants();
+        if (remaining < 0 || requestedSeats > remaining) {
+            throw new IllegalArgumentException("Only " + Math.max(remaining, 0) + " places left.");
         }
 
         ActiveBooking booking = new ActiveBooking();
@@ -154,13 +175,42 @@ public class BookingService implements BookingUseCase {
         booking.setStatus(Status.PENDING_PAYMENT.name());
         booking.setCreatedAt(LocalDateTime.now());
 
+        booking.setAttendanceDate(pending.attendanceDate());
+
         ActiveBooking savedBooking = activeBookingRepository.save(booking);
         pendingBookingCache.remove(command.pendingId());
 
-        int newRemaining = remaining - requestedSeats;
-        event.setAvailableSlots(Math.max(newRemaining, 0));
-        eventRepository.save(event);
+        if (!isYearRound) {
+            int newRemaining = remaining - requestedSeats;
+            event.setAvailableSlots(Math.max(newRemaining, 0));
+            eventRepository.save(event);
+        }
 
         return savedBooking;
+    }
+
+    private LocalDate convertToLocalDate(java.util.Date date) {
+        if (date == null) return null;
+        return date.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+    }
+
+    private CancelledBooking mapToCancelled(ActiveBooking booking, String reason) {
+        CancelledBooking cancelled = new CancelledBooking();
+        cancelled.setBookingNumber(booking.getBookingNumber());
+        cancelled.setEventId(booking.getEventId());
+        cancelled.setNumParticipants(booking.getNumParticipants());
+        cancelled.setFirstName(booking.getFirstName());
+        cancelled.setLastName(booking.getLastName());
+        cancelled.setEmail(booking.getEmail());
+        cancelled.setPhone(booking.getPhone());
+        cancelled.setBookingType(booking.getBookingType());
+        cancelled.setOptionDate(booking.getOptionDate());
+        cancelled.setPaymentMethod(booking.getPaymentMethod());
+        cancelled.setPriceTotal(booking.getPriceTotal());
+        cancelled.setStatus("CANCELLED");
+        cancelled.setCancelReason(reason);
+        cancelled.setCancelledAt(LocalDateTime.now());
+        cancelled.setOriginalCreatedAt(booking.getCreatedAt());
+        return cancelled;
     }
 }

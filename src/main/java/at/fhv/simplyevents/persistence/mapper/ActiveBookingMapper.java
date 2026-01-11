@@ -23,6 +23,7 @@ public class ActiveBookingMapper {
         domain.setPriceTotal(entity.getPriceTotal());
         domain.setStatus(entity.getStatus());
         domain.setCreatedAt(entity.getCreatedAt());
+        domain.setAttendanceDate(entity.getAttendanceDate());
         return domain;
     }
 
@@ -43,6 +44,7 @@ public class ActiveBookingMapper {
         entity.setPriceTotal(domain.getPriceTotal());
         entity.setStatus(domain.getStatus());
         entity.setCreatedAt(domain.getCreatedAt());
+        entity.setAttendanceDate(domain.getAttendanceDate());
         return entity;
     }
 }

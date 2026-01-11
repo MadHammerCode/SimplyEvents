@@ -21,6 +21,8 @@ public class EventJpaEntity {
     private String equipmentNeeded;
     private String location;
     private Integer durationHours;
+
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
     @Column(name = "available_slots")
