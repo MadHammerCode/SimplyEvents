@@ -126,6 +126,7 @@ function loadEventAndPrefill() {
         })
         .then((event) => {
             currentEvent = event;
+            handleYearRoundLogic(event);
             fillSummary(event);
             updateTotalPrice();
         })
@@ -143,6 +144,33 @@ function loadEventAndPrefill() {
     }
 }
 
+function handleYearRoundLogic(event) {
+    const dateField = document.getElementById("yearRoundField");
+    const dateInput = document.getElementById("attendanceDate");
+    const summaryDate = document.getElementById("summaryEventDateTime");
+
+    if (event.yearRound) {
+        // Show Date Picker
+        if (dateField) dateField.classList.remove("hidden");
+
+        // Set Min Date to Today
+        if (dateInput) {
+            dateInput.min = new Date().toISOString().split("T")[0];
+
+            // Update Summary when user picks a date
+            dateInput.addEventListener("change", () => {
+                if (summaryDate) summaryDate.textContent = dateInput.value || "Select a date";
+            });
+        }
+
+        if (summaryDate) summaryDate.textContent = "Select a date";
+
+    } else {
+        // Standard Event: Hide Picker
+        if (dateField) dateField.classList.add("hidden");
+    }
+}
+
 function fillSummary(event) {
     const titleEl = document.getElementById("summaryEventTitle");
     const locEl = document.getElementById("summaryEventLocation");
@@ -155,10 +183,19 @@ function fillSummary(event) {
     if (titleEl) titleEl.textContent = event.title || "Event";
     if (locEl) locEl.textContent = event.location || "–";
 
-    const date = event.date || "";
-    const time = event.time || "";
-    const dt = date ? (time ? `${date} · ${time}` : date) : "–";
-    if (dtEl) dtEl.textContent = dt;
+    if (dtEl) {
+        if (event.yearRound) {
+            // For year-round, show the selected date (or placeholder)
+            const picked = document.getElementById("attendanceDate")?.value;
+            dtEl.textContent = picked || "Select a date";
+        } else {
+            // For standard events, show the fixed date
+            const date = event.date || "";
+            const time = event.time || "";
+            const dt = date ? (time ? `${date} · ${time}` : date) : "–";
+            dtEl.textContent = dt;
+        }
+    }
 
     if (priceEl) priceEl.textContent = formatPrice(event.price);
 
@@ -244,6 +281,13 @@ function validateStep1() {
         errors.push("Please enter a valid email address.");
     }
 
+    if (currentEvent && currentEvent.yearRound) {
+        const dateInput = document.getElementById("attendanceDate");
+        if (!dateInput || !dateInput.value) {
+            errors.push("Please select a date for your visit.");
+        }
+    }
+
     const num = Number(ticketCountVal);
     if (!num || num < 1) {
         errors.push("The number of tickets must be at least 1.");
@@ -289,6 +333,11 @@ function submitBooking() {
     const ticketCountVal = document.getElementById("ticketCount")?.value;
 
     const numParticipants = Number(ticketCountVal) || 1;
+
+    let attendanceDate = null;
+    if (currentEvent && currentEvent.yearRound) {
+        attendanceDate = document.getElementById("attendanceDate").value;
+    }
 
     const payload = {
         eventId: Number(eventId),
@@ -379,8 +428,7 @@ function submitBooking() {
 
     if (bNumEl) bNumEl.textContent = bookingResponse.bookingNumber || "–";
     if (titleEl) titleEl.textContent = bookingResponse.eventTitle || (currentEvent?.title || "–");
-    if (dateEl) dateEl.textContent = bookingResponse.date || (currentEvent?.date || "–");
-    if (timeEl) timeEl.textContent = bookingResponse.time || (currentEvent?.time || "–");
+     if (dateEl) dateEl.textContent = bookingResponse.date || (bookingResponse.attendanceDate) || (currentEvent?.date || "–");    if (timeEl) timeEl.textContent = bookingResponse.time || (currentEvent?.time || "–");
     if (locEl) locEl.textContent = bookingResponse.location || (currentEvent?.location || "–");
     if (numEl) numEl.textContent = bookingResponse.numParticipants != null ? String(bookingResponse.numParticipants) : "–";
 
@@ -464,7 +512,8 @@ function handleCallbackParams() {
                 time: booking.time,
                 location: booking.location,
                 numParticipants: booking.numParticipants,
-                priceTotal: booking.priceTotal
+                priceTotal: booking.priceTotal,
+                attendanceDate: booking.attendanceDate
             };
             fillConfirmation(lastBookingResponse);
         })

@@ -54,7 +54,6 @@ function formatPrice(price) {
 
 function formatDate(dateStr) {
     if (!dateStr) return "–";
-    // Backend liefert date vermutlich als String "2025-11-07" oder ähnlich
     return dateStr;
 }
 
@@ -88,13 +87,34 @@ function renderEvent(event) {
     if (titleEl) titleEl.textContent = event.title || "Event";
     if (categoryEl) categoryEl.textContent = event.category || "Event";
     if (locationEl) locationEl.textContent = event.location || "–";
-    if (dateEl) dateEl.textContent = formatDate(event.date);
-    if (timeEl) timeEl.textContent = formatTime(event.time);
+
+    if (dateEl) {
+        if (event.yearRound) {
+            dateEl.textContent = "Year round";
+        } else {
+            dateEl.textContent = formatDate(event.date);
+        }
+    }
+    if (timeEl) {
+        if (event.yearRound) {
+            timeEl.textContent = "Daily";
+        } else {
+            timeEl.textContent = formatTime(event.time);
+        }
+    }
+
+
     if (capacityEl) {
         const available = event.availableSlots != null ? event.availableSlots : "-";
         const max = event.maxParticipants != null ? event.maxParticipants : "-";
         const soldOut = Number(available) <= 0;
-        capacityEl.textContent = soldOut ? "Sold out" : `${available} from ${max}`;
+
+        if (event.yearRound) {
+            capacityEl.textContent = `${max} per day`;
+        } else {
+            capacityEl.textContent = soldOut ? "Sold out" : `${available} from ${max}`;
+        }
+
         const badge = document.getElementById("eventCategory");
         if (soldOut && badge) {
             badge.textContent = "Sold out";
