@@ -3,7 +3,7 @@ package at.fhv.simplyevents.persistence.mapper;
 import at.fhv.simplyevents.domain.DomainValidationException;
 import at.fhv.simplyevents.domain.model.User;
 import at.fhv.simplyevents.persistence.model.UserJpaEntity;
-import at.fhv.simplyevents.persistence.model.UserRoleJpaEntity;
+
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,21 +11,18 @@ import java.util.stream.Collectors;
 public class UserMapper {
     private UserMapper() {}
 
-    public static User toDomain(UserJpaEntity e, Set<UserRoleJpaEntity> roles) {
+    public static User toDomain(UserJpaEntity e) {
         if (e == null) return null;
-        if (roles == null || roles.isEmpty()) {
-            throw new DomainValidationException("User must have at least one role");
-        }
-        Set<Long> roleIds = roles.stream()
-                .map(UserRoleJpaEntity::getRoleId)
-                .collect(Collectors.toSet());
+
         return User.restore(
                 e.getId(),
                 e.getFname(),
                 e.getLname(),
                 e.getEmail(),
                 e.getPassword(),
-                roleIds,
+
+                e.getRole(),
+
                 e.getVendorProfileId(),
                 e.getCreatedAt(),
                 e.getUpdatedAt()
@@ -40,6 +37,7 @@ public class UserMapper {
         e.setLname(u.getLname());
         e.setEmail(u.getEmail());
         e.setPassword(u.getPassword());
+        e.setRole(u.getRole());
         e.setVendorProfileId(u.getVendorProfileId());
         e.setCreatedAt(u.getCreatedAt());
         e.setUpdatedAt(u.getUpdatedAt());

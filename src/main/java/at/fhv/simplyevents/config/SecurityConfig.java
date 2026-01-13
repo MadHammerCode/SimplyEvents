@@ -21,24 +21,33 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/",
                     "/login",
+                    "/dashboard",
+                    "/event-details/**",
                     "/register",
                     "/register/vendor",
-                    "/api/auth/login",
-                    "/api/auth/register/**",
-                    "/dashboard",
                     "/css/**",
                     "/js/**",
                     "/images/**",
                     "/webjars/**"
                 ).permitAll()
-                .anyRequest().permitAll()
+
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/events/**").permitAll()
+
+                .requestMatchers("/backoffice-dashboard/**", "/event-editor/**")
+                .hasAnyAuthority("BACKOFFICE", "ADMIN")
+
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                .anyRequest().authenticated()
             )
             .formLogin(form -> {
                 form.loginPage("/login");
+                form.defaultSuccessUrl("/dashboard", true); // Default landing page
                 form.permitAll();
 
             })
-            .logout(logout -> logout.permitAll())
+            .logout(logout -> logout.logoutSuccessUrl("/")
+                    .permitAll())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
         return http.build();

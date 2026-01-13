@@ -3,6 +3,7 @@ package at.fhv.simplyevents.service;
 import at.fhv.simplyevents.application.port.in.AuthUseCase;
 import at.fhv.simplyevents.domain.model.Role;
 import at.fhv.simplyevents.domain.model.User;
+import at.fhv.simplyevents.domain.model.UserRole;
 import at.fhv.simplyevents.domain.model.VendorProfile;
 import at.fhv.simplyevents.domain.repository.RoleRepositoryPort;
 import at.fhv.simplyevents.domain.repository.UserRepositoryPort;
@@ -16,13 +17,11 @@ import java.util.Set;
 public class AuthService implements AuthUseCase {
 
     private final UserRepositoryPort users;
-    private final RoleRepositoryPort roles;
     private final VendorProfileRepositoryPort vendorProfiles;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepositoryPort users, RoleRepositoryPort roles, VendorProfileRepositoryPort vendorProfiles, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepositoryPort users, VendorProfileRepositoryPort vendorProfiles, PasswordEncoder passwordEncoder) {
         this.users = users;
-        this.roles = roles;
         this.vendorProfiles = vendorProfiles;
         this.passwordEncoder = passwordEncoder;
     }
@@ -30,15 +29,13 @@ public class AuthService implements AuthUseCase {
     @Override
     public User registerCustomer(AuthUseCase.RegisterCustomerCommand cmd) {
         users.findByEmail(cmd.email()).ifPresent(u -> { throw new IllegalStateException("Email already exists"); });
-        Role customerRole = roles.findByName("ROLE_CUSTOMER").orElseGet(() -> {
-            Role r = new Role(); r.setName("ROLE_CUSTOMER"); return roles.save(r);
-        });
+
         User user = User.create(
                 cmd.firstName(),
                 cmd.lastName(),
                 cmd.email(),
                 passwordEncoder.encode(cmd.password()),
-                Set.of(customerRole.getId()),
+                UserRole.BASIC_USER,
                 null
         );
         return users.save(user);
@@ -47,15 +44,12 @@ public class AuthService implements AuthUseCase {
     @Override
     public User registerVendor(AuthUseCase.RegisterVendorCommand cmd) {
         users.findByEmail(cmd.email()).ifPresent(u -> { throw new IllegalStateException("Email already exists"); });
-        Role vendorRole = roles.findByName("ROLE_VENDOR").orElseGet(() -> {
-            Role r = new Role(); r.setName("ROLE_VENDOR"); return roles.save(r);
-        });
         User user = User.create(
                 cmd.firstName(),
                 cmd.lastName(),
                 cmd.email(),
                 passwordEncoder.encode(cmd.password()),
-                Set.of(vendorRole.getId()),
+                UserRole.BASIC_USER,
                 null
         );
         User savedUser = users.save(user);

@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,15 +28,13 @@ import jakarta.servlet.http.HttpSession;
 public class AuthController {
 
     private final AuthUseCase auth;
-    private final RoleRepositoryPort roles;
 
-    public AuthController(AuthUseCase auth, RoleRepositoryPort roles) {
+    public AuthController(AuthUseCase auth) {
         this.auth = auth;
-        this.roles = roles;
     }
 
     // simple DTO returned to frontend (no password); expose firstName and lastName separately
-    public static record UserResponseDTO(Long id, String firstName, String lastName, String email, java.util.Set<String> roles, String role) {}
+    public static record UserResponseDTO(Long id, String firstName, String lastName, String email, Set<String> roles, String role) {}
 
     @PostMapping("/register/customer")
     public ResponseEntity<?> registerCustomer(@RequestBody AuthDtos.RegisterCustomerDTO dto) {
@@ -59,14 +58,8 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody AuthDtos.LoginDTO dto, HttpServletRequest request) {
         User u = auth.login(new LoginCommand(dto.email(), dto.password()));
 
-        // build authorities from roles
-        Set<SimpleGrantedAuthority> authorities = u.getRoleIds().stream()
-                .map(rid -> roles.findById(rid))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(Role::getName)
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toSet());
+        String roleName = u.getRole().name();
+        Set<SimpleGrantedAuthority> authorities = Set.of(new SimpleGrantedAuthority(roleName));
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(u.getEmail(), null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -79,22 +72,16 @@ public class AuthController {
     }
 
     private UserResponseDTO toDto(User u) {
-        Set<String> roleNames = u.getRoleIds().stream()
-                .map(rid -> roles.findById(rid))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(Role::getName)
-                .collect(Collectors.toSet());
-        String primary = null;
-        if (roleNames.contains("ROLE_VENDOR")) primary = "BACKOFFICE";
-        else if (roleNames.contains("ROLE_FRONTOFFICE")) primary = "FRONTOFFICE";
-        else if (roleNames.contains("ROLE_CUSTOMER")) primary = "CUSTOMER";
-        else if (!roleNames.isEmpty()) {
-            // fallback: strip ROLE_ prefix if present
-            String any = roleNames.iterator().next();
-            primary = any.startsWith("ROLE_") ? any.substring(5) : any;
-        }
-        return new UserResponseDTO(u.getId(), u.getFname(), u.getLname(), u.getEmail(), roleNames, primary);
+        String roleName = u.getRole().name();
+
+        return new UserResponseDTO(
+                u.getId(),
+                u.getFname(),
+                u.getLname(),
+                u.getEmail(),
+                Collections.singleton(roleName), // Keep 'roles' set for frontend compatibility
+                roleName // 'role' field
+        );
     }
 
     @ExceptionHandler(IllegalStateException.class)

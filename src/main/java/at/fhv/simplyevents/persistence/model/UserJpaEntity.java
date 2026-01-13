@@ -1,5 +1,6 @@
 package at.fhv.simplyevents.persistence.model;
 
+import at.fhv.simplyevents.domain.model.UserRole;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -21,6 +22,10 @@ public class UserJpaEntity {
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
 
     @Column(name = "vendor_profile_id")
     private Long vendorProfileId;
@@ -47,5 +52,7 @@ public class UserJpaEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
 }
 

@@ -13,7 +13,7 @@ public class User {
     private final String lname;
     private final String email;
     private final String password;
-    private final Set<Long> roleIds;
+    private final UserRole role;
     private final Long vendorProfileId;
     private final Instant createdAt;
     private final Instant updatedAt;
@@ -23,7 +23,7 @@ public class User {
                  String lname,
                  String email,
                  String password,
-                 Set<Long> roleIds,
+                 UserRole role,
                  Long vendorProfileId,
                  Instant createdAt,
                  Instant updatedAt) {
@@ -32,7 +32,7 @@ public class User {
         this.lname = lname;
         this.email = requireNotBlank(email, "email is required");
         this.password = requireNotBlank(password, "password is required");
-        this.roleIds = validateRoles(roleIds);
+        this.role = (role == null) ? UserRole.BASIC_USER : role;
         this.vendorProfileId = vendorProfileId;
         this.createdAt = createdAt == null ? Instant.now() : createdAt;
         this.updatedAt = updatedAt == null ? this.createdAt : updatedAt;
@@ -42,9 +42,9 @@ public class User {
                               String lname,
                               String email,
                               String password,
-                              Set<Long> roleIds,
+                              UserRole role,
                               Long vendorProfileId) {
-        return new User(null, fname, lname, email, password, roleIds, vendorProfileId, Instant.now(), Instant.now());
+        return new User(null, fname, lname, email, password, role, vendorProfileId, Instant.now(), Instant.now());
     }
 
     public static User restore(Long id,
@@ -52,12 +52,17 @@ public class User {
                                String lname,
                                String email,
                                String password,
-                               Set<Long> roleIds,
+                               UserRole role,
                                Long vendorProfileId,
                                Instant createdAt,
                                Instant updatedAt) {
         require(id != null, "id is required when restoring a user");
-        return new User(id, fname, lname, email, password, roleIds, vendorProfileId, createdAt, updatedAt);
+        return new User(id, fname, lname, email, password, role, vendorProfileId, createdAt, updatedAt);
+    }
+
+    public User promoteTo(UserRole newRole) {
+        return new User(this.id, this.fname, this.lname, this.email, this.password,
+                newRole, this.vendorProfileId, this.createdAt, Instant.now());
     }
 
     private static String requireNotBlank(String value, String message) {
@@ -95,14 +100,14 @@ public class User {
     public String getLname() { return lname; }
     public String getEmail() { return email; }
     public String getPassword() { return password; }
-    public Set<Long> getRoleIds() { return roleIds; }
+    public UserRole getRole() { return role; }
     public Long getVendorProfileId() { return vendorProfileId; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
     public User withUpdatedProfile(String fname, String lname) {
         Instant now = Instant.now();
-        return new User(this.id, fname, lname, this.email, this.password, this.roleIds, this.vendorProfileId, this.createdAt, now);
+        return new User(this.id, fname, lname, this.email, this.password, this.role, this.vendorProfileId, this.createdAt, now);
     }
 
     @Override

@@ -3,7 +3,6 @@ package at.fhv.simplyevents.domain.model;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-
 public class Role {
     private Long id;
     private String name;

@@ -4,6 +4,7 @@ import at.fhv.simplyevents.application.exception.NotFoundException;
 import at.fhv.simplyevents.application.port.in.UserUseCase;
 import at.fhv.simplyevents.domain.model.Role;
 import at.fhv.simplyevents.domain.model.User;
+import at.fhv.simplyevents.domain.model.UserRole;
 import at.fhv.simplyevents.domain.model.VendorProfile;
 import at.fhv.simplyevents.domain.repository.RoleRepositoryPort;
 import at.fhv.simplyevents.domain.repository.UserRepositoryPort;
@@ -16,12 +17,10 @@ import java.util.Optional;
 public class UserService implements UserUseCase {
 
     private final UserRepositoryPort users;
-    private final RoleRepositoryPort roles;
     private final VendorProfileRepositoryPort vendorProfiles;
 
-    public UserService(UserRepositoryPort users, RoleRepositoryPort roles, VendorProfileRepositoryPort vendorProfiles) {
+    public UserService(UserRepositoryPort users, VendorProfileRepositoryPort vendorProfiles) {
         this.users = users;
-        this.roles = roles;
         this.vendorProfiles = vendorProfiles;
     }
 
@@ -39,17 +38,7 @@ public class UserService implements UserUseCase {
             phone = vp.map(VendorProfile::getContactInfo).orElse("");
         }
 
-        String role = "";
-        if (user.getRoleIds() != null) {
-            role = user.getRoleIds().stream()
-                    .map(roles::findById)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(Role::getName)
-                    .findFirst()
-                    .map(r -> r.startsWith("ROLE_") ? r.substring(5) : r)
-                    .orElse("");
-        }
+        String role = user.getRole().name();
 
         return new UserProfileResult(firstName, lastName, user.getEmail(), phone, address, role);
     }
@@ -71,5 +60,14 @@ public class UserService implements UserUseCase {
 
         users.save(updatedUser);
         return getUserProfile(updatedUser.getEmail());
+    }
+
+    public void changeUserRole(Long userId, UserRole newRole) {
+        User user = users.findById(userId)
+                //NotFoundException has private constructor, so we use the static factory method
+                .orElseThrow(() -> NotFoundException.forEntity("User", userId));
+
+        User updated = user.promoteTo(newRole);
+        users.save(updated);
     }
 }

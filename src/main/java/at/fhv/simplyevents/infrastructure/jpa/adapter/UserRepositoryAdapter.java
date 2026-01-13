@@ -16,34 +16,30 @@ import java.util.Set;
 public class UserRepositoryAdapter implements UserRepositoryPort {
 
     private final UserJpaRepository users;
-    private final UserRoleJpaRepository userRoles;
 
-    public UserRepositoryAdapter(UserJpaRepository users, UserRoleJpaRepository userRoles) {
+    public UserRepositoryAdapter(UserJpaRepository users) {
         this.users = users;
-        this.userRoles = userRoles;
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
         return users.findByEmail(email)
-                .map(e -> UserMapper.toDomain(e, userRoles.findByUserId(e.getId())));
+                .map(UserMapper::toDomain);
     }
 
     @Override
     public User save(User user) {
-        UserJpaEntity saved = users.save(UserMapper.toEntity(user));
-        // reset roles for this user
-        userRoles.deleteByUserId(saved.getId());
-        if (user.getRoleIds() != null) {
-            for (Long roleId : user.getRoleIds()) {
-                UserRoleJpaEntity link = new UserRoleJpaEntity();
-                link.setUserId(saved.getId());
-                link.setRoleId(roleId);
-                userRoles.save(link);
-            }
-        }
-        Set<UserRoleJpaEntity> links = userRoles.findByUserId(saved.getId());
-        return UserMapper.toDomain(saved, links);
+        UserJpaEntity entity = UserMapper.toEntity(user);
+
+        UserJpaEntity saved = users.save(entity);
+
+        return UserMapper.toDomain(saved);
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return users.findById(id)
+                .map(UserMapper::toDomain);
     }
 }
 
