@@ -11,6 +11,7 @@ import at.fhv.simplyevents.domain.repository.UserRepositoryPort;
 import at.fhv.simplyevents.domain.repository.VendorProfileRepositoryPort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -69,5 +70,9 @@ public class UserService implements UserUseCase {
 
         User updated = user.promoteTo(newRole);
         users.save(updated);
+    }
+
+    public List<User> getAllUsers() {
+        return users.findAll();
     }
 }

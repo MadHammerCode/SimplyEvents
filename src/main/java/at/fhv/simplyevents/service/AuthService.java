@@ -1,17 +1,13 @@
 package at.fhv.simplyevents.service;
 
 import at.fhv.simplyevents.application.port.in.AuthUseCase;
-import at.fhv.simplyevents.domain.model.Role;
 import at.fhv.simplyevents.domain.model.User;
 import at.fhv.simplyevents.domain.model.UserRole;
 import at.fhv.simplyevents.domain.model.VendorProfile;
-import at.fhv.simplyevents.domain.repository.RoleRepositoryPort;
 import at.fhv.simplyevents.domain.repository.UserRepositoryPort;
 import at.fhv.simplyevents.domain.repository.VendorProfileRepositoryPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Set;
 
 @Service
 public class AuthService implements AuthUseCase {
@@ -35,7 +31,7 @@ public class AuthService implements AuthUseCase {
                 cmd.lastName(),
                 cmd.email(),
                 passwordEncoder.encode(cmd.password()),
-                UserRole.BASIC_USER,
+                UserRole.CUSTOMER,
                 null
         );
         return users.save(user);
@@ -49,7 +45,7 @@ public class AuthService implements AuthUseCase {
                 cmd.lastName(),
                 cmd.email(),
                 passwordEncoder.encode(cmd.password()),
-                UserRole.BASIC_USER,
+                UserRole.CUSTOMER,
                 null
         );
         User savedUser = users.save(user);

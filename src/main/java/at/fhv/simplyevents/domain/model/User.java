@@ -32,7 +32,7 @@ public class User {
         this.lname = lname;
         this.email = requireNotBlank(email, "email is required");
         this.password = requireNotBlank(password, "password is required");
-        this.role = (role == null) ? UserRole.BASIC_USER : role;
+        this.role = (role == null) ? UserRole.CUSTOMER : role;
         this.vendorProfileId = vendorProfileId;
         this.createdAt = createdAt == null ? Instant.now() : createdAt;
         this.updatedAt = updatedAt == null ? this.createdAt : updatedAt;

@@ -34,6 +34,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/events/**").permitAll()
 
+                .requestMatchers("/admin-dashboard").hasAuthority("ADMIN")
+
                 .requestMatchers("/backoffice-dashboard/**", "/event-editor/**")
                 .hasAnyAuthority("BACKOFFICE", "ADMIN")
 

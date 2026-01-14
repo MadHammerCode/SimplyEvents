@@ -31,7 +31,7 @@ public class AdminInitializer implements CommandLineRunner {
                     "Admin",
                     adminEmail,
                     passwordEncoder.encode("admin123"),
-                    UserRole.BASIC_USER,
+                    UserRole.CUSTOMER,
                     null // vendorProfileId
             );
 

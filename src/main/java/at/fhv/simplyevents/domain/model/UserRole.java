@@ -4,6 +4,7 @@ public enum UserRole {
     ADMIN,
     BACKOFFICE,
     FRONTOFFICE,
-    BASIC_USER
+    CUSTOMER,
+
 
 }

@@ -71,4 +71,9 @@ public class ViewController {
     @GetMapping("/my-bookings")
     public String myBookings() {
         return "my-bookings";}
+
+    @GetMapping("/admin-dashboard")
+    public String adminDashboard() {
+        return "admin-dashboard";
+    }
 }
