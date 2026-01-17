@@ -18,17 +18,30 @@
 .nav-container {
     max-width: 1120px;
     margin: 0 auto;
-    padding: 0.8rem 1rem;
+    padding: 0.5rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .nav-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-size: 1.35rem;
     font-weight: 700;
     color: var(--color-primary);
     text-decoration: none;
+}
+
+.nav-logo-img {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+.nav-logo-text {
+    white-space: nowrap;
 }
 
 .nav-links {

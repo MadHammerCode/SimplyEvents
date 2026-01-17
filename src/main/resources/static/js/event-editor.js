@@ -57,6 +57,9 @@ function loadEvent(id) {
             document.getElementById("time").value = ev.time || "";
             document.getElementById("capacity").value = ev.capacity ?? "";
             document.getElementById("description").value = ev.description || "";
+            document.getElementById("yearRound").checked = ev.yearRound || false;
+            document.getElementById("bookingStart").value = ev.bookingStart || "";
+            document.getElementById("bookingEnd").value = ev.bookingEnd || "";
 
             if (ev.imagePath) {
                 uploadedImagePath = ev.imagePath;

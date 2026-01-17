@@ -64,6 +64,11 @@ public class ViewController {
         return "frontoffice-checkin";
     }
 
+    @GetMapping("/invoices")
+    public String invoices() {
+        return "invoices";
+    }
+
     @GetMapping("/user-profile")
     public String userProfile() {
         return "user-profile";}

@@ -102,15 +102,14 @@ function filterAndRender(period, category, search) {
             .toLowerCase();
         const matchesSearch = !search || haystack.includes(search);
 
-        // timezone (Here only very rough: we filter by year, or let everyone in)
+
         const dateStr = ev.date || "";
         let matchesPeriod = true;
         if (period === "year") {
             const year = new Date().getFullYear().toString();
             matchesPeriod = dateStr.startsWith(year);
         }
-        // Period "30d" / "90d" -> do not filter hard for now, can be expanded later
-        // (backend may not provide time information, so we simplify this first)
+
 
         return matchesCategory && matchesSearch && matchesPeriod;
     });
@@ -473,7 +472,7 @@ function renderTopEvents(events) {
 
     empty.classList.add("hidden");
 
-    // (capacity - availableSlots) / capacity
+
     const scored = events
         .map((ev) => {
             const capacity = Number(ev.capacity ?? 0);
@@ -571,11 +570,18 @@ function setupNavigation() {
     const goToCreateEvent = document.getElementById("goToCreateEvent");
     const goToFrontoffice = document.getElementById("goToFrontoffice");
     const goToDashboard = document.getElementById("goToDashboard");
+    const goToInvoices = document.getElementById("goToInvoices");
     const logoutBtn = document.getElementById("logoutBtn");
 
     if (goToCreateEvent) {
         goToCreateEvent.addEventListener("click", () => {
             window.location.href = "/create-event";
+        });
+    }
+
+    if (goToInvoices) {
+        goToInvoices.addEventListener("click", () => {
+            window.location.href = "/invoices";
         });
     }
 

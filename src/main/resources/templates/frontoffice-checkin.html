@@ -155,6 +155,47 @@
     </div>
 </template>
 
+<!-- Invoice Creation Modal -->
+<div id="invoiceModalFO" class="fo-modal hidden">
+    <div class="fo-modal__backdrop" data-close-modal-invoice></div>
+    <div class="fo-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="invoiceModalTitle">
+        <button type="button" class="fo-modal__close" data-close-modal-invoice aria-label="Close invoice dialog">×</button>
+        <header class="fo-modal__header">
+            <p class="fo-modal__eyebrow">Create Invoice</p>
+            <h2 id="invoiceModalTitle" class="fo-modal__title">Create Invoice for Participant</h2>
+            <p id="invoiceModalSubtitle" class="fo-modal__subtitle"></p>
+        </header>
+        <form id="invoiceFormFO" class="fo-modal__form">
+            <div class="fo-form-group">
+                <label for="invoiceParticipantName">Participant Name</label>
+                <input type="text" id="invoiceParticipantName" readonly class="fo-input">
+            </div>
+            <div class="fo-form-group">
+                <label for="invoiceEventName">Event</label>
+                <input type="text" id="invoiceEventName" readonly class="fo-input">
+            </div>
+            <div class="fo-form-group">
+                <label for="invoicePrice">Price (€) - Pro Sitz</label>
+                <input type="number" id="invoicePrice" step="0.01" min="0" class="fo-input" placeholder="Enter price per seat" required>
+                <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">Pro Sitz (wird automatisch vom Event vorausgefüllt)</small>
+            </div>
+            <div class="fo-form-group">
+                <label>Total (€) - Automatisch berechnet</label>
+                <input type="number" id="invoiceTotal" readonly class="fo-input" style="background-color: #f5f5f5; font-weight: bold; color: #2e7d32;">
+            </div>
+            <div class="fo-form-group">
+                <label for="invoiceQuantity">Seats</label>
+                <input type="number" id="invoiceQuantity" value="1" min="1" class="fo-input" required>
+            </div>
+            <p id="invoiceFormError" class="fo-modal__error hidden"></p>
+            <p id="invoiceFormSuccess" class="fo-modal__success hidden"></p>
+            <div class="fo-modal__actions">
+                <button type="button" class="btn btn-outline" data-close-modal-invoice>Cancel</button>
+                <button type="submit" id="invoiceSubmitBtn" class="btn btn-primary">Create Invoice</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/js/frontoffice-invoice.js"></script>
 <script src="/js/frontoffice-checkin.js" defer></script>
-</body>
-</html>

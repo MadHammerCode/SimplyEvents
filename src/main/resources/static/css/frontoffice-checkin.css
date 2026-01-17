@@ -322,6 +322,15 @@ body {
     color: #374151;
 }
 
+.btn-small--invoice {
+    background-color: #4caf50;
+    color: #ffffff;
+}
+
+.btn-small--invoice:hover {
+    background-color: #45a049;
+}
+
 .btn-small--delete {
     background-color: var(--color-danger);
     color: #ffffff;
@@ -545,3 +554,49 @@ body {
         justify-self: flex-start;
     }
 }
+
+/* Invoice Modal Styles */
+.fo-form-group {
+    margin-bottom: 16px;
+}
+
+.fo-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.fo-form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.fo-form-group input:read-only {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.fo-form-group input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.fo-modal__success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #4caf50;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+

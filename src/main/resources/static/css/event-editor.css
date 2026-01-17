@@ -108,6 +108,13 @@ select {
     resize: vertical;
 }
 
+.form-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
 /* IMAGE UPLOAD */
 
 .image-upload {
