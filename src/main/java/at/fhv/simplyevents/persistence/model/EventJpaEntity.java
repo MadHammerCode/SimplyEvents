@@ -28,6 +28,7 @@ public class EventJpaEntity {
     @Column(name = "available_slots")
     private Integer availableSlots;
 
+    @Column(length = 2000)
     private String description;
     private Date cancellationDeadline;
 

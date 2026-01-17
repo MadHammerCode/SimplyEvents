@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -324,9 +323,18 @@ public class EventService implements EventUseCase {
         if (!eventRepository.existsById(id)) {
             throw NotFoundException.forEntity("Event", id);
         }
-        // No image delete logic yet; could be added if repository exposes image path
+
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> NotFoundException.forEntity("Event", id));
+
+        String imagePath = event.getImagePath();
+        if (imagePath != null && !imagePath.equals(DEFAULT_IMAGE_PATH) && !imagePath.isBlank()) {
+            fileStoragePort.delete(imagePath);
+        }
+
         eventRepository.deleteById(id);
     }
+
 
     private EventResult toResult(Event event) {
         String date = null;

@@ -1,4 +1,5 @@
 let currentEventId = null;
+let currentEventData = null; // Speichere Event-Daten (z.B. Preis)
 let allBookings = [];
 let filteredBookings = [];
 
@@ -69,6 +70,22 @@ function loadBookings(eventId) {
         updateStats();
         return;
     }
+
+
+    fetch(`/api/events/${encodeURIComponent(eventId)}`)
+        .then((res) => {
+            if (!res.ok) throw new Error("Event data could not be loaded");
+            return res.json();
+        })
+        .then((eventData) => {
+            currentEventData = eventData;
+            console.log('Event data loaded:', eventData);
+        })
+        .catch((err) => {
+            console.error("Failed to load event data:", err);
+            currentEventData = null;
+        });
+
 
     fetch(`/api/checkin/event/${encodeURIComponent(eventId)}/bookings`)
         .then((res) => {
@@ -188,6 +205,12 @@ function renderTable() {
                     class="btn-small ${openSeats <= 0 ? "btn-small--reset" : "btn-small--checkin"}"
                     data-checkin-booking="${b.bookingId}">
               ${btnLabel}
+            </button>
+            <button type="button"
+                    class="btn-small btn-small--invoice"
+                    data-invoice-booking="${b.bookingId}"
+                    title="Create invoice for this booking">
+              💰 Invoice
             </button>
             <button type="button"
                     class="btn-small btn-small--delete"
@@ -483,6 +506,50 @@ function setupRowActions() {
                 .catch((err) => {
                     alert(err.message || "Booking could not be deleted.");
                 });
+        });
+    });
+
+    // Invoice button handlers
+    document.querySelectorAll("[data-invoice-booking]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const bookingId = btn.getAttribute("data-invoice-booking");
+            if (!bookingId) return;
+
+            const booking = allBookings.find((b) => String(b.bookingId) === String(bookingId));
+            if (!booking) return;
+
+            const eventSelect = document.getElementById("eventSelect");
+            const eventId = eventSelect?.value;
+            if (!eventId) {
+                alert("No event selected");
+                return;
+            }
+
+
+            const eventTitle = currentEventData?.title || `Event #${eventId}`;
+            const eventPrice = currentEventData?.price || 0;
+
+            const eventData = {
+                id: eventId,
+                title: eventTitle,
+                price: eventPrice,
+                organizer_id: currentEventData?.organizerId || 1
+            };
+
+            const bookingData = {
+                first_name: booking.bookerFirstName || "",
+                last_name: booking.bookerLastName || "",
+                email: booking.bookerEmail || "",
+                seats: booking.numParticipants || 1,
+                booking_number: booking.bookingNumber || ""
+            };
+
+            // Open invoice modal with prefilled data
+            if (window.openInvoiceModal) {
+                window.openInvoiceModal(bookingData, eventData);
+            } else {
+                alert("Invoice modal not initialized");
+            }
         });
     });
 }

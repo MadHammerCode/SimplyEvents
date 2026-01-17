@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Invoices</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/invoices.css">
+</head>
+<body>
+<div class="page">
+    <!-- Header -->
+    <header class="inv-header">
+        <div class="container inv-header__inner">
+            <div>
+                <h1 class="inv-title">Invoices</h1>
+                <p class="inv-subtitle">
+                    View and manage all invoices.
+                </p>
+            </div>
+            <nav class="inv-nav">
+                <button type="button" id="goToDashboard" class="btn btn-outline">Dashboard</button>
+                <button type="button" id="goToFrontoffice" class="btn btn-outline">Frontoffice</button>
+                <button type="button" id="logoutBtn" class="btn btn-danger">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="inv-main">
+        <div class="container inv-main__inner">
+
+            <!-- Filters -->
+            <section class="inv-filters">
+                <div class="inv-filters__left">
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus">
+                        <option value="">All Statuses</option>
+                        <option value="DRAFT">Draft</option>
+                        <option value="FINAL">Final</option>
+                    </select>
+                </div>
+                <div class="inv-filters__right">
+                    <input id="searchInput" type="text" class="search-input" placeholder="Search by invoice number, event...">
+                </div>
+            </section>
+
+            <!-- Invoices Table -->
+            <section class="inv-table-section">
+                <div class="table-wrapper">
+                    <table class="inv-table">
+                        <thead>
+                        <tr>
+                            <th>Invoice No.</th>
+                            <th>Event</th>
+                            <th>Vendor</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="invoiceTableBody"></tbody>
+                    </table>
+                    <p id="tableEmpty" class="empty-msg">
+                        No invoices found.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Invoice Details Modal -->
+<div id="invoiceDetailsModal" class="modal hidden">
+    <div class="modal-overlay" id="invoiceModalOverlay"></div>
+    <div class="modal-content modal-content--large">
+        <div class="modal-header">
+            <h2 id="detailsTitle">Invoice Details</h2>
+            <button type="button" class="modal-close" id="closeDetailsModal">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Invoice Info -->
+            <div class="details-section">
+                <h3>Invoice Information</h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <label>Invoice Number</label>
+                        <p id="detailNumber">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <p id="detailStatus">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Created</label>
+                        <p id="detailCreated">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Event ID</label>
+                        <p id="detailEventId">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lines -->
+            <div class="details-section">
+                <h3>Line Items</h3>
+                <div class="lines-list" id="detailLines"></div>
+            </div>
+
+            <!-- Shares -->
+            <div class="details-section">
+                <h3>Allocations</h3>
+                <div class="shares-list" id="detailShares"></div>
+            </div>
+
+            <!-- Totals -->
+            <div class="details-section">
+                <div class="totals-box">
+                    <div class="total-row">
+                        <span>Subtotal</span>
+                        <span id="detailTotal">€0.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Hash</span>
+                        <span id="detailHash" style="font-family: monospace; font-size: 12px; word-break: break-all;">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Link -->
+            <div class="details-section" id="pdfSection" style="display: none;">
+                <h3>Download</h3>
+                <a id="pdfDownloadBtn" href="#" class="btn btn-primary" download>
+                    📄 Download PDF
+                </a>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" id="closeDetailsBtn" class="btn btn-outline">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/invoices.js" defer></script>
+</body>
+</html>

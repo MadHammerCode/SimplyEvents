@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EntityScan(basePackages = {
-        "at.fhv.simplyevents.persistence.model"
+        "at.fhv.simplyevents.persistence.model",
+        "at.fhv.simplyevents.billing.infrastructure.persistence.model"
 })
 @EnableJpaRepositories(basePackages = {
-        "at.fhv.simplyevents.persistence.springdata"
+        "at.fhv.simplyevents.persistence.springdata",
+        "at.fhv.simplyevents.billing.infrastructure.persistence.springdata"
 })
 public class EventApplication {
 

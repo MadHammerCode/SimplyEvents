@@ -76,12 +76,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 999px;
-    background-color: rgba(15, 23, 42, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+    object-fit: contain;
 }
 
 .auth__title {
