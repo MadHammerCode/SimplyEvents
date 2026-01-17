@@ -1,17 +1,13 @@
 package at.fhv.simplyevents.domain.model;
 
-import jakarta.persistence.*;
-import java.util.*;
-import at.fhv.simplyevents.domain.model.VendorProfile;
+import at.fhv.simplyevents.domain.DomainValidationException;
 
-@Entity
-@Access(AccessType.FIELD)
+import java.util.Date;
+import java.util.Objects;
+
 public class Event {
 
-    @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long eventId;
-
     private String title;
     private String category;
     private double price;
@@ -22,31 +18,16 @@ public class Event {
     private String location;
     private Integer durationHours;
     private Date date;
-    @Column(name = "available_slots")
     private Integer availableSlots;
     private String description;
     private Date cancellationDeadline;
-
-    @OneToOne(mappedBy = "event")
-    private Booking booking;
-
+    // references to other aggregates by ID only
+    private Long bookingId;
     private Boolean yearRound;
-
-    @Temporal(TemporalType.DATE)
     private Date bookingStart;
-
-    @Temporal(TemporalType.DATE)
     private Date bookingEnd;
-
-    @ManyToOne
-    @JoinColumn(name = "vendor_profile_id")
-    private VendorProfile vendor;
-
-    @Column(name = "image_path")
+    private Long vendorProfileId;
     private String imagePath;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private EventStatus status;
 
     protected Event() {
@@ -57,171 +38,143 @@ public class Event {
         return new Event();
     }
 
-    public String getImagePath() {
-        return imagePath;
-    }
-
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public Long getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(Long eventId) {
+    public void loadIdentifiers(Long eventId, Long vendorProfileId, Long bookingId) {
         this.eventId = eventId;
+        this.vendorProfileId = vendorProfileId;
+        this.bookingId = bookingId;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
+    public void applyDetails(
+            String title,
+            String category,
+            Double price,
+            Integer minParticipants,
+            Integer maxParticipants,
+            String requirements,
+            String equipmentNeeded,
+            String location,
+            Integer durationHours,
+            Date date,
+            Integer availableSlots,
+            String description,
+            Date cancellationDeadline,
+            Boolean yearRound,
+            Date bookingStart,
+            Date bookingEnd,
+            String imagePath,
+            EventStatus status
+    ) {
+        validate(title, price, minParticipants, maxParticipants, availableSlots, bookingStart, bookingEnd);
+        this.title = title.trim();
         this.category = category;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public int getMinParticipants() {
-        return minParticipants;
-    }
-
-    public void setMinParticipants(int minParticipants) {
-        this.minParticipants = minParticipants;
-    }
-
-    public int getMaxParticipants() {
-        return maxParticipants;
-    }
-
-    public void setMaxParticipants(int maxParticipants) {
-        this.maxParticipants = maxParticipants;
-    }
-
-    public String getRequirements() {
-        return requirements;
-    }
-
-    public void setRequirements(String requirements) {
+        this.price = price == null ? 0 : price;
+        this.minParticipants = minParticipants == null ? 0 : minParticipants;
+        this.maxParticipants = maxParticipants == null ? 0 : maxParticipants;
         this.requirements = requirements;
-    }
-
-    public String getEquipmentNeeded() {
-        return equipmentNeeded;
-    }
-
-    public void setEquipmentNeeded(String equipmentNeeded) {
         this.equipmentNeeded = equipmentNeeded;
-    }
-
-    public Integer getDurationHours() {
-        return durationHours;
-    }
-
-    public void setDurationHours(Integer durationHours) {
+        this.location = location;
         this.durationHours = durationHours;
+        this.date = copy(date);
+        setAvailableSlots(resolveAvailableSlots(availableSlots, this.maxParticipants));
+        this.description = description;
+        this.cancellationDeadline = copy(cancellationDeadline);
+        this.yearRound = yearRound;
+        this.bookingStart = copy(bookingStart);
+        this.bookingEnd = copy(bookingEnd);
+        this.imagePath = imagePath;
+        this.status = status == null ? EventStatus.PLANNED : status;
     }
 
-    public Date getDate() {
-        return date;
+    private void validate(String title, Double price, Integer minParticipants, Integer maxParticipants, Integer availableSlots, Date bookingStart, Date bookingEnd) {
+        if (title == null || title.isBlank()) {
+            throw new DomainValidationException("Title must not be empty.");
+        }
+        if (price != null && price < 0) {
+            throw new DomainValidationException("Price must not be negative.");
+        }
+        int min = minParticipants == null ? 0 : minParticipants;
+        int max = maxParticipants == null ? 0 : maxParticipants;
+        if (min < 0) {
+            throw new DomainValidationException("Min participants must not be negative.");
+        }
+        if (max < min) {
+            throw new DomainValidationException("Max participants must be greater or equal to min participants.");
+        }
+        if (availableSlots != null) {
+            if (availableSlots < 0) {
+                throw new DomainValidationException("Available slots must not be negative.");
+            }
+            if (max > 0 && availableSlots > max) {
+                throw new DomainValidationException("Available slots cannot exceed max participants.");
+            }
+        }
+        if (bookingStart != null && bookingEnd != null && bookingStart.after(bookingEnd)) {
+            throw new DomainValidationException("Booking start must not be after booking end.");
+        }
     }
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public Integer getAvailableSlots() {
+    private Integer resolveAvailableSlots(Integer availableSlots, int maxParticipants) {
+        if (availableSlots == null) {
+            return maxParticipants;
+        }
         return availableSlots;
     }
 
-    public void setAvailableSlots(Integer availableSlots) {
-        this.availableSlots = availableSlots;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Date getCancellationDeadline() {
-        return cancellationDeadline;
-    }
-
-    public void setCancellationDeadline(Date cancellationDeadline) {
-        this.cancellationDeadline = cancellationDeadline;
-    }
-
-    public Booking getBooking() {
-        return booking;
-    }
-
-    public void setBooking(Booking booking) {
-        this.booking = booking;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public boolean isYearRound() {
-        return Boolean.TRUE.equals(yearRound);
-    }
-
-    public void setYearRound(boolean yearRound) {
-        this.yearRound = yearRound;
-    }
-
-    public Date getBookingStart() {
-        return bookingStart;
-    }
-
-    public void setBookingStart(Date bookingStart) {
-        this.bookingStart = bookingStart;
-    }
-
-    public Date getBookingEnd() {
-        return bookingEnd;
-    }
-
-    public void setBookingEnd(Date bookingEnd) {
-        this.bookingEnd = bookingEnd;
-    }
-
-    public VendorProfile getVendor() {
-        return vendor;
-    }
-
-    public void setVendor(VendorProfile vendor) {
-        this.vendor = vendor;
-    }
-
-    public EventStatus getStatus() {
-        return status;
+    public void setAvailableSlots(Integer slots) {
+        if (slots == null) {
+            this.availableSlots = this.maxParticipants;
+            return;
+        }
+        if (slots < 0) {
+            throw new DomainValidationException("Available slots must not be negative.");
+        }
+        if (this.maxParticipants > 0 && slots > this.maxParticipants) {
+            throw new DomainValidationException("Available slots cannot exceed max participants.");
+        }
+        this.availableSlots = slots;
     }
 
     public void setStatus(EventStatus status) {
+        if (status == null) {
+            throw new DomainValidationException("Status must not be null.");
+        }
         this.status = status;
     }
+
+    private Date copy(Date source) {
+        return source == null ? null : new Date(source.getTime());
+    }
+
+    public Long getEventId() { return eventId; }
+    public String getTitle() { return title; }
+    public String getCategory() { return category; }
+    public double getPrice() { return price; }
+    public int getMinParticipants() { return minParticipants; }
+    public int getMaxParticipants() { return maxParticipants; }
+    public String getRequirements() { return requirements; }
+    public String getEquipmentNeeded() { return equipmentNeeded; }
+    public String getLocation() { return location; }
+    public Integer getDurationHours() { return durationHours; }
+    public Date getDate() { return copy(date); }
+    public Integer getAvailableSlots() { return availableSlots; }
+    public String getDescription() { return description; }
+    public Date getCancellationDeadline() { return copy(cancellationDeadline); }
+    public Long getBookingId() { return bookingId; }
+    public boolean isYearRound() { return Boolean.TRUE.equals(yearRound); }
+    public Date getBookingStart() { return copy(bookingStart); }
+    public Date getBookingEnd() { return copy(bookingEnd); }
+    public Long getVendorProfileId() { return vendorProfileId; }
+    public String getImagePath() { return imagePath; }
+    public EventStatus getStatus() { return status; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Event)) return false;
+        Event event = (Event) o;
+        return Objects.equals(eventId, event.eventId);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(eventId); }
 }

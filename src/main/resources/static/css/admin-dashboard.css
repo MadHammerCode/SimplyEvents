@@ -1,0 +1,133 @@
+/* admin.css */
+
+/* --- Table Styling --- */
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* Ensures table doesn't squish on mobile */
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.admin-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #444;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tr:hover td {
+    background-color: #fafafa;
+}
+
+/* --- Role Badges --- */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35em 0.8em;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.role-badge--admin {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+
+.role-badge--backoffice {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+}
+
+.role-badge--user {
+    background-color: #f5f5f5;
+    color: #616161;
+}
+
+.role-badge--frontoffice {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+/* --- Form Elements in Table --- */
+.role-select {
+    padding: 0.4rem 2rem 0.4rem 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 0.9rem;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    /* Custom arrow styling */
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem top 50%;
+    background-size: 0.65rem auto;
+}
+
+.role-select:focus {
+    border-color: #007bff; /* Adjust to your primary color */
+}
+
+/* --- Header Layout --- */
+.admin-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.admin-header-row h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* --- Status Banner --- */
+.status-banner {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-in;
+}
+.status-banner--success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.status-banner--error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

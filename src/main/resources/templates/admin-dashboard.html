@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – User Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/booking.css">
+
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="page">
+    <header class="booking-header">
+        <div class="container booking-header__inner">
+            <a href="/dashboard" class="back-link">
+                ← Back to Dashboard
+            </a>
+            <div class="booking-steps">
+                <span class="step-indicator__label" style="font-weight: bold; color: #333;">Admin Area</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="booking-main">
+        <div class="container">
+
+            <section class="card">
+                <div class="admin-header-row">
+                    <h1 class="card__title">User Management</h1>
+                    <button onclick="loadUsers()" class="btn btn-secondary">
+                        Refresh List
+                    </button>
+                </div>
+
+                <div id="statusBox" class="status-banner hidden"></div>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Current Role</th>
+                            <th>Change Role</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding: 2rem;">Loading users...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script src="/js/admin-dashboard.js"></script>
+</body>
+</html>

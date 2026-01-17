@@ -19,7 +19,8 @@
 
             <nav class="admin-nav">
                 <button type="button" id="goToCreateEvent" class="btn btn-primary">+ New event</button>
-                <button type="button" id="goToFrontoffice" class="btn btn-outline">Front office</button>
+                <button type="button" id="goToDashboard" class="btn btn-outline">Dashboard</button>
+                <button type="button" id="goToFrontoffice" class="btn btn-outline">Frontoffice</button>
                 <button type="button" id="logoutBtn" class="btn btn-danger">Logout</button>
             </nav>
         </div>
@@ -66,26 +67,26 @@
                 <article class="stat-card">
                     <div class="stat-card__icon stat-card__icon--primary">📅</div>
                     <p class="stat-card__label">Aktiv Events</p>
-                    <p id="statEvents" class="stat-card__value">–</p>
-                    <p id="statEventsChange" class="stat-card__trend">–</p>
+                    <p id="statEvents" class="stat-card__value"></p>
+                    <p id="statEventsChange" class="stat-card__trend"></p>
                 </article>
                 <article class="stat-card">
                     <div class="stat-card__icon stat-card__icon--success">👥</div>
-                    <p class="stat-card__label">Total bookings (estimated)</p>
-                    <p id="statBookings" class="stat-card__value">–</p>
-                    <p id="statBookingsChange" class="stat-card__trend">–</p>
+                    <p class="stat-card__label">Total bookings</p>
+                    <p id="statBookings" class="stat-card__value"></p>
+                    <p id="statBookingsChange" class="stat-card__trend"></p>
                 </article>
                 <article class="stat-card">
                     <div class="stat-card__icon stat-card__icon--warning">📈</div>
                     <p class="stat-card__label">Ø utilization</p>
-                    <p id="statUtilization" class="stat-card__value">–</p>
-                    <p id="statUtilizationChange" class="stat-card__trend">–</p>
+                    <p id="statUtilization" class="stat-card__value"></p>
+                    <p id="statUtilizationChange" class="stat-card__trend"></p>
                 </article>
                 <article class="stat-card">
                     <div class="stat-card__icon stat-card__icon--accent">€</div>
                     <p class="stat-card__label">Revenue (potential)</p>
-                    <p id="statRevenue" class="stat-card__value">–</p>
-                    <p id="statRevenueChange" class="stat-card__trend">–</p>
+                    <p id="statRevenue" class="stat-card__value"></p>
+                    <p id="statRevenueChange" class="stat-card__trend"></p>
                 </article>
             </section>
 
@@ -99,11 +100,11 @@
                             <h2 class="chart-card__title">Sales development</h2>
                         </div>
                     </div>
-                    <div id="revenueChart" class="chart chart--bars">
+                    <div id="revenueChart" class="chart chart--line">
                         <!-- bars are generated via JS -->
                     </div>
                     <p class="chart-card__hint">
-                        Monthly revenue based on event prices and capacity (simplified calculation in the frontend).
+                        Monthly revenue based on booked places per event.
                     </p>
                 </article>
 

@@ -1,74 +1,70 @@
 package at.fhv.simplyevents.service;
 
+import at.fhv.simplyevents.application.exception.NotFoundException;
+import at.fhv.simplyevents.application.port.in.EventUseCase;
+import at.fhv.simplyevents.application.port.out.FileStoragePort;
 import at.fhv.simplyevents.domain.model.Event;
 import at.fhv.simplyevents.domain.model.EventStatus;
-import at.fhv.simplyevents.persistence.EventRepository;
-import at.fhv.simplyevents.rest.dto.EventDtos.CreateEventRequest;
-import at.fhv.simplyevents.rest.dto.EventDtos.EventResponse;
+import at.fhv.simplyevents.domain.repository.EventRepositoryPort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.time.Instant;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Service
-public class EventService {
+public class EventService implements EventUseCase {
 
-    private final EventRepository eventRepository;
+    private final EventRepositoryPort eventRepository;
+    private final FileStoragePort fileStoragePort;
     private static final DateTimeFormatter BOOKING_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final String UPLOAD_DIR = "uploads";
-    private static final String DEFAULT_IMAGE_PATH = UPLOAD_DIR + "/coming_soon.png";
-    private static final long MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+    private static final String DEFAULT_IMAGE_PATH = "uploads/coming_soon.png";
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
 
-    public EventService(EventRepository eventRepository) {
+    public EventService(EventRepositoryPort eventRepository, FileStoragePort fileStoragePort) {
         this.eventRepository = eventRepository;
+        this.fileStoragePort = fileStoragePort;
     }
 
-    public EventResponse createEvent(CreateEventRequest dto) {
-        return createEvent(dto, null);
+    @Override
+    public EventResult createEvent(CreateEventCommand command) {
+        return createEventWithImage(command, null);
     }
 
-    public EventResponse createEvent(CreateEventRequest dto, MultipartFile imageFile) {
-        boolean publishNow = Boolean.TRUE.equals(dto.publishNow());
-        boolean yearRound = Boolean.TRUE.equals(dto.yearRound());
+    @Override
+    public EventResult createEventWithImage(CreateEventCommand cmd, ImageUpload image) {
+        boolean publishNow = Boolean.TRUE.equals(cmd.publishNow());
+        boolean yearRound = Boolean.TRUE.equals(cmd.yearRound());
 
-        if (dto.title() == null || dto.title().isBlank()) {
+        if (cmd.title() == null || cmd.title().isBlank()) {
             throw new IllegalArgumentException("Title is required.");
         }
-        if (publishNow && (dto.location() == null || dto.location().isBlank())) {
+        if (publishNow && (cmd.location() == null || cmd.location().isBlank())) {
             throw new IllegalArgumentException("Location is required to publish an event.");
         }
-        if (publishNow && (dto.category() == null || dto.category().isBlank())) {
+        if (publishNow && (cmd.category() == null || cmd.category().isBlank())) {
             throw new IllegalArgumentException("Category is required to publish an event.");
         }
 
-        Integer rawCapacity = dto.capacity() != null ? dto.capacity() : dto.maxParticipants();
+        Integer rawCapacity = cmd.capacity() != null ? cmd.capacity() : cmd.maxParticipants();
         if (publishNow && (rawCapacity == null || rawCapacity < 1)) {
             throw new IllegalArgumentException("Capacity must be at least 1 to publish an event.");
         }
         int resolvedCapacity = rawCapacity == null ? 0 : Math.max(0, rawCapacity);
 
-        boolean hasDate = dto.date() != null && !dto.date().isBlank();
-        boolean hasTime = dto.time() != null && !dto.time().isBlank();
-        boolean bookingWindowProvided = dto.bookingStart() != null && !dto.bookingStart().isBlank()
-                && dto.bookingEnd() != null && !dto.bookingEnd().isBlank();
+        boolean hasDate = cmd.date() != null;
+        boolean hasTime = cmd.time() != null;
+        boolean bookingWindowProvided = cmd.bookingStart() != null && cmd.bookingEnd() != null;
 
         LocalDateTime startDateTime = null;
         if (hasDate && hasTime) {
-            LocalDate date = LocalDate.parse(dto.date());
-            LocalTime time = LocalTime.parse(dto.time());
-            startDateTime = LocalDateTime.of(date, time);
+            startDateTime = LocalDateTime.of(cmd.date(), cmd.time());
         }
 
         if (publishNow) {
@@ -79,28 +75,21 @@ public class EventService {
             }
         }
 
-        if (bookingWindowProvided) {
-            LocalDate bs = LocalDate.parse(dto.bookingStart());
-            LocalDate be = LocalDate.parse(dto.bookingEnd());
-            if (bs.isAfter(be)) {
-                throw new IllegalArgumentException("The booking window is invalid: 'Booking from' must be before or equal to 'Booking until'.");
-            }
+        if (bookingWindowProvided && cmd.bookingStart().isAfter(cmd.bookingEnd())) {
+            throw new IllegalArgumentException("The booking window is invalid: 'Booking from' must be before or equal to 'Booking until'.");
         }
 
         if (publishNow && startDateTime != null) {
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
             if (startDateTime.isBefore(now)) {
-                Boolean confirmed = dto.confirmPast();
+                Boolean confirmed = cmd.confirmPast();
                 if (confirmed == null || !confirmed) {
                     throw new IllegalArgumentException("The event is in the past. If you still want to publish it, confirm this.");
                 }
             }
         }
 
-        LocalDateTime cancellationDeadline = null;
-        if (dto.cancellationDeadline() != null && !dto.cancellationDeadline().isBlank()) {
-            cancellationDeadline = LocalDateTime.parse(dto.cancellationDeadline());
-        }
+        LocalDateTime cancellationDeadline = cmd.cancellationDeadline();
 
         Date startDate = null;
         if (startDateTime != null) {
@@ -113,95 +102,76 @@ public class EventService {
         }
 
         Date bookingStartDate = null;
-        if (dto.bookingStart() != null && !dto.bookingStart().isBlank()) {
-            LocalDate bs = LocalDate.parse(dto.bookingStart());
-            bookingStartDate = Date.from(bs.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        if (cmd.bookingStart() != null) {
+            bookingStartDate = Date.from(cmd.bookingStart().atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
         Date bookingEndDate = null;
-        if (dto.bookingEnd() != null && !dto.bookingEnd().isBlank()) {
-            LocalDate be = LocalDate.parse(dto.bookingEnd());
-            bookingEndDate = Date.from(be.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        if (cmd.bookingEnd() != null) {
+            bookingEndDate = Date.from(cmd.bookingEnd().atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
         Event event = Event.createDraft();
-        event.setTitle(dto.title());
-        event.setDate(startDate);
-        event.setLocation(dto.location());
-
-        if (dto.price() != null) {
-            event.setPrice(dto.price().doubleValue());
-        }
-
-        event.setDescription(dto.description());
-        event.setCategory(dto.category());
-
-        event.setMinParticipants(dto.minParticipants() == null ? 0 : dto.minParticipants());
-        event.setMaxParticipants(resolvedCapacity);
-        event.setAvailableSlots(resolvedCapacity);
-
-        event.setDurationHours(dto.durationHours() == null ? 0 : dto.durationHours());
-        event.setEquipmentNeeded(dto.equipmentNeeded());
-        event.setRequirements(dto.requirements());
-        event.setCancellationDeadline(cancellationDeadlineDate);
-
-        event.setYearRound(yearRound);
-        event.setBookingStart(bookingStartDate);
-        event.setBookingEnd(bookingEndDate);
-        event.setImagePath(resolveImagePath(imageFile, dto.imagePath(), DEFAULT_IMAGE_PATH));
-        event.setStatus(publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED);
+        event.applyDetails(
+                cmd.title(),
+                cmd.category(),
+                cmd.price() == null ? null : cmd.price().doubleValue(),
+                cmd.minParticipants(),
+                resolvedCapacity,
+                cmd.requirements(),
+                cmd.equipmentNeeded(),
+                cmd.location(),
+                cmd.durationHours(),
+                startDate,
+                resolvedCapacity,
+                cmd.description(),
+                cancellationDeadlineDate,
+                yearRound,
+                bookingStartDate,
+                bookingEndDate,
+                resolveImagePath(image, cmd.imagePath(), DEFAULT_IMAGE_PATH),
+                publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED
+        );
 
         Event saved = eventRepository.save(event);
-        return toResponse(saved);
+        return toResult(saved);
     }
 
-    public EventResponse updateEvent(Long id, CreateEventRequest dto) {
-        return updateEvent(id, dto, null);
+    @Override
+    public EventResult updateEvent(Long id, CreateEventCommand cmd) {
+        return updateEventWithImage(id, cmd, null);
     }
 
-    public EventResponse updateEvent(Long id, CreateEventRequest dto, MultipartFile imageFile) {
-        // parse date/time if present
+    @Override
+    public EventResult updateEventWithImage(Long id, CreateEventCommand cmd, ImageUpload image) {
         LocalDateTime startDateTime = null;
-        if (dto.date() != null && dto.time() != null && !dto.date().isBlank() && !dto.time().isBlank()) {
-            LocalDate date = LocalDate.parse(dto.date());
-            LocalTime time = LocalTime.parse(dto.time());
-            startDateTime = LocalDateTime.of(date, time);
+        if (cmd.date() != null && cmd.time() != null) {
+            startDateTime = LocalDateTime.of(cmd.date(), cmd.time());
         }
 
-        // validate scheduling
         boolean dateAndTimeProvided = startDateTime != null;
-        boolean yearRound = Boolean.TRUE.equals(dto.yearRound());
-        boolean bookingWindowProvided = dto.bookingStart() != null && !dto.bookingStart().isBlank()
-                && dto.bookingEnd() != null && !dto.bookingEnd().isBlank();
+        boolean yearRound = Boolean.TRUE.equals(cmd.yearRound());
+        boolean bookingWindowProvided = cmd.bookingStart() != null && cmd.bookingEnd() != null;
 
         if (!dateAndTimeProvided && !yearRound && !bookingWindowProvided) {
             throw new IllegalArgumentException("Please enter either date + time, or activate 'Available all year', or fill in both 'Booking from' and 'Booking until'.");
         }
 
-        if (bookingWindowProvided) {
-            LocalDate bs = LocalDate.parse(dto.bookingStart());
-            LocalDate be = LocalDate.parse(dto.bookingEnd());
-            if (bs.isAfter(be)) {
-                throw new IllegalArgumentException("The booking window is invalid: 'Booking from' must be before or equal to 'Booking until'.");
-            }
+        if (bookingWindowProvided && cmd.bookingStart().isAfter(cmd.bookingEnd())) {
+            throw new IllegalArgumentException("The booking window is invalid: 'Booking from' must be before or equal to 'Booking until'.");
         }
 
-        // past date confirmation
         if (startDateTime != null) {
             LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
             if (startDateTime.isBefore(now)) {
-                Boolean confirmed = dto.confirmPast();
+                Boolean confirmed = cmd.confirmPast();
                 if (confirmed == null || !confirmed) {
                     throw new IllegalArgumentException("The event is in the past. If you still want to update it, confirm this.");
                 }
             }
         }
 
-        // parse cancellation and booking dates
-        LocalDateTime cancellationDeadline = null;
-        if (dto.cancellationDeadline() != null && !dto.cancellationDeadline().isBlank()) {
-            cancellationDeadline = LocalDateTime.parse(dto.cancellationDeadline());
-        }
+        LocalDateTime cancellationDeadline = cmd.cancellationDeadline();
 
         Date startDate = null;
         if (startDateTime != null) {
@@ -214,94 +184,95 @@ public class EventService {
         }
 
         Date bookingStartDate = null;
-        if (dto.bookingStart() != null && !dto.bookingStart().isBlank()) {
-            LocalDate bs = LocalDate.parse(dto.bookingStart());
-            bookingStartDate = Date.from(bs.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        if (cmd.bookingStart() != null) {
+            bookingStartDate = Date.from(cmd.bookingStart().atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
         Date bookingEndDate = null;
-        if (dto.bookingEnd() != null && !dto.bookingEnd().isBlank()) {
-            LocalDate be = LocalDate.parse(dto.bookingEnd());
-            bookingEndDate = Date.from(be.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        if (cmd.bookingEnd() != null) {
+            bookingEndDate = Date.from(cmd.bookingEnd().atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
-        // load existing event
-        Event event = eventRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+        Event event = eventRepository.findById(id).orElseThrow(() -> NotFoundException.forEntity("Event", id));
 
-        // update fields
-        event.setTitle(dto.title());
-        event.setDate(startDate);
-        event.setLocation(dto.location());
-        if (dto.price() != null) {
-            event.setPrice(dto.price().doubleValue());
-        }
-        event.setDescription(dto.description());
-        event.setCategory(dto.category());
+        int newMin = cmd.minParticipants() == null ? event.getMinParticipants() : cmd.minParticipants();
+        int newMax = cmd.maxParticipants() == null ? event.getMaxParticipants() : cmd.maxParticipants();
 
-        // safe updates to avoid NPEs
-        int newMin = dto.minParticipants() == null ? event.getMinParticipants() : dto.minParticipants();
-        int newMax = dto.maxParticipants() == null ? event.getMaxParticipants() : dto.maxParticipants();
-        event.setMinParticipants(newMin);
-        event.setMaxParticipants(newMax);
-
-        // Handle capacity changes: prefer explicit capacity field; fallback to maxParticipants
-        Integer providedCapacity = dto.capacity() != null ? dto.capacity() : (dto.maxParticipants() == null ? null : dto.maxParticipants());
+        Integer providedCapacity = cmd.capacity() != null ? cmd.capacity() : (cmd.maxParticipants() == null ? null : cmd.maxParticipants());
         Integer oldCapacity = event.getMaxParticipants();
         Integer oldAvailable = event.getAvailableSlots();
-
+        Integer finalCapacity = providedCapacity != null ? providedCapacity : event.getMaxParticipants();
+        Integer finalAvailable;
         if (providedCapacity != null) {
-            // If availableSlots is null, initialize it to providedCapacity
             if (oldAvailable == null) {
-                event.setAvailableSlots(providedCapacity);
+                finalAvailable = providedCapacity;
             } else {
-                // compute delta between new capacity and previous capacity (use oldCapacity if present)
                 int prevCap = oldCapacity == null ? providedCapacity : oldCapacity;
                 int delta = providedCapacity - prevCap;
                 int adjusted = Math.max(0, oldAvailable + delta);
-                event.setAvailableSlots(adjusted);
+                finalAvailable = adjusted;
             }
-            // Also reflect the capacity in maxParticipants for backward compatibility
-            event.setMaxParticipants(providedCapacity);
         } else {
-            // no capacity provided: keep existing availableSlots
-            event.setAvailableSlots(oldAvailable == null ? event.getMaxParticipants() : oldAvailable);
+            finalAvailable = oldAvailable == null ? event.getMaxParticipants() : oldAvailable;
         }
 
-        event.setDurationHours(dto.durationHours() == null ? event.getDurationHours() : dto.durationHours());
+        int finalDuration = cmd.durationHours() == null ? event.getDurationHours() : cmd.durationHours();
+        String finalEquipment = cmd.equipmentNeeded() == null ? event.getEquipmentNeeded() : cmd.equipmentNeeded();
+        String finalRequirements = cmd.requirements() == null ? event.getRequirements() : cmd.requirements();
+        String finalDescription = cmd.description() == null ? event.getDescription() : cmd.description();
+        double finalPrice = cmd.price() == null ? event.getPrice() : cmd.price().doubleValue();
+        String finalCategory = cmd.category() == null ? event.getCategory() : cmd.category();
+        String finalLocation = cmd.location() == null ? event.getLocation() : cmd.location();
+        String finalImagePath = resolveImagePath(image, cmd.imagePath(), event.getImagePath());
 
-        event.setEquipmentNeeded(dto.equipmentNeeded());
-        event.setRequirements(dto.requirements());
-        event.setCancellationDeadline(cancellationDeadlineDate);
-        event.setYearRound(Boolean.TRUE.equals(dto.yearRound()));
-        event.setBookingStart(bookingStartDate);
-        event.setBookingEnd(bookingEndDate);
-        event.setImagePath(resolveImagePath(imageFile, dto.imagePath(), event.getImagePath()));
+        event.applyDetails(
+                cmd.title(),
+                finalCategory,
+                finalPrice,
+                newMin,
+                finalCapacity,
+                finalRequirements,
+                finalEquipment,
+                finalLocation,
+                finalDuration,
+                startDate,
+                finalAvailable,
+                finalDescription,
+                cancellationDeadlineDate,
+                Boolean.TRUE.equals(cmd.yearRound()),
+                bookingStartDate,
+                bookingEndDate,
+                finalImagePath,
+                event.getStatus()
+        );
 
         Event saved = eventRepository.save(event);
-        return toResponse(saved);
+        return toResult(saved);
     }
 
-    public List<EventResponse> getAllEvents() {
+    @Override
+    public List<EventResult> getAllEvents() {
         return eventRepository.findAll()
                 .stream()
-                .map(this::toResponse)
+                .map(this::toResult)
                 .toList();
     }
 
-    // Backoffice: filter events by a specific status (e.g. PLANNED, PUBLISHED, ACTIVE, FULL, CANCELLED)
-    public List<EventResponse> getEventsByStatus(EventStatus status) {
+    @Override
+    public List<EventResult> getEventsByStatus(EventStatus status) {
         if (status == null) {
             return getAllEvents();
         }
         return eventRepository.findByStatus(status)
                 .stream()
-                .map(this::toResponse)
+                .map(this::toResult)
                 .toList();
     }
 
-    public EventResponse getEventById(Long id) {
+    @Override
+    public EventResult getEventById(Long id) {
         var event = eventRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+                .orElseThrow(() -> NotFoundException.forEntity("Event", id));
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
 
         if (!event.isYearRound()) {
@@ -324,36 +295,40 @@ public class EventService {
                 throw new IllegalArgumentException("Booking period has ended.");
             }
         }
-        return toResponse(event);
+        return toResult(event);
     }
 
-    public List<EventResponse> getPublicEvents() {
+    @Override
+    public List<EventResult> getPublicEvents() {
         List<EventStatus> visibleStatuses = List.of(EventStatus.PUBLISHED, EventStatus.ACTIVE, EventStatus.FULL);
         return eventRepository.findByStatusIn(visibleStatuses)
                 .stream()
-                .map(this::toResponse)
+                .map(this::toResult)
                 .toList();
     }
 
-    public EventResponse publishEvent(Long id) {
+    @Override
+    public EventResult publishEvent(Long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+                .orElseThrow(() -> NotFoundException.forEntity("Event", id));
         if (event.getStatus() == EventStatus.CANCELLED) {
             throw new IllegalArgumentException("Cancelled events cannot be published.");
         }
         event.setStatus(EventStatus.PUBLISHED);
         Event saved = eventRepository.save(event);
-        return toResponse(saved);
+        return toResult(saved);
     }
 
+    @Override
     public void deleteEvent(Long id) {
         if (!eventRepository.existsById(id)) {
-            throw new NoSuchElementException("Event not found with id " + id);
+            throw NotFoundException.forEntity("Event", id);
         }
+        // No image delete logic yet; could be added if repository exposes image path
         eventRepository.deleteById(id);
     }
 
-    private EventResponse toResponse(Event event) {
+    private EventResult toResult(Event event) {
         String date = null;
         String time = null;
         if (event.getDate() != null) {
@@ -382,9 +357,8 @@ public class EventService {
         }
 
         Integer capacity = event.getMaxParticipants();
-        // If capacity was explicitly stored in availableSlots originally, keep response capacity from maxParticipants
 
-        return new EventResponse(
+        return new EventResult(
                 event.getEventId(),
                 event.getTitle(),
                 date,
@@ -409,12 +383,12 @@ public class EventService {
         );
     }
 
-    private String resolveImagePath(MultipartFile uploadedFile, String dtoImagePath, String fallbackPath) {
-        if (uploadedFile != null && !uploadedFile.isEmpty()) {
-            return storeImage(uploadedFile);
+    private String resolveImagePath(ImageUpload image, String cmdImagePath, String fallbackPath) {
+        if (image != null && image.content() != null && image.content().length > 0) {
+            return storeImage(image);
         }
-        if (dtoImagePath != null && !dtoImagePath.isBlank()) {
-            return dtoImagePath;
+        if (cmdImagePath != null && !cmdImagePath.isBlank()) {
+            return cmdImagePath;
         }
         if (fallbackPath != null && !fallbackPath.isBlank()) {
             return fallbackPath;
@@ -422,30 +396,7 @@ public class EventService {
         return DEFAULT_IMAGE_PATH;
     }
 
-    private String storeImage(MultipartFile file) {
-        if (file.getSize() > MAX_IMAGE_SIZE_BYTES) {
-            throw new IllegalArgumentException("Image is too large. Max size is 5 MB.");
-        }
-
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            throw new IllegalArgumentException("Image must have a valid extension.");
-        }
-
-        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
-            throw new IllegalArgumentException("Unsupported image type. Allowed: jpg, jpeg, png, gif, webp.");
-        }
-
-        String storedFileName = "event_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().replace("-", "") + "." + extension;
-        Path uploadDir = Paths.get(UPLOAD_DIR);
-        try {
-            Files.createDirectories(uploadDir);
-            Path targetPath = uploadDir.resolve(storedFileName);
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-            return UPLOAD_DIR + "/" + storedFileName;
-        } catch (IOException e) {
-            throw new IllegalStateException("Could not store image file.", e);
-        }
+    private String storeImage(ImageUpload image) {
+        return fileStoragePort.store(image.content(), image.filename());
     }
 }

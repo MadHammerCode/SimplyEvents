@@ -1,65 +1,123 @@
 package at.fhv.simplyevents.domain.model;
 
-import jakarta.persistence.*;
+import at.fhv.simplyevents.domain.DomainValidationException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
-@Entity
-@Table(name = "users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id;
+    private final String fname;
+    private final String lname;
+    private final String email;
+    private final String password;
+    private final UserRole role;
+    private final Long vendorProfileId;
+    private final Instant createdAt;
+    private final Instant updatedAt;
 
-    @Column(nullable = false)
-    private String fname;
+    private User(Long id,
+                 String fname,
+                 String lname,
+                 String email,
+                 String password,
+                 UserRole role,
+                 Long vendorProfileId,
+                 Instant createdAt,
+                 Instant updatedAt) {
+        this.id = id;
+        this.fname = fname;
+        this.lname = lname;
+        this.email = requireNotBlank(email, "email is required");
+        this.password = requireNotBlank(password, "password is required");
+        this.role = (role == null) ? UserRole.CUSTOMER : role;
+        this.vendorProfileId = vendorProfileId;
+        this.createdAt = createdAt == null ? Instant.now() : createdAt;
+        this.updatedAt = updatedAt == null ? this.createdAt : updatedAt;
+    }
 
-    @Column(nullable = false)
-    private String lname;
+    public static User create(String fname,
+                              String lname,
+                              String email,
+                              String password,
+                              UserRole role,
+                              Long vendorProfileId) {
+        return new User(null, fname, lname, email, password, role, vendorProfileId, Instant.now(), Instant.now());
+    }
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    public static User restore(Long id,
+                               String fname,
+                               String lname,
+                               String email,
+                               String password,
+                               UserRole role,
+                               Long vendorProfileId,
+                               Instant createdAt,
+                               Instant updatedAt) {
+        require(id != null, "id is required when restoring a user");
+        return new User(id, fname, lname, email, password, role, vendorProfileId, createdAt, updatedAt);
+    }
 
-    @Column(nullable = false)
-    private String password;
+    public User promoteTo(UserRole newRole) {
+        return new User(this.id, this.fname, this.lname, this.email, this.password,
+                newRole, this.vendorProfileId, this.createdAt, Instant.now());
+    }
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
+    private static String requireNotBlank(String value, String message) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new DomainValidationException(message);
+        }
+        return value.trim();
+    }
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private VendorProfile vendorProfile;
+    private static void require(boolean expression, String message) {
+        if (!expression) {
+            throw new DomainValidationException(message);
+        }
+    }
 
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
-
-    @Column(nullable = false)
-    private Instant updatedAt = Instant.now();
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = Instant.now();
+    private static Set<Long> validateRoles(Set<Long> roleIds) {
+        if (roleIds == null) {
+            throw new DomainValidationException("roleIds must not be null");
+        }
+        Set<Long> cleaned = new HashSet<>();
+        for (Long r : roleIds) {
+            if (r == null) {
+                throw new DomainValidationException("roleIds cannot contain null");
+            }
+            cleaned.add(r);
+        }
+        if (cleaned.isEmpty()) {
+            throw new DomainValidationException("at least one roleId is required");
+        }
+        return Collections.unmodifiableSet(cleaned);
     }
 
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public String getFname() { return fname; }
-    public void setFname(String name) { this.fname = name; }
     public String getLname() { return lname; }
-    public void setLname(String lname) { this.lname = lname; }
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    public Set<Role> getRoles() { return roles; }
-    public void setRoles(Set<Role> roles) { this.roles = roles; }
-    public VendorProfile getVendorProfile() { return vendorProfile; }
-    public void setVendorProfile(VendorProfile vendorProfile) { this.vendorProfile = vendorProfile; }
+    public UserRole getRole() { return role; }
+    public Long getVendorProfileId() { return vendorProfileId; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public User withUpdatedProfile(String fname, String lname) {
+        Instant now = Instant.now();
+        return new User(this.id, fname, lname, this.email, this.password, this.role, this.vendorProfileId, this.createdAt, now);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id); }
 }

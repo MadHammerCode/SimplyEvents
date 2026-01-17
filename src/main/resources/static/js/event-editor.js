@@ -40,6 +40,48 @@ function showError(msgs) {
     }
 }
 
+/* ---------- UI Toggles (Year Round) ---------- */
+
+function toggleYearRound() {
+    const yearRoundCheckbox = document.getElementById("yearRound");
+    const dateWrapper = document.getElementById("dateSpecificFields");
+    const dateInput = document.getElementById("date");
+    const timeInput = document.getElementById("time");
+    const capacityLabel = document.getElementById("capacityLabel");
+    const capacityHelp = document.getElementById("capacityHelp");
+
+    // Safety check in case elements are missing
+    if (!yearRoundCheckbox || !dateWrapper) return;
+
+    if (yearRoundCheckbox.checked) {
+        // CASE: Year Round Event
+        dateWrapper.style.display = "none";
+
+        // Remove browser validation
+        dateInput.removeAttribute("required");
+        timeInput.removeAttribute("required");
+
+        // Clear values so we don't send hidden data (optional)
+        dateInput.value = "";
+        timeInput.value = "";
+
+        // Update UI text
+        if (capacityLabel) capacityLabel.innerHTML = 'Daily Capacity Limit <span class="optional-note">(required)</span>';
+        if (capacityHelp) capacityHelp.innerText = "Maximum people allowed per day.";
+    } else {
+        // CASE: Specific Date Event
+        dateWrapper.style.display = "block";
+
+        // Restore browser validation
+        dateInput.setAttribute("required", "true");
+        timeInput.setAttribute("required", "true");
+
+        // Restore UI text
+        if (capacityLabel) capacityLabel.innerHTML = 'Capacity <span class="optional-note">(required for publish)</span>';
+        if (capacityHelp) capacityHelp.innerText = "Total number of people allowed.";
+    }
+}
+
 /* ---------- Load Event if Editing ---------- */
 
 function loadEvent(id) {
@@ -57,6 +99,12 @@ function loadEvent(id) {
             document.getElementById("time").value = ev.time || "";
             document.getElementById("capacity").value = ev.capacity ?? "";
             document.getElementById("description").value = ev.description || "";
+
+            const yearRoundCheckbox = document.getElementById("yearRound");
+            if (yearRoundCheckbox) {
+                yearRoundCheckbox.checked = ev.yearRound || false;
+                toggleYearRound();
+            }
 
             if (ev.imagePath) {
                 uploadedImagePath = ev.imagePath;
@@ -82,27 +130,26 @@ function validateForm(mode) {
     const title = document.getElementById("title").value.trim();
     const category = document.getElementById("category").value;
     const location = document.getElementById("location").value.trim();
+    const yearRound = document.getElementById("yearRound")?.checked;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
     const capacity = document.getElementById("capacity").value;
 
     if (!title) errors.push("Title is required.");
+
     if (mode === "publish") {
         if (!category) errors.push("Category is required to publish.");
         if (!location) errors.push("Location is required to publish.");
         if (!capacity || Number(capacity) < 1) {
             errors.push("Capacity must be at least 1.");
         }
-    }
 
-    const bookingStart = document.getElementById("bookingStart")?.value;
-    const bookingEnd = document.getElementById("bookingEnd")?.value;
-    const yearRound = document.getElementById("yearRound")?.checked;
 
-    const dateAndTimeProvided = date && time;
-    const bookingWindowProvided = bookingStart && bookingEnd;
+        const dateAndTimeProvided = date && time;
+        const bookingStart = document.getElementById("bookingStart")?.value;
+        const bookingEnd = document.getElementById("bookingEnd")?.value;
+        const bookingWindowProvided = bookingStart && bookingEnd;
 
-    if (mode === "publish") {
         if (!dateAndTimeProvided && !bookingWindowProvided && !yearRound) {
             errors.push("Provide date & time, or booking window, or enable year-round availability.");
         }
@@ -125,8 +172,8 @@ function buildEventPayload(mode) {
         category: document.getElementById("category").value,
         price: Number(document.getElementById("price").value || 0),
         location: document.getElementById("location").value.trim(),
-        date: document.getElementById("date").value,
-        time: document.getElementById("time").value,
+        date: document.getElementById("date").value || null,
+        time: document.getElementById("time").value || null,
         capacity,
         description: document.getElementById("description").value.trim(),
         bookingStart: document.getElementById("bookingStart")?.value || null,
@@ -199,6 +246,13 @@ function deleteEvent(id) {
 
 document.addEventListener("DOMContentLoaded", () => {
     editingId = getEventIdFromUrl();
+
+    // Year Round toggle
+    const yearRoundCheckbox = document.getElementById("yearRound");
+    if (yearRoundCheckbox) {
+        toggleYearRound();
+        yearRoundCheckbox.addEventListener("change", toggleYearRound);
+    }
 
     // Back
     document.getElementById("btnBack").addEventListener("click", () => {

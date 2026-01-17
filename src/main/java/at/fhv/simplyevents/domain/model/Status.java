@@ -3,5 +3,9 @@ package at.fhv.simplyevents.domain.model;
 public enum Status {
     PENDING,
     CONFIRMED,
-    CANCELLED
+    CANCELLED,
+    PENDING_PAYMENT,
+    PAID,
+    PAYMENT_FAILED,
+    REFUNDED
 }

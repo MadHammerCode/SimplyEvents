@@ -150,9 +150,17 @@ function renderEvents(events) {
 
         const isWishlisted = wishlist.has(id);
         const imagePath = ev.imagePath ? `/${ev.imagePath}` : '/images/default-event.jpg';
+        const capacity = ev.capacity ?? ev.maxParticipants ?? null;
+        const availableRaw = typeof ev.availableSlots === 'number' ? ev.availableSlots : capacity;
+        const available = availableRaw != null ? Number(availableRaw) : null;
+        const soldOut = available !== null && available <= 0;
+        const slotsLabel = capacity != null
+            ? (soldOut ? 'Sold out' : `${available ?? capacity} seats left`)
+            : '';
+        const slotClass = soldOut ? 'event-card__slots event-card__slots--empty' : 'event-card__slots';
 
         return `
-      <article class="event-card" data-event-id="${id}">
+      <article class="event-card${soldOut ? ' event-card--sold-out' : ''}" data-event-id="${id}">
         <div class="event-card__image-wrap">
           <img class="event-card__image" src="${imagePath}" alt="${title}">
           <button
@@ -162,19 +170,20 @@ function renderEvents(events) {
           >
             <span class="wishlist-heart">♥</span>
           </button>
+          ${soldOut ? '<span class="event-card__soldout-banner">Sold out</span>' : ''}
         </div>
         <div class="event-card__body">
           <div class="event-card__meta">
             <span class="event-card__category">${category}</span>
-            <span class="event-card__date">${escapeHtml(dateTimeText)}</span>
+            ${capacity != null ? `<span class="${slotClass}">${slotsLabel}</span>` : ''}
           </div>
           <h3 class="event-card__title">${title}</h3>
           <p class="event-card__location">${location}</p>
           <p class="event-card__description">${description}</p>
           <div class="event-card__footer">
             <span class="event-card__price">${priceText}</span>
-            <button type="button" class="btn btn-sm view-details-btn">
-              View details
+            <button type="button" class="btn btn-sm view-details-btn" ${soldOut ? 'data-soldout="true"' : ''}>
+              ${soldOut ? 'View (sold out)' : 'View details'}
             </button>
           </div>
         </div>

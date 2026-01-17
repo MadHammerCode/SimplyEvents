@@ -120,9 +120,15 @@ function doLogin(payload) {
         const user = await res.json().catch(() => ({}));
 
         // Benutzer im localStorage merken (immer, damit Navbar sich sofort anpasst)
+        // Wichtig: Manche Antworten können bereits ein JSON-String sein (sonst entsteht ein "double-stringify" wie "{\"firstName\":...}")
         if (user) {
             try {
-                window.localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+                if (typeof user === "string") {
+                    // If it's already JSON text, store as-is
+                    window.localStorage.setItem(STORAGE_USER_KEY, user);
+                } else {
+                    window.localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+                }
             } catch {
                 // ignore
             }

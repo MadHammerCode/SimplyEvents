@@ -44,9 +44,14 @@ function setStep(step) {
 
     if (step === 3) {
         nextBtn.classList.add("hidden");
-    } else {
+    } else if (step === 1) {
         nextBtn.classList.remove("hidden");
-        nextBtn.textContent = step === 2 ? "Book now" : "Next step";
+        nextBtn.textContent = "Next";
+    } else if (step === 2) {
+        nextBtn.classList.remove("hidden");
+        nextBtn.textContent = "Book now";
+    } else {
+        nextBtn.classList.add("hidden");
     }
 
     // Step Indicators
@@ -92,6 +97,10 @@ function formatPrice(value) {
 /* ------ Event load and Summary fill ------ */
 
 let currentEvent = null;
+let pendingBooking = null;
+let activeBookingId = null;
+let pendingRedirect = null;
+let lastBookingResponse = null;
 
 function loadEventAndPrefill() {
     const params = getQueryParams();
@@ -117,6 +126,7 @@ function loadEventAndPrefill() {
         })
         .then((event) => {
             currentEvent = event;
+            handleYearRoundLogic(event);
             fillSummary(event);
             updateTotalPrice();
         })
@@ -134,6 +144,33 @@ function loadEventAndPrefill() {
     }
 }
 
+function handleYearRoundLogic(event) {
+    const dateField = document.getElementById("yearRoundField");
+    const dateInput = document.getElementById("attendanceDate");
+    const summaryDate = document.getElementById("summaryEventDateTime");
+
+    if (event.yearRound) {
+        // Show Date Picker
+        if (dateField) dateField.classList.remove("hidden");
+
+        // Set Min Date to Today
+        if (dateInput) {
+            dateInput.min = new Date().toISOString().split("T")[0];
+
+            // Update Summary when user picks a date
+            dateInput.addEventListener("change", () => {
+                if (summaryDate) summaryDate.textContent = dateInput.value || "Select a date";
+            });
+        }
+
+        if (summaryDate) summaryDate.textContent = "Select a date";
+
+    } else {
+        // Standard Event: Hide Picker
+        if (dateField) dateField.classList.add("hidden");
+    }
+}
+
 function fillSummary(event) {
     const titleEl = document.getElementById("summaryEventTitle");
     const locEl = document.getElementById("summaryEventLocation");
@@ -146,21 +183,49 @@ function fillSummary(event) {
     if (titleEl) titleEl.textContent = event.title || "Event";
     if (locEl) locEl.textContent = event.location || "–";
 
-    const date = event.date || "";
-    const time = event.time || "";
-    const dt = date ? (time ? `${date} · ${time}` : date) : "–";
-    if (dtEl) dtEl.textContent = dt;
+    if (dtEl) {
+        if (event.yearRound) {
+            // For year-round, show the selected date (or placeholder)
+            const picked = document.getElementById("attendanceDate")?.value;
+            dtEl.textContent = picked || "Select a date";
+        } else {
+            // For standard events, show the fixed date
+            const date = event.date || "";
+            const time = event.time || "";
+            const dt = date ? (time ? `${date} · ${time}` : date) : "–";
+            dtEl.textContent = dt;
+        }
+    }
 
     if (priceEl) priceEl.textContent = formatPrice(event.price);
 
     const available = event.availableSlots != null ? event.availableSlots : "-";
     const capacity = event.capacity != null ? event.capacity : "-";
+    const soldOut = typeof event.availableSlots === "number" && event.availableSlots <= 0;
     if (availEl) {
-        availEl.textContent = `Available places: ${available} from ${capacity}`;
+        availEl.textContent = soldOut ? "Sold out" : `Available places: ${available} from ${capacity}`;
     }
 
-    if (ticketHint && event.availableSlots != null) {
-        ticketHint.textContent = `Maximum available: ${event.availableSlots} Tickets.`;
+    if (ticketHint) {
+        ticketHint.textContent = soldOut
+            ? "This event is fully booked."
+            : event.availableSlots != null
+                ? `Maximum available: ${event.availableSlots} Tickets.`
+                : "";
+    }
+
+    if (soldOut) {
+        document.body.dataset.bookingDisabled = "true";
+        showError("This event is already sold out – booking is no longer possible.");
+        const nextBtn = document.getElementById("nextButton");
+        const cancelBtn = document.getElementById("cancelButton");
+        if (nextBtn) {
+            nextBtn.disabled = true;
+            nextBtn.textContent = "Sold out";
+        }
+        if (cancelBtn) {
+            cancelBtn.textContent = "Back to event";
+        }
     }
 
     if (cancelEl) {
@@ -216,6 +281,13 @@ function validateStep1() {
         errors.push("Please enter a valid email address.");
     }
 
+    if (currentEvent && currentEvent.yearRound) {
+        const dateInput = document.getElementById("attendanceDate");
+        if (!dateInput || !dateInput.value) {
+            errors.push("Please select a date for your visit.");
+        }
+    }
+
     const num = Number(ticketCountVal);
     if (!num || num < 1) {
         errors.push("The number of tickets must be at least 1.");
@@ -259,10 +331,13 @@ function submitBooking() {
     const email = document.getElementById("email")?.value.trim();
     const phone = document.getElementById("phone")?.value.trim();
     const ticketCountVal = document.getElementById("ticketCount")?.value;
-    const paymentMethodInput = document.querySelector('input[name="paymentMethod"]:checked');
 
     const numParticipants = Number(ticketCountVal) || 1;
-    const paymentMethod = paymentMethodInput ? paymentMethodInput.value : "CREDITCARD";
+
+    let attendanceDate = null;
+    if (currentEvent && currentEvent.yearRound) {
+        attendanceDate = document.getElementById("attendanceDate").value;
+    }
 
     const payload = {
         eventId: Number(eventId),
@@ -270,18 +345,17 @@ function submitBooking() {
         lastName,
         email,
         phone,
-        numParticipants,
-        paymentMethod
+        numParticipants
     };
 
     return fetch("/api/bookings", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    }).then(async (res) => {
-        if (!res.ok) {
+         method: "POST",
+         headers: {
+             "Content-Type": "application/json"
+         },
+         body: JSON.stringify(payload)
+     }).then(async (res) => {
+         if (!res.ok) {
             let body;
             try {
                 body = await res.json();
@@ -297,16 +371,51 @@ function submitBooking() {
                 showError("The booking could not be made. Please check your entries.");
             }
             throw new Error("Booking failed");
-        }
+         }
 
+        showError(null);
+        return res.json();
+     });
+ }
+
+ function confirmPendingBooking() {
+    if (!pendingBooking) {
+        return Promise.reject(new Error("No pending booking"));
+    }
+
+    const paymentMethodInput = document.querySelector('input[name="paymentMethod"]:checked');
+    const paymentMethod = paymentMethodInput ? paymentMethodInput.value : null;
+
+    if (!paymentMethod) {
+        showError("Please choose a payment method.");
+        return Promise.reject(new Error("Payment method missing"));
+    }
+
+    const payload = {
+        pendingId: pendingBooking.pendingId,
+        paymentMethod
+    };
+
+    return fetch("/api/bookings/confirm", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    }).then(async (res) => {
+        if (!res.ok) {
+            const body = await res.text();
+            showError(body || "Booking confirmation failed.");
+            throw new Error("Confirmation failed");
+        }
         showError(null);
         return res.json();
     });
 }
 
-/* ------Fill in confirmation ------ */
+/* ------ Fill in confirmation ------ */
 
-function fillConfirmation(bookingResponse) {
+ function fillConfirmation(bookingResponse) {
     const bNumEl = document.getElementById("confirmBookingNumber");
     const titleEl = document.getElementById("confirmEventTitle");
     const dateEl = document.getElementById("confirmEventDate");
@@ -319,8 +428,7 @@ function fillConfirmation(bookingResponse) {
 
     if (bNumEl) bNumEl.textContent = bookingResponse.bookingNumber || "–";
     if (titleEl) titleEl.textContent = bookingResponse.eventTitle || (currentEvent?.title || "–");
-    if (dateEl) dateEl.textContent = bookingResponse.date || (currentEvent?.date || "–");
-    if (timeEl) timeEl.textContent = bookingResponse.time || (currentEvent?.time || "–");
+     if (dateEl) dateEl.textContent = bookingResponse.date || (bookingResponse.attendanceDate) || (currentEvent?.date || "–");    if (timeEl) timeEl.textContent = bookingResponse.time || (currentEvent?.time || "–");
     if (locEl) locEl.textContent = bookingResponse.location || (currentEvent?.location || "–");
     if (numEl) numEl.textContent = bookingResponse.numParticipants != null ? String(bookingResponse.numParticipants) : "–";
 
@@ -341,6 +449,124 @@ function fillConfirmation(bookingResponse) {
     }
 }
 
+function showPaymentBanner(status, paymentRef) {
+    const banner = document.getElementById("paymentStatusBanner");
+    if (!banner) return;
+
+    if (!status) {
+        banner.classList.add("hidden");
+        banner.textContent = "";
+        paymentRef && banner.removeAttribute("data-ref");
+        return;
+    }
+
+    let text = "";
+    let cssClass = "status-banner--info";
+
+    switch (status.toUpperCase()) {
+        case "PAID":
+            text = "Payment successful. Thank you!";
+            cssClass = "status-banner--success";
+            break;
+        case "PAYMENT_FAILED":
+            text = "Payment failed. Please try again.";
+            cssClass = "status-banner--error";
+            break;
+        case "REFUNDED":
+            text = "Payment refunded. Amount has been returned.";
+            cssClass = "status-banner--warning";
+            break;
+        case "PENDING_PAYMENT":
+        default:
+            text = "Payment is still pending.";
+            cssClass = "status-banner--info";
+            break;
+    }
+
+    banner.textContent = paymentRef ? `${text} (Ref: ${paymentRef})` : text;
+    banner.className = `status-banner ${cssClass}`;
+    banner.classList.remove("hidden");
+}
+
+function handleCallbackParams() {
+    const params = getQueryParams();
+    const bookingId = params.bookingId ? Number(params.bookingId) : null;
+    const status = params.status;
+    const paymentRef = params.paymentRef;
+
+    if (!bookingId) return;
+
+    activeBookingId = bookingId;
+    showPaymentBanner(status, paymentRef);
+    setStep(3);
+    toggleNavButtons(3);
+
+    fetch(`/api/bookings/${bookingId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((booking) => {
+            if (!booking) return;
+            lastBookingResponse = {
+                bookingNumber: booking.bookingNumber,
+                eventTitle: booking.eventTitle,
+                date: booking.date,
+                time: booking.time,
+                location: booking.location,
+                numParticipants: booking.numParticipants,
+                priceTotal: booking.priceTotal,
+                attendanceDate: booking.attendanceDate
+            };
+            fillConfirmation(lastBookingResponse);
+        })
+        .catch(() => {
+            // ignore fetch failure, banner already present
+        });
+}
+
+function toggleNavButtons(step) {
+    const nextBtn = document.getElementById("nextButton");
+    const payBtn = document.getElementById("payButton");
+    if (!nextBtn || !payBtn) return;
+
+    const showPay = step === 2 && !!pendingBooking;
+
+    payBtn.classList.toggle("hidden", !showPay);
+    nextBtn.classList.toggle("hidden", showPay);
+
+    if (step === 2) {
+        payBtn.disabled = !pendingBooking;
+    }
+}
+
+async function startPayment() {
+    const payBtn = document.getElementById("payButton");
+    if (!payBtn || !pendingBooking) {
+        return;
+    }
+
+    payBtn.disabled = true;
+    payBtn.textContent = "Preparing…";
+
+    confirmPendingBooking()
+        .then((bookingResponse) => {
+            activeBookingId = bookingResponse.bookingId;
+            lastBookingResponse = bookingResponse;
+            return fetch(`/api/payments/start/${activeBookingId}`, { method: "POST" });
+        })
+        .then(async (res) => {
+            if (!res.ok) {
+                throw new Error("Payment could not be started");
+            }
+            const data = await res.json();
+            pendingRedirect = data.payUrl;
+            window.location.href = data.payUrl;
+        })
+        .catch((err) => {
+            alert(err.message || "Payment could not be started");
+            payBtn.disabled = false;
+            payBtn.textContent = "Pay now";
+        });
+}
+
 /* ------ Navigation ------ */
 
 function setupNavigation() {
@@ -349,6 +575,7 @@ function setupNavigation() {
     const cancelBtn = document.getElementById("cancelButton");
     const dashboardBtn = document.getElementById("dashboardButton");
     const ticketInput = document.getElementById("ticketCount");
+    const payBtn = document.getElementById("payButton");
 
     if (ticketInput) {
         ticketInput.addEventListener("input", () => {
@@ -361,25 +588,39 @@ function setupNavigation() {
 
     if (nextBtn) {
         nextBtn.addEventListener("click", () => {
+            if (document.body.dataset.bookingDisabled === "true") {
+                return;
+            }
             const currentStep = Number(document.body.dataset.currentStep || "1");
 
             if (currentStep === 1) {
                 if (!validateStep1()) return;
                 setStep(2);
+                toggleNavButtons(2);
+                pendingBooking = null;
+                activeBookingId = null;
+                const payButton = document.getElementById("payButton");
+                if (payButton) {
+                    payButton.disabled = true;
+                }
             } else if (currentStep === 2) {
                 if (!validateStep2()) return;
 
-                // API Call
                 nextBtn.disabled = true;
-                nextBtn.textContent = "Will be booked…";
+                nextBtn.textContent = "Creating hold…";
 
                 submitBooking()
-                    .then((bookingResponse) => {
-                        fillConfirmation(bookingResponse);
-                        setStep(3);
+                    .then((pendingResponse) => {
+                        pendingBooking = pendingResponse;
+                        toggleNavButtons(2);
+                        const payButton = document.getElementById("payButton");
+                        if (payButton) {
+                            payButton.disabled = false;
+                        }
+                        showError(null);
                     })
                     .catch(() => {
-                        // Fehler wurde bereits angezeigt
+                        // error already shown
                     })
                     .finally(() => {
                         nextBtn.disabled = false;
@@ -394,8 +635,10 @@ function setupNavigation() {
             const currentStep = Number(document.body.dataset.currentStep || "1");
             if (currentStep === 2) {
                 setStep(1);
+                toggleNavButtons(1);
             } else if (currentStep === 3) {
                 setStep(2);
+                toggleNavButtons(2);
             }
         });
     }
@@ -417,6 +660,12 @@ function setupNavigation() {
             }
         });
     }
+
+    if (payBtn) {
+        payBtn.addEventListener("click", () => {
+            startPayment();
+        });
+    }
 }
 
 /* ------ Init ------ */
@@ -426,4 +675,5 @@ document.addEventListener("DOMContentLoaded", () => {
     setStep(1);
     setupNavigation();
     loadEventAndPrefill();
+    handleCallbackParams();
 });

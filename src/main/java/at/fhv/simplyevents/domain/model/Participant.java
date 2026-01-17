@@ -1,42 +1,103 @@
 package at.fhv.simplyevents.domain.model;
 
-import jakarta.persistence.*;
+import at.fhv.simplyevents.domain.DomainValidationException;
 import java.time.Instant;
+import java.util.Objects;
 
-@Entity
 public class Participant {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String firstName;
-    private String lastName;
-
+    private final String firstName;
+    private final String lastName;
+    private final String email;
     private boolean checkedIn;
-
     private Instant checkInTime;
+    private final Long eventId;
+    private final Long bookingId;
+    private final String bookingNumber;
+    private final String bookerEmail;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id")
-    private Event event;
+    private Participant(Long id,
+                        String firstName,
+                        String lastName,
+                        String email,
+                        boolean checkedIn,
+                        Instant checkInTime,
+                        Long eventId,
+                        Long bookingId,
+                        String bookingNumber,
+                        String bookerEmail) {
+        require(eventId != null, "eventId is required");
+        require(bookingId != null, "bookingId is required");
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.checkedIn = checkedIn;
+        this.checkInTime = checkInTime;
+        this.eventId = eventId;
+        this.bookingId = bookingId;
+        this.bookingNumber = bookingNumber;
+        this.bookerEmail = bookerEmail;
+    }
 
-    @ManyToOne
-    @JoinColumn(name = "booking_id")
-    private Booking booking;
+    public static Participant create(Long eventId,
+                                     Long bookingId,
+                                     String bookingNumber,
+                                     String bookerEmail,
+                                     String firstName,
+                                     String lastName,
+                                     String email) {
+        return new Participant(null, firstName, lastName, email, false, null, eventId, bookingId, bookingNumber, bookerEmail);
+    }
+
+    public static Participant restore(Long id,
+                                      String firstName,
+                                      String lastName,
+                                      String email,
+                                      boolean checkedIn,
+                                      Instant checkInTime,
+                                      Long eventId,
+                                      Long bookingId,
+                                      String bookingNumber,
+                                      String bookerEmail) {
+        return new Participant(id, firstName, lastName, email, checkedIn, checkInTime, eventId, bookingId, bookingNumber, bookerEmail);
+    }
+
+    private static void require(boolean expression, String message) {
+        if (!expression) {
+            throw new DomainValidationException(message);
+        }
+    }
 
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getEmail() { return email; }
     public boolean isCheckedIn() { return checkedIn; }
-    public void setCheckedIn(boolean checkedIn) { this.checkedIn = checkedIn; }
     public Instant getCheckInTime() { return checkInTime; }
-    public void setCheckInTime(Instant checkInTime) { this.checkInTime = checkInTime; }
-    public Event getEvent() { return event; }
-    public void setEvent(Event event) { this.event = event; }
-    public Booking getBooking() { return booking; }
-    public void setBooking(Booking booking) { this.booking = booking; }
-}
+    public Long getEventId() { return eventId; }
+    public Long getBookingId() { return bookingId; }
+    public String getBookingNumber() { return bookingNumber; }
+    public String getBookerEmail() { return bookerEmail; }
 
+    public void markCheckedIn(Instant at) {
+        this.checkedIn = true;
+        this.checkInTime = at == null ? Instant.now() : at;
+    }
+
+    public void markCheckedOut() {
+        this.checkedIn = false;
+        this.checkInTime = null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Participant)) return false;
+        Participant that = (Participant) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() { return Objects.hash(id); }
+}

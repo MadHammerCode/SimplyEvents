@@ -21,15 +21,36 @@
             <a href="/" class="nav-logo">SimplyEvents</a>
 
             <div class="nav-links" id="navLinks">
-                <a href="/dashboard" class="nav-link">Events</a>
-                <a href="/my-bookings" class="nav-link nav-auth-only">My bookings</a>
-                <a href="/user-profile" class="nav-link nav-auth-only">Profile</a>
-                <a href="/backoffice-dashboard" class="nav-link nav-role-backoffice">Backoffice</a>
-                <a href="/frontoffice-checkin" class="nav-link nav-role-frontoffice">Check-in</a>
 
+
+                <!-- Guest -->
                 <a href="/login" class="nav-link nav-guest-only">Login</a>
-                <span class="nav-divider nav-auth-only"></span>
-                <button id="logoutBtn" class="nav-link nav-btn nav-auth-only">Logout</button>
+
+                <!-- Logged-in: user dropdown -->
+                <div class="nav-user-dropdown nav-auth-only hidden" id="userMenuWrapper">
+                    <button class="nav-link nav-user-btn" id="navUserBtn" type="button" aria-haspopup="true" aria-expanded="false">
+                        <span id="navUserName"></span>
+                        <span class="nav-user-caret">▾</span>
+                    </button>
+
+                    <div class="nav-user-menu hidden" id="userMenu" role="menu">
+                        <!-- CUSTOMER -->
+                        <a class="nav-user-item hidden nav-menu-customer" href="/user-profile" role="menuitem">Profile</a>
+                        <a class="nav-user-item hidden nav-menu-customer" href="/my-bookings" role="menuitem">My Bookings</a>
+
+                        <!-- BACKOFFICE -->
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/backoffice-dashboard" role="menuitem">Backoffice</a>
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/frontoffice-checkin" role="menuitem">Check in</a>
+
+                        <!-- FRONTOFFICE -->
+                        <a class="nav-user-item hidden nav-menu-frontoffice" href="/frontoffice-checkin" role="menuitem">Check in</a>
+
+                        <div class="nav-user-sep"></div>
+
+                        <!-- Logout -->
+                        <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
+                    </div>
+                </div>
             </div>
 
             <button id="navToggle" class="nav-toggle">☰</button>
@@ -93,9 +114,11 @@
 
 </div>
 
-<!-- Global scripts -->
-<script src="/js/navbar.js" defer></script>
-<script src="/js/footer.js" defer></script>
+<!-- 🔹 Global scripts fragment -->
+<div th:fragment="scripts">
+    <script src="/js/navbar.js" defer></script>
+    <script src="/js/footer.js" defer></script>
+</div>
 
 <!-- PAGE-SPECIFIC SCRIPT -->
 <!-- Example: <script src="/js/landing.js" defer></script> -->
