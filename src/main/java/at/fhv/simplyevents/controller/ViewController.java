@@ -15,6 +15,11 @@ public class ViewController {
         this.eventUseCase = eventUseCase;
     }
 
+    @GetMapping("/")
+    public String redirectToDashboard() {
+        return "redirect:/dashboard";
+    }
+
     @GetMapping("/dashboard")
     public String authorsView() {
         return "Dashboard"; }

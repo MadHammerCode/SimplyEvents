@@ -11,9 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
-/**
- * Use Case: Retrieve an invoice by ID.
- */
+
 @Service
 public class GetInvoiceUseCase {
 

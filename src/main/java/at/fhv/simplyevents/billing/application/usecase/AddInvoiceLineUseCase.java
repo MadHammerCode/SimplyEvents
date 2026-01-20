@@ -10,9 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
-/**
- * Use Case: Add a line to an invoice.
- */
+
 @Service
 public class AddInvoiceLineUseCase {
 

@@ -6,9 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * DTO for complete Invoice aggregate.
- */
+
 public class InvoiceDto {
 
     private Long invoiceId;
