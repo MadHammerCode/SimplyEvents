@@ -64,7 +64,7 @@ public class InvoicePdfGenerator {
     }
 
     private void addTitle(Document document) {
-        Paragraph title = new Paragraph("RECHNUNG / INVOICE")
+        Paragraph title = new Paragraph("INVOICE")
             .setFontSize(24)
             .setBold()
             .setTextAlignment(TextAlignment.CENTER);
@@ -74,33 +74,33 @@ public class InvoicePdfGenerator {
     }
 
     private void addInvoiceInfo(Document document, Invoice invoice) {
-        Paragraph infoSection = new Paragraph("RECHNUNGSINFORMATIONEN")
+        Paragraph infoSection = new Paragraph("INVOICE INFORMATION")
             .setFontSize(12)
             .setBold();
         document.add(infoSection);
 
         if (invoice.getInvoiceNumber() != null) {
-            document.add(new Paragraph("Rechnungsnummer: " + invoice.getInvoiceNumber().format())
+            document.add(new Paragraph("Invoice number: " + invoice.getInvoiceNumber().format())
                 .setFontSize(10));
         }
 
-        document.add(new Paragraph("Erstellt: " + invoice.getCreatedAt().format(DATE_FORMATTER))
+        document.add(new Paragraph("Created: " + invoice.getCreatedAt().format(DATE_FORMATTER))
             .setFontSize(10));
 
         document.add(new Paragraph("Event ID: " + invoice.getEventId())
             .setFontSize(10));
 
-        document.add(new Paragraph("Anbieter ID: " + invoice.getVendorId())
+        document.add(new Paragraph("Vendor ID: " + invoice.getVendorId())
             .setFontSize(10));
 
         document.add(new Paragraph("Status: " + invoice.getStatus())
             .setFontSize(10));
 
-        document.add(new Paragraph("\n")); // Spacing
+        document.add(new Paragraph("\n"));
     }
 
     private void addLineItems(Document document, Invoice invoice) {
-        Paragraph itemsSection = new Paragraph("POSITIONEN")
+        Paragraph itemsSection = new Paragraph("ITEMS")
             .setFontSize(12)
             .setBold();
         document.add(itemsSection);
@@ -110,10 +110,10 @@ public class InvoicePdfGenerator {
             .setWidth(UnitValue.createPercentValue(100));
 
 
-        table.addHeaderCell("Beschreibung").setTextAlignment(TextAlignment.LEFT);
-        table.addHeaderCell("Menge").setTextAlignment(TextAlignment.CENTER);
-        table.addHeaderCell("Einzelpreis").setTextAlignment(TextAlignment.RIGHT);
-        table.addHeaderCell("Gesamtpreis").setTextAlignment(TextAlignment.RIGHT);
+        table.addHeaderCell("Description").setTextAlignment(TextAlignment.LEFT);
+        table.addHeaderCell("Quantity").setTextAlignment(TextAlignment.CENTER);
+        table.addHeaderCell("Unit price").setTextAlignment(TextAlignment.RIGHT);
+        table.addHeaderCell("Total price").setTextAlignment(TextAlignment.RIGHT);
 
 
         for (InvoiceLine line : invoice.getLines()) {
@@ -131,7 +131,7 @@ public class InvoicePdfGenerator {
 
 
         document.add(new Paragraph("\n")); // Spacing
-        Paragraph total = new Paragraph("GESAMTBETRAG: € " + formatAmount(invoice.getTotal().getAmount()))
+        Paragraph total = new Paragraph("TOTAL AMOUNT: € " + formatAmount(invoice.getTotal().getAmount()))
             .setFontSize(12)
             .setBold()
             .setTextAlignment(TextAlignment.RIGHT);
@@ -145,13 +145,13 @@ public class InvoicePdfGenerator {
             return;
         }
 
-        Paragraph allocSection = new Paragraph("VERTEILUNGEN / ZUWEISUNGEN")
+        Paragraph allocSection = new Paragraph("DISTRIBUTIONS / ASSIGNMENTS")
             .setFontSize(12)
             .setBold();
         document.add(allocSection);
 
         for (InvoiceShare share : invoice.getShares()) {
-            document.add(new Paragraph("Benutzer " + share.getUserId() + ": € " + formatAmount(share.getAllocatedAmount().getAmount()))
+            document.add(new Paragraph("User " + share.getUserId() + ": € " + formatAmount(share.getAllocatedAmount().getAmount()))
                 .setFontSize(10));
         }
 

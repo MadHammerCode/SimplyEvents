@@ -6,9 +6,7 @@ import at.fhv.simplyevents.billing.infrastructure.persistence.springdata.Invoice
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Use Case: Create a new draft invoice.
- */
+
 @Service
 public class CreateInvoiceDraftUseCase {
 

@@ -2,9 +2,7 @@ package at.fhv.simplyevents.billing.application.dto;
 
 import java.math.BigDecimal;
 
-/**
- * DTO for invoice share/allocation.
- */
+
 public class InvoiceShareDto {
 
     private String id;

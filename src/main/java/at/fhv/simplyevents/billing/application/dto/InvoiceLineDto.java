@@ -4,9 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * DTO for invoice line.
- */
+
 public class InvoiceLineDto {
 
     private String id;

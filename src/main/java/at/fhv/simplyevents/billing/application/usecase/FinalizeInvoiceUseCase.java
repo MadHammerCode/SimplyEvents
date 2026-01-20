@@ -10,15 +10,7 @@ import at.fhv.simplyevents.billing.infrastructure.persistence.springdata.Invoice
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Use Case: Finalize an invoice.
- * Orchestrates:
- * 1. Invoice number generation (with locking)
- * 2. Hash computation
- * 3. PDF generation
- * 4. Domain finalization
- * 5. Persistence
- */
+
 @Service
 public class FinalizeInvoiceUseCase {
 
@@ -49,19 +41,19 @@ public class FinalizeInvoiceUseCase {
 
         Invoice invoice = invoiceMapper.toDomain(entity);
 
-        // Step 1: Generate unique invoice number (with pessimistic locking)
+
         var invoiceNumber = numberGenerator.generateNext();
 
-        // Step 2: Compute hash over snapshot
+
         var hash = hashGenerator.generateHash(invoice);
 
-        // Step 3: Generate PDF
+
         var pdfPath = pdfGenerator.generatePdf(invoice);
 
-        // Step 4: Finalize invoice in domain (validates invariants, sets status to FINAL)
+
         invoice.finalize(invoiceNumber, hash, pdfPath);
 
-        // Step 5: Persist
+
         var finalEntity = invoiceMapper.toEntity(invoice);
         var savedEntity = invoiceRepository.save(finalEntity);
 
