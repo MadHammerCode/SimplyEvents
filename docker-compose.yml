@@ -1,9 +1,33 @@
 version: '3.8'
 
 services:
+ 
   app:
-    image: localhost:5000/simplyevents:latest
-    container_name: simplyevents_app
+    image: localhost:5000/simplyevents:latest  
+    container_name: simplyevents_app           
     restart: always
     ports:
       - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/simplyevents_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  db:
+    image: postgres:15-alpine
+    container_name: simplyevents_db          
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=simplyevents_db          
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
