@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – My Wishlist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/dashboard.css"> </head>
+<body>
+
+<div th:replace="layout :: navbar"></div>
+
+<div class="page">
+    <header class="hero" style="min-height: 200px; padding-bottom: 2rem;">
+        <div class="container">
+            <h1 class="hero__title">My Wishlist</h1>
+            <p class="hero__subtitle">Events you have saved for later.</p>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <section id="eventsSection" style="margin-top: 2rem;">
+                <div id="eventsGrid" class="events-grid">
+                </div>
+
+                <div id="emptyState" class="empty-state hidden">
+                    <p class="empty-state__title">Your wishlist is empty</p>
+                    <p class="empty-state__text">Go back to the <a href="/dashboard">dashboard</a> to discover events.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script src="/js/wishlist.js" defer></script>
+<div th:replace="layout :: footer"></div>
+<div th:replace="~{layout :: scripts}"></div>
+
+</body>
+</html>

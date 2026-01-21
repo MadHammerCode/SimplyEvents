@@ -91,4 +91,9 @@ public class ViewController {
     public String adminDashboard() {
         return "admin-dashboard";
     }
+
+    @GetMapping("/wishlist")
+    public String wishlist() {
+        return "wishlist";
+    }
 }
