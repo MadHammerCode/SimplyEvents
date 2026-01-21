@@ -47,11 +47,20 @@ body {
 /* Hero */
 
 .hero {
-    background: radial-gradient(circle at top left, #4b7bec 0, transparent 55%),
-    radial-gradient(circle at bottom right, #26de81 0, transparent 55%),
-    #0f172a;
-    color: #e5e7eb;
+    position: relative;
+    background-image: url('/images/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #f9fafb;
     padding: 3.2rem 0 2.8rem;
+    overflow: hidden;
+}
+
+
+.hero__inner {
+    position: relative;
+    z-index: 1;
 }
 
 .hero__inner {
@@ -94,10 +103,10 @@ body {
 /* Search Card */
 
 .search-card {
-    background-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.95);
     border-radius: var(--radius-lg);
     padding: 1.2rem 1.4rem;
-    box-shadow: var(--shadow-soft);
+    box-shadow: 0 22px 55px rgba(15, 23, 42, 0.35);
     color: var(--color-text);
 }
 
@@ -383,6 +392,17 @@ body {
     box-shadow: 0 22px 45px rgba(15, 23, 42, 0.22);
 }
 
+.event-card--cancelled {
+    opacity: 0.65;
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+.event-card--cancelled:hover {
+    transform: none;
+    box-shadow: var(--shadow-card);
+}
+
 .event-card__image-wrap {
     position: relative;
     padding-top: 60%;
@@ -434,6 +454,22 @@ body {
 .event-card__price {
     font-weight: 600;
     color: var(--color-primary);
+}
+
+/* Badge */
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.badge--cancelled {
+    background-color: #fecaca;
+    color: #991b1b;
 }
 
 /* Stats */

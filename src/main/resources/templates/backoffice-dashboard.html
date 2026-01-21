@@ -5,26 +5,40 @@
     <title>SimplyEvents – Backoffice Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="stylesheet" href="/css/navbar.css">
     <link rel="stylesheet" href="/css/backoffice-dashboard.css">
 </head>
 <body>
 <div class="page">
-    <!-- Header / Top bar -->
-    <header class="admin-header">
-        <div class="container admin-header__inner">
-            <div>
-                <h1 class="admin-title">Backoffice Dashboard</h1>
-                <p class="admin-subtitle">Overview of all events, bookings and revenue.</p>
+    <!-- Header / Top bar im Navbar-Style -->
+    <nav class="nav nav--backoffice">
+        <div class="nav-container">
+            <div class="nav-brand-block">
+                <a href="/backoffice-dashboard" class="nav-logo">
+                    <img src="/images/simplyevents-logo.png" alt="SimplyEvents Logo" class="nav-logo-img">
+                    <span class="nav-logo-text">Backoffice</span>
+                </a>
+                <p class="nav-subtitle">Overview of all events, bookings and revenue.</p>
             </div>
 
-            <nav class="admin-nav">
-                <button type="button" id="goToCreateEvent" class="btn btn-primary">+ New event</button>
-                <button type="button" id="goToDashboard" class="btn btn-outline">Dashboard</button>
-                <button type="button" id="goToFrontoffice" class="btn btn-outline">Frontoffice</button>
-                <button type="button" id="logoutBtn" class="btn btn-danger">Logout</button>
-            </nav>
+            <div class="nav-links">
+                <div class="nav-user-dropdown" id="backofficeActions">
+                    <button class="nav-user-btn" id="actionsToggle" type="button" aria-haspopup="true" aria-expanded="false">
+                        Actions
+                        <span class="nav-user-caret">▾</span>
+                    </button>
+                    <div class="nav-user-menu hidden" id="actionsMenu" role="menu">
+                        <button class="nav-user-item" id="goToCreateEvent" type="button" role="menuitem">+ New event</button>
+                        <button class="nav-user-item" id="goToInvoices" type="button" role="menuitem">📄 Invoices</button>
+                        <button class="nav-user-item" id="goToDashboard" type="button" role="menuitem">Dashboard</button>
+                        <button class="nav-user-item" id="goToFrontoffice" type="button" role="menuitem">Frontoffice</button>
+                        <div class="nav-user-sep"></div>
+                        <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </header>
+    </nav>
 
     <!-- Filters / period -->
     <section class="admin-filters">
@@ -184,5 +198,23 @@
 
 
 <script src="/js/backoffice-dashboard.js" defer></script>
+<script>
+    const actionsToggle = document.getElementById('actionsToggle');
+    const actionsMenu = document.getElementById('actionsMenu');
+
+    if (actionsToggle && actionsMenu) {
+        actionsToggle.addEventListener('click', () => {
+            const isHidden = actionsMenu.classList.toggle('hidden');
+            actionsToggle.setAttribute('aria-expanded', (!isHidden).toString());
+        });
+
+        document.addEventListener('click', (evt) => {
+            if (!actionsMenu.contains(evt.target) && !actionsToggle.contains(evt.target)) {
+                actionsMenu.classList.add('hidden');
+                actionsToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+</script>
 </body>
 </html>

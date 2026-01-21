@@ -69,6 +69,7 @@ public class EventDtos {
             String bookingStart,
             String bookingEnd,
             Boolean yearRound,
-            String status
+            String status,
+            Boolean cancelled
     ) {}
 }

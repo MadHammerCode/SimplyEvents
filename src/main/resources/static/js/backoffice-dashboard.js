@@ -102,15 +102,14 @@ function filterAndRender(period, category, search) {
             .toLowerCase();
         const matchesSearch = !search || haystack.includes(search);
 
-        // timezone (Here only very rough: we filter by year, or let everyone in)
+
         const dateStr = ev.date || "";
         let matchesPeriod = true;
         if (period === "year") {
             const year = new Date().getFullYear().toString();
             matchesPeriod = dateStr.startsWith(year);
         }
-        // Period "30d" / "90d" -> do not filter hard for now, can be expanded later
-        // (backend may not provide time information, so we simplify this first)
+
 
         return matchesCategory && matchesSearch && matchesPeriod;
     });
@@ -431,22 +430,29 @@ function renderTable(events) {
         const capacity = ev.capacity ?? "–";
         const price = formatPrice(ev.price);
         const status = escapeHtml(ev.status || "PLANNED");
-        const publishButton = status === "PLANNED"
+        const isCancelled = ev.cancelled === true;
+        const cancelledBadge = isCancelled ? `<span class="badge badge--cancelled">Cancelled</span>` : "";
+        const cancelButtonText = isCancelled ? "Uncancel" : "Cancel";
+        // Publish-Button: nur wenn PLANNED und nicht cancelled
+        const publishButton = (status === "PLANNED" && !isCancelled)
             ? `<button type="button" class="action-btn action-btn--publish" data-publish="${id}">Publish</button>`
             : "";
 
+        const rowClass = isCancelled ? "event-row--cancelled" : "";
+
         return `
-      <tr data-id="${id}">
+      <tr data-id="${id}" class="${rowClass}">
         <td>${id}</td>
         <td>${title}</td>
         <td>${location}</td>
         <td>${date}</td>
         <td>${capacity}</td>
         <td>${price}</td>
-        <td>${status}</td>
+        <td>${status} ${cancelledBadge}</td>
         <td>
           <div class="event-actions">
             <button type="button" class="action-btn action-btn--edit" data-edit="${id}">Edit</button>
+            <button type="button" class="action-btn action-btn--cancel" data-cancel="${id}">${cancelButtonText}</button>
             <button type="button" class="action-btn action-btn--delete" data-delete="${id}">Delete</button>
             ${publishButton}
           </div>
@@ -473,7 +479,7 @@ function renderTopEvents(events) {
 
     empty.classList.add("hidden");
 
-    // (capacity - availableSlots) / capacity
+
     const scored = events
         .map((ev) => {
             const capacity = Number(ev.capacity ?? 0);
@@ -563,6 +569,54 @@ function setupRowActions() {
                 });
         });
     });
+
+    document.querySelectorAll("[data-cancel]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-cancel");
+            if (!id) return;
+
+            // Optimistic update: find event and toggle cancelled state
+            const eventIdx = allEvents.findIndex((ev) => String(ev.id) === String(id));
+            if (eventIdx < 0) return;
+
+            const event = allEvents[eventIdx];
+            const newCancelledState = !event.cancelled;
+            const confirmMsg = newCancelledState
+                ? "Do you really want to cancel this event?"
+                : "Do you really want to uncancel this event?";
+
+            if (!confirm(confirmMsg)) return;
+
+            // Optimistic UI update
+            allEvents[eventIdx] = { ...event, cancelled: newCancelledState };
+            applyFilters();
+
+            // API call
+            fetch(`/api/events/${encodeURIComponent(id)}/toggle-cancel`, { method: "POST" })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Toggle failed");
+                    return res.json();
+                })
+                .then((updated) => {
+                    // Update with server response (in case of discrepancies)
+                    const idx = allEvents.findIndex((ev) => String(ev.id) === String(id));
+                    if (idx >= 0) {
+                        allEvents[idx] = updated;
+                    }
+                    applyFilters();
+                })
+                .catch((err) => {
+                    console.error(err);
+                    // Revert optimistic update on error
+                    const idx = allEvents.findIndex((ev) => String(ev.id) === String(id));
+                    if (idx >= 0) {
+                        allEvents[idx] = { ...allEvents[idx], cancelled: !newCancelledState };
+                    }
+                    applyFilters();
+                    alert("Event cancellation could not be toggled.");
+                });
+        });
+    });
 }
 
 // ------- Navigation -------
@@ -571,11 +625,18 @@ function setupNavigation() {
     const goToCreateEvent = document.getElementById("goToCreateEvent");
     const goToFrontoffice = document.getElementById("goToFrontoffice");
     const goToDashboard = document.getElementById("goToDashboard");
+    const goToInvoices = document.getElementById("goToInvoices");
     const logoutBtn = document.getElementById("logoutBtn");
 
     if (goToCreateEvent) {
         goToCreateEvent.addEventListener("click", () => {
             window.location.href = "/create-event";
+        });
+    }
+
+    if (goToInvoices) {
+        goToInvoices.addEventListener("click", () => {
+            window.location.href = "/invoices";
         });
     }
 

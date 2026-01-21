@@ -15,6 +15,11 @@ public class ViewController {
         this.eventUseCase = eventUseCase;
     }
 
+    @GetMapping("/")
+    public String redirectToDashboard() {
+        return "redirect:/dashboard";
+    }
+
     @GetMapping("/dashboard")
     public String authorsView() {
         return "Dashboard"; }
@@ -41,6 +46,11 @@ public class ViewController {
     @GetMapping("/event-details/{id}")
     public String showEventDetails(@PathVariable Long id, Model model) {
         var eventResponse = eventUseCase.getEventById(id);
+
+        if (Boolean.TRUE.equals(eventResponse.cancelled())) {
+            return "redirect:/events";
+        }
+
         model.addAttribute("event", eventResponse);
         return "event-details";
     }
@@ -62,6 +72,11 @@ public class ViewController {
     @GetMapping("/frontoffice-checkin")
     public String frontofficeCheckin() {
         return "frontoffice-checkin";
+    }
+
+    @GetMapping("/invoices")
+    public String invoices() {
+        return "invoices";
     }
 
     @GetMapping("/user-profile")

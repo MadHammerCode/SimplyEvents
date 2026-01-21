@@ -47,9 +47,27 @@ body {
 /* Hero */
 
 .hero {
-    background: linear-gradient(135deg, #2952cc, #1fb99a);
+    background-image: url('/images/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: #ffffff;
     padding: 3.5rem 0 2.5rem;
+    position: relative;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.hero > .container {
+    position: relative;
+    z-index: 2;
 }
 
 .hero__title {
@@ -57,13 +75,17 @@ body {
     font-size: clamp(2.4rem, 4vw, 3rem);
     font-weight: 700;
     margin: 0 0 0.5rem;
+    color: #ffffff;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .hero__subtitle {
     text-align: center;
     font-size: 1.05rem;
-    opacity: 0.9;
+    opacity: 0.95;
     margin: 0 0 2rem;
+    color: #f0f0f0;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Suchkarte */

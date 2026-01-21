@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -130,7 +129,8 @@ public class EventService implements EventUseCase {
                 bookingStartDate,
                 bookingEndDate,
                 resolveImagePath(image, cmd.imagePath(), DEFAULT_IMAGE_PATH),
-                publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED
+                publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED,
+                false
         );
 
         Event saved = eventRepository.save(event);
@@ -243,7 +243,8 @@ public class EventService implements EventUseCase {
                 bookingStartDate,
                 bookingEndDate,
                 finalImagePath,
-                event.getStatus()
+                event.getStatus(),
+                event.isCancelled()
         );
 
         Event saved = eventRepository.save(event);
@@ -303,6 +304,7 @@ public class EventService implements EventUseCase {
         List<EventStatus> visibleStatuses = List.of(EventStatus.PUBLISHED, EventStatus.ACTIVE, EventStatus.FULL);
         return eventRepository.findByStatusIn(visibleStatuses)
                 .stream()
+                .filter(event -> !event.isCancelled())
                 .map(this::toResult)
                 .toList();
     }
@@ -324,9 +326,27 @@ public class EventService implements EventUseCase {
         if (!eventRepository.existsById(id)) {
             throw NotFoundException.forEntity("Event", id);
         }
-        // No image delete logic yet; could be added if repository exposes image path
+
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> NotFoundException.forEntity("Event", id));
+
+        String imagePath = event.getImagePath();
+        if (imagePath != null && !imagePath.equals(DEFAULT_IMAGE_PATH) && !imagePath.isBlank()) {
+            fileStoragePort.delete(imagePath);
+        }
+
         eventRepository.deleteById(id);
     }
+
+    @Override
+    public EventResult toggleEventCanceled(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> NotFoundException.forEntity("Event", id));
+        event.toggleCancelled();
+        Event saved = eventRepository.save(event);
+        return toResult(saved);
+    }
+
 
     private EventResult toResult(Event event) {
         String date = null;
@@ -379,7 +399,8 @@ public class EventService implements EventUseCase {
                 bookingStart,
                 bookingEnd,
                 event.isYearRound(),
-                event.getStatus() == null ? EventStatus.PLANNED.name() : event.getStatus().name()
+                event.getStatus() == null ? EventStatus.PLANNED.name() : event.getStatus().name(),
+                event.isCancelled()
         );
     }
 

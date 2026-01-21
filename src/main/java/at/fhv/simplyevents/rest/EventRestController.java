@@ -47,6 +47,8 @@ public class EventRestController {
             return ResponseEntity.ok(toResponse(result));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (Exception ex) {
+            throw ex;
         }
     }
 
@@ -68,6 +70,8 @@ public class EventRestController {
             return ResponseEntity.ok(toResponse(result));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (Exception ex) {
+            throw ex;
         }
     }
 
@@ -87,7 +91,12 @@ public class EventRestController {
     @GetMapping("/{id}")
     public ResponseEntity<EventResponse> getEventById(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(toResponse(eventUseCase.getEventById(id)));
+            var result = eventUseCase.getEventById(id);
+            // Blockiere Zugriff auf cancelled Events für öffentliche API
+            if (Boolean.TRUE.equals(result.cancelled())) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(toResponse(result));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
@@ -97,6 +106,15 @@ public class EventRestController {
     public ResponseEntity<EventResponse> publishEvent(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(toResponse(eventUseCase.publishEvent(id)));
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/toggle-cancel")
+    public ResponseEntity<EventResponse> toggleEventCanceled(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(toResponse(eventUseCase.toggleEventCanceled(id)));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
@@ -122,6 +140,8 @@ public class EventRestController {
             return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (Exception ex) {
+            throw ex;
         }
     }
 
@@ -146,6 +166,8 @@ public class EventRestController {
             return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (Exception ex) {
+            throw ex;
         }
     }
 
@@ -160,12 +182,12 @@ public class EventRestController {
     }
 
     private CreateEventCommand toCommand(CreateEventRequest dto) {
-        LocalDate date = dto.date() == null || dto.date().isBlank() ? null : LocalDate.parse(dto.date());
-        LocalTime time = dto.time() == null || dto.time().isBlank() ? null : LocalTime.parse(dto.time());
-        LocalDate bookingStart = dto.bookingStart() == null || dto.bookingStart().isBlank() ? null : LocalDate.parse(dto.bookingStart());
-        LocalDate bookingEnd = dto.bookingEnd() == null || dto.bookingEnd().isBlank() ? null : LocalDate.parse(dto.bookingEnd());
-        LocalDateTime cancellationDeadline = dto.cancellationDeadline() == null || dto.cancellationDeadline().isBlank()
-                ? null : LocalDateTime.parse(dto.cancellationDeadline());
+        LocalDate date = parseDate(dto.date(), "Event date");
+        LocalTime time = parseTime(dto.time(), "Event time");
+        LocalDate bookingStart = parseDate(dto.bookingStart(), "Booking start date");
+        LocalDate bookingEnd = parseDate(dto.bookingEnd(), "Booking end date");
+        LocalDateTime cancellationDeadline = parseDateTime(dto.cancellationDeadline(), "Cancellation deadline");
+
         return new CreateEventCommand(
                 dto.title(),
                 date,
@@ -191,14 +213,57 @@ public class EventRestController {
         );
     }
 
+    private LocalDate parseDate(String dateStr, String fieldName) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(dateStr);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                    fieldName + " has invalid format. Expected: yyyy-MM-dd, got: " + dateStr, e);
+        }
+    }
+
+    private LocalTime parseTime(String timeStr, String fieldName) {
+        if (timeStr == null || timeStr.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalTime.parse(timeStr);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                    fieldName + " has invalid format. Expected: HH:mm[:ss], got: " + timeStr, e);
+        }
+    }
+
+    private LocalDateTime parseDateTime(String dateTimeStr, String fieldName) {
+        if (dateTimeStr == null || dateTimeStr.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(dateTimeStr);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                    fieldName + " has invalid format. Expected: yyyy-MM-ddThh:mm[:ss], got: " + dateTimeStr, e);
+        }
+    }
+
     private ImageUpload toImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return null;
         }
         try {
-            return new ImageUpload(file.getOriginalFilename(), file.getBytes());
+            byte[] content = file.getBytes();
+            if (content.length == 0) {
+                throw new IllegalArgumentException("Uploaded file is empty.");
+            }
+            return new ImageUpload(file.getOriginalFilename(), content);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Could not read uploaded file.", e);
+            String errorMsg = "Failed to read uploaded image file: " + (e.getMessage() != null ? e.getMessage() : "Unknown error");
+            throw new IllegalArgumentException(errorMsg, e);
         }
     }
 
@@ -224,7 +289,8 @@ public class EventRestController {
                 r.bookingStart(),
                 r.bookingEnd(),
                 r.yearRound(),
-                r.status()
+                r.status(),
+                r.cancelled()
         );
     }
 }
