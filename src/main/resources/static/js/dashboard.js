@@ -2,27 +2,73 @@
 let allEvents = [];
 let selectedCategory = 'All';
 let wishlist = new Set();
+let currentUser = null;
 
-const WISHLIST_KEY = 'simplyevents_wishlist';
-
-function loadWishlist() {
+// Helper to get logged-in user ID
+function loadCurrentUser() {
     try {
-        const raw = window.localStorage.getItem(WISHLIST_KEY);
-        if (!raw) return;
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) {
-            wishlist = new Set(arr);
+        const raw = localStorage.getItem("simplyevents_currentUser");
+        if (raw) {
+            let user = JSON.parse(raw);
+            if (typeof user === "string") user = JSON.parse(user);
+            currentUser = user;
         }
-    } catch (e) {
-        // ignore
+    } catch (_) {
+        currentUser = null;
     }
 }
 
-function saveWishlist() {
+// FETCH wishlist from Backend
+async function loadWishlist() {
+    if (!currentUser || !currentUser.id) {
+        wishlist = new Set();
+        return;
+    }
     try {
-        window.localStorage.setItem(WISHLIST_KEY, JSON.stringify(Array.from(wishlist)));
+        const res = await fetch(`/api/wishlist?userId=${currentUser.id}`);
+        if (res.ok) {
+            const ids = await res.json();
+            wishlist = new Set(ids);
+            renderEvents(allEvents); // Re-render to show hearts
+        }
     } catch (e) {
-        // ignore
+        console.error("Failed to load wishlist", e);
+    }
+}
+
+// TOGGLE via Backend
+async function toggleWishlistForCard(cardEl) {
+    if (!cardEl) return;
+    const eventId = cardEl.getAttribute('data-event-id');
+    if (!eventId) return;
+
+    if (!currentUser || !currentUser.id) {
+        alert("Please log in to use the wishlist.");
+        return;
+    }
+
+    try {
+        // Optimistic UI update
+        if (wishlist.has(Number(eventId))) {
+            wishlist.delete(Number(eventId));
+        } else {
+            wishlist.add(Number(eventId));
+        }
+        applyFilters(); // Update UI immediately
+
+        // Send to backend
+        const res = await fetch(`/api/wishlist/${eventId}?userId=${currentUser.id}`, {
+            method: 'POST'
+        });
+
+        if (!res.ok) {
+            // Revert on failure
+            console.error("Failed to save wishlist");
+            loadWishlist();
+        }
+    } catch (e) {
+        console.error(e);
+        loadWishlist();
     }
 }
 
@@ -78,8 +124,7 @@ function applyFilters() {
 
     const filtered = allEvents.filter(ev => {
         const category = (ev.category || 'Other').trim();
-        const matchesCategory =
-            selectedCategory === 'All' || category === selectedCategory;
+        const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
 
         const searchable = [
             ev.title || '',
@@ -88,13 +133,8 @@ function applyFilters() {
         ].join(' ');
 
         const matchesSearch = searchable.toLowerCase().includes(query);
-
-        const matchesLocation =
-            !locationQuery ||
-            String(ev.location || '').toLowerCase().includes(locationQuery);
-
-        const matchesDate =
-            !dateFilter || String(ev.date || '').startsWith(dateFilter);
+        const matchesLocation = !locationQuery || String(ev.location || '').toLowerCase().includes(locationQuery);
+        const matchesDate = !dateFilter || String(ev.date || '').startsWith(dateFilter);
 
         return matchesCategory && matchesSearch && matchesLocation && matchesDate;
     });
@@ -108,8 +148,7 @@ function updateResultsHeader(count) {
     const countEl = document.getElementById('resultsCount');
 
     if (titleEl) {
-        titleEl.textContent =
-            selectedCategory === 'All' ? 'All Events' : selectedCategory;
+        titleEl.textContent = selectedCategory === 'All' ? 'All Events' : selectedCategory;
     }
     if (countEl) {
         countEl.textContent = String(count);
@@ -135,28 +174,18 @@ function renderEvents(events) {
         const title = escapeHtml(ev.title || '');
         const location = escapeHtml(ev.location || '');
         const description = escapeHtml((ev.description || '').slice(0, 110));
-        const date = ev.date || '';
-        const time = ev.time || '';
-        const dateTimeText = date ? (time ? `${date} · ${time}` : date) : '';
         const category = escapeHtml(ev.category || 'Other');
+        const priceText = (ev.price != null) ? `${Number(ev.price).toFixed(2)} €` : 'Free';
 
-        let priceText = 'Free';
-        if (ev.price !== null && ev.price !== undefined) {
-            const num = Number(ev.price);
-            priceText = isNaN(num)
-                ? escapeHtml(String(ev.price))
-                : `${num.toFixed(2)} €`;
-        }
-
+        // Wishlist Check
         const isWishlisted = wishlist.has(id);
+
         const imagePath = ev.imagePath ? `/${ev.imagePath}` : '/images/default-event.jpg';
         const capacity = ev.capacity ?? ev.maxParticipants ?? null;
         const availableRaw = typeof ev.availableSlots === 'number' ? ev.availableSlots : capacity;
         const available = availableRaw != null ? Number(availableRaw) : null;
         const soldOut = available !== null && available <= 0;
-        const slotsLabel = capacity != null
-            ? (soldOut ? 'Sold out' : `${available ?? capacity} seats left`)
-            : '';
+        const slotsLabel = capacity != null ? (soldOut ? 'Sold out' : `${available} seats left`) : '';
         const slotClass = soldOut ? 'event-card__slots event-card__slots--empty' : 'event-card__slots';
 
         return `
@@ -194,20 +223,6 @@ function renderEvents(events) {
     grid.innerHTML = cards.join('');
 }
 
-function toggleWishlistForCard(cardEl) {
-    if (!cardEl) return;
-    const id = cardEl.getAttribute('data-event-id');
-    if (!id) return;
-
-    if (wishlist.has(id)) {
-        wishlist.delete(id);
-    } else {
-        wishlist.add(id);
-    }
-    saveWishlist();
-    applyFilters(); // re-render cards to update hearts
-}
-
 function setupEventDelegation() {
     const grid = document.getElementById('eventsGrid');
     if (!grid) return;
@@ -242,56 +257,25 @@ function setupFilters() {
     const locationInput = document.getElementById('locationInput');
     const dateInput = document.getElementById('dateInput');
 
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            applyFilters();
-        });
-    }
-
-    if (locationInput) {
-        locationInput.addEventListener('input', () => {
-            applyFilters();
-        });
-    }
-
-    if (dateInput) {
-        dateInput.addEventListener('change', () => {
-            applyFilters();
-        });
-    }
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (locationInput) locationInput.addEventListener('input', applyFilters);
+    if (dateInput) dateInput.addEventListener('change', applyFilters);
 }
 
 function fetchEvents() {
     fetch('/api/events')
-        .then(res => {
-            if (!res.ok) {
-                throw new Error('Failed to load events');
-            }
-            return res.json();
-        })
+        .then(res => res.ok ? res.json() : Promise.reject('Failed'))
         .then(data => {
-            if (!Array.isArray(data)) {
-                throw new Error('Unexpected response format');
-            }
             allEvents = data;
             renderCategories(allEvents);
+            loadWishlist(); // Load wishlist after events to update hearts
             applyFilters();
         })
-        .catch(err => {
-            console.error(err);
-            const grid = document.getElementById('eventsGrid');
-            const emptyState = document.getElementById('emptyState');
-            if (grid) {
-                grid.innerHTML = '<p>Could not load events.</p>';
-            }
-            if (emptyState) {
-                emptyState.classList.add('hidden');
-            }
-        });
+        .catch(console.error);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadWishlist();
+    loadCurrentUser();
     setupEventDelegation();
     setupFilters();
     fetchEvents();
