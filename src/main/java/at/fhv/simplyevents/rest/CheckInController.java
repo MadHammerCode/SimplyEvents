@@ -81,4 +81,10 @@ public class CheckInController {
         service.deleteBooking(bookingId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/bookings/{bookingId}/checkout")
+    public ResponseEntity<Void> checkoutBooking(@PathVariable Long bookingId) {
+        service.checkoutBooking(bookingId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -18,4 +18,6 @@ public interface CheckInUseCase {
     BookingDto updateBookingCapacity(Long bookingId, int requestedSeats);
     NewBookingResponse createBookingForEvent(Long eventId, NewBookingRequestCommand request);
     void deleteBooking(Long bookingId);
+    void checkoutBooking(Long bookingId);
+
 }

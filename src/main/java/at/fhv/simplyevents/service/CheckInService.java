@@ -16,6 +16,7 @@ import at.fhv.simplyevents.domain.repository.CheckedInParticipantRepositoryPort;
 import at.fhv.simplyevents.domain.repository.EventRepositoryPort;
 import at.fhv.simplyevents.domain.repository.ParticipantRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -41,7 +42,6 @@ public class CheckInService implements CheckInUseCase {
 
     @Override
     public List<ParticipantDto> findParticipantsForEvent(Long eventId) {
-        // ensure event exists
         events.findById(eventId).orElseThrow(() -> NotFoundException.forEntity("Event", eventId));
         return participants.findByEventId(eventId).stream()
                 .map(p -> new ParticipantDto(
@@ -66,6 +66,13 @@ public class CheckInService implements CheckInUseCase {
             p.markCheckedOut();
         }
         participants.save(p);
+
+        // Update the tracking table (Optional but keeps data clean)
+        if (!checkedIn) {
+            // If checking out individually, we could remove from CheckedInParticipant table here too
+            // But for now, just updating the main participant entity is enough for the logic
+        }
+
         return new ParticipantDto(
                 p.getId(),
                 p.getBookingNumber(),
@@ -80,7 +87,6 @@ public class CheckInService implements CheckInUseCase {
 
     @Override
     public List<BookingDto> findBookingsForEvent(Long eventId) {
-        // ensure event exists
         events.findById(eventId).orElseThrow(() -> NotFoundException.forEntity("Event", eventId));
 
         return activeBookings.findByEventId(eventId).stream()
@@ -122,7 +128,6 @@ public class CheckInService implements CheckInUseCase {
 
         Instant now = Instant.now();
         for (CreateParticipantCommand dto : createDtos) {
-            // Participant email is optional; fall back to booker email if not provided
             String participantEmail = dto.email();
             if (participantEmail != null) {
                 participantEmail = participantEmail.trim();
@@ -269,12 +274,14 @@ public class CheckInService implements CheckInUseCase {
     }
 
     @Override
+    @Transactional
     public void deleteBooking(Long bookingId) {
         ActiveBooking booking = activeBookings.findById(bookingId)
                 .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
 
         Event event = events.findById(booking.getEventId())
                 .orElseThrow(() -> NotFoundException.forEntity("Event", booking.getEventId()));
+
         participants.deleteByBookingId(bookingId);
         checkedInParticipants.deleteByBookingId(bookingId);
         activeBookings.delete(booking);
@@ -283,5 +290,23 @@ public class CheckInService implements CheckInUseCase {
         event.setAvailableSlots(event.getMaxParticipants() - alreadyBooked);
         events.save(event);
     }
-}
 
+    @Override
+    @Transactional
+    public void checkoutBooking(Long bookingId) {
+        activeBookings.findById(bookingId)
+                .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
+
+
+        List<Participant> bookingParticipants = participants.findByBookingId(bookingId);
+        for (Participant p : bookingParticipants) {
+            if (p.isCheckedIn()) {
+                p.markCheckedOut();
+                participants.save(p);
+            }
+        }
+
+        // 2. Clear from checked-in list (the transaction is needed for this delete)
+        checkedInParticipants.deleteByBookingId(bookingId);
+    }
+}
