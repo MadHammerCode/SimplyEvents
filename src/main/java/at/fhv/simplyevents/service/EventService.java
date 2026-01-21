@@ -129,7 +129,8 @@ public class EventService implements EventUseCase {
                 bookingStartDate,
                 bookingEndDate,
                 resolveImagePath(image, cmd.imagePath(), DEFAULT_IMAGE_PATH),
-                publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED
+                publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED,
+                false
         );
 
         Event saved = eventRepository.save(event);
@@ -242,7 +243,8 @@ public class EventService implements EventUseCase {
                 bookingStartDate,
                 bookingEndDate,
                 finalImagePath,
-                event.getStatus()
+                event.getStatus(),
+                event.isCancelled()
         );
 
         Event saved = eventRepository.save(event);
@@ -302,6 +304,7 @@ public class EventService implements EventUseCase {
         List<EventStatus> visibleStatuses = List.of(EventStatus.PUBLISHED, EventStatus.ACTIVE, EventStatus.FULL);
         return eventRepository.findByStatusIn(visibleStatuses)
                 .stream()
+                .filter(event -> !event.isCancelled())
                 .map(this::toResult)
                 .toList();
     }
@@ -333,6 +336,15 @@ public class EventService implements EventUseCase {
         }
 
         eventRepository.deleteById(id);
+    }
+
+    @Override
+    public EventResult toggleEventCanceled(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> NotFoundException.forEntity("Event", id));
+        event.toggleCancelled();
+        Event saved = eventRepository.save(event);
+        return toResult(saved);
     }
 
 
@@ -387,7 +399,8 @@ public class EventService implements EventUseCase {
                 bookingStart,
                 bookingEnd,
                 event.isYearRound(),
-                event.getStatus() == null ? EventStatus.PLANNED.name() : event.getStatus().name()
+                event.getStatus() == null ? EventStatus.PLANNED.name() : event.getStatus().name(),
+                event.isCancelled()
         );
     }
 

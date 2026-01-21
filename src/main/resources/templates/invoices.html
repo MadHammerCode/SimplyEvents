@@ -4,26 +4,38 @@
     <meta charset="UTF-8">
     <title>SimplyEvents – Invoices</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/navbar.css">
     <link rel="stylesheet" href="/css/invoices.css">
 </head>
 <body>
 <div class="page">
-    <!-- Header -->
-    <header class="inv-header">
-        <div class="container inv-header__inner">
-            <div>
-                <h1 class="inv-title">Invoices</h1>
-                <p class="inv-subtitle">
-                    View and manage all invoices.
-                </p>
+    <!-- Navigation / Top bar im Navbar-Style -->
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-brand-block">
+                <a href="/dashboard" class="nav-logo">
+                    <img src="/images/simplyevents-logo.png" alt="SimplyEvents Logo" class="nav-logo-img">
+                    <span class="nav-logo-text">Invoices</span>
+                </a>
+                <p class="nav-subtitle">View and manage all invoices.</p>
             </div>
-            <nav class="inv-nav">
-                <button type="button" id="goToDashboard" class="btn btn-outline">Dashboard</button>
-                <button type="button" id="goToFrontoffice" class="btn btn-outline">Frontoffice</button>
-                <button type="button" id="logoutBtn" class="btn btn-danger">Logout</button>
-            </nav>
+
+            <div class="nav-links">
+                <div class="nav-user-dropdown" id="invoicesActions">
+                    <button class="nav-user-btn" id="actionsToggle" type="button" aria-haspopup="true" aria-expanded="false">
+                        Actions
+                        <span class="nav-user-caret">▾</span>
+                    </button>
+                    <div class="nav-user-menu hidden" id="actionsMenu" role="menu">
+                        <button class="nav-user-item" id="goToDashboard" type="button" role="menuitem">Dashboard</button>
+                        <button class="nav-user-item" id="goToFrontoffice" type="button" role="menuitem">Frontoffice</button>
+                        <div class="nav-user-sep"></div>
+                        <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </header>
+    </nav>
 
     <main class="inv-main">
         <div class="container inv-main__inner">

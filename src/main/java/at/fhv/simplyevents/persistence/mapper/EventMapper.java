@@ -29,7 +29,8 @@ public class EventMapper {
                 entity.getBookingStart(),
                 entity.getBookingEnd(),
                 entity.getImagePath(),
-                entity.getStatus()
+                entity.getStatus(),
+                entity.getCancelled()
         );
         event.loadIdentifiers(entity.getEventId(), entity.getVendorProfileId(), entity.getBookingId());
         return event;
@@ -59,6 +60,7 @@ public class EventMapper {
         entity.setBookingEnd(domain.getBookingEnd());
         entity.setVendorProfileId(domain.getVendorProfileId());
         entity.setBookingId(domain.getBookingId());
+        entity.setCancelled(domain.isCancelled());
         return entity;
     }
 }

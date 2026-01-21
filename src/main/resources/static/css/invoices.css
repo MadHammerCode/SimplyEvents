@@ -8,6 +8,8 @@
     --color-border: #e5e7eb;
     --color-text: #111827;
     --color-muted: #6b7280;
+    --color-muted-light: #cbd5e1;
+    --color-text-light: #f1f5f9;
     --radius-md: 12px;
     --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
@@ -34,37 +36,17 @@ html, body {
     padding: 0 1.5rem;
 }
 
-/* HEADER */
-.inv-header {
-    background-color: #ffffff;
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
-}
-
-.inv-header__inner {
+/* NAVBAR INTEGRATION */
+.nav-brand-block {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 0;
-    gap: 2rem;
+    flex-direction: column;
+    gap: 0.15rem;
 }
 
-.inv-title {
+.nav-subtitle {
     margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--color-text);
-}
-
-.inv-subtitle {
-    margin: 0.5rem 0 0 0;
-    font-size: 14px;
-    color: var(--color-muted);
-}
-
-.inv-nav {
-    display: flex;
-    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--color-muted-light);
 }
 
 /* MAIN */

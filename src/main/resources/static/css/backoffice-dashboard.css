@@ -11,12 +11,16 @@
     --color-text: #111827;
     --color-muted: #6b7280;
 
+    --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.08);
+    --shadow-strong: 0 24px 55px rgba(15, 23, 42, 0.18);
+    --color-bg-dark: #0f172a;
+    --color-bg-light: #1e293b;
+    --color-text-light: #f1f5f9;
+    --color-border-dark: #334155;
+    --color-muted-light: #cbd5e1;
     --radius-md: 12px;
     --radius-lg: 18px;
     --radius-pill: 999px;
-
-    --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.08);
-    --shadow-strong: 0 24px 55px rgba(15, 23, 42, 0.18);
 }
 
 *,
@@ -587,8 +591,85 @@ body {
     color: var(--color-muted);
 }
 
+/* EVENT ROW STATES */
+
+.event-row--cancelled {
+    opacity: 0.65;
+    background-color: #f3f4f6;
+}
+
+.event-row--cancelled td {
+    color: var(--color-muted);
+}
+
+/* BADGES */
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.badge--cancelled {
+    background-color: #fecaca;
+    color: #991b1b;
+}
+
+/* NAVIGATION - BACKOFFICE */
+
+.nav--backoffice {
+    background: var(--color-bg-dark);
+    border-bottom: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-brand-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.nav-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-muted-light);
+}
+
+.nav-user-menu {
+    min-width: 210px;
+}
+
+.nav--backoffice .nav-user-btn {
+    font-size: 1rem;
+}
+
 /* UTILS */
 
 .hidden {
     display: none !important;
+}
+
+/* FORM ROUNDINGS */
+
+.admin-main input[type="text"],
+.admin-main select,
+.admin-main .btn,
+.admin-filters select {
+    border-radius: var(--radius-pill);
+}
+
+.admin-section,
+.chart-card,
+.stat-card,
+.side-section .card,
+.table-wrapper,
+.admin-filters,
+.admin-filters__inner {
+    border-radius: var(--radius-lg);
 }

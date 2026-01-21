@@ -19,6 +19,7 @@ public interface EventUseCase {
     EventResult updateEvent(Long id, CreateEventCommand command);
     EventResult updateEventWithImage(Long id, CreateEventCommand command, ImageUpload image);
     void deleteEvent(Long id);
+    EventResult toggleEventCanceled(Long id);
 
     record CreateEventCommand(
             String title,
@@ -65,7 +66,8 @@ public interface EventUseCase {
             String bookingStart,
             String bookingEnd,
             Boolean yearRound,
-            String status
+            String status,
+            Boolean cancelled
     ) {}
 
     record ImageUpload(String filename, byte[] content) {}
