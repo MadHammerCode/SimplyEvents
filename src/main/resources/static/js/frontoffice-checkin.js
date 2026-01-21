@@ -190,6 +190,9 @@ function renderTable() {
         const statusClass = openSeats <= 0 ? "status-pill--checked" : "status-pill--open";
         const btnLabel = openSeats <= 0 ? "View" : "Check-in";
 
+        // LOGIC: Show Check-Out button if at least 1 person is checked in
+        const canCheckOut = checked > 0;
+
         return `
       <tr data-id="${b.bookingId}">
         <td>${escapeHtml(b.bookingNumber || "–")}</td>
@@ -206,12 +209,23 @@ function renderTable() {
                     data-checkin-booking="${b.bookingId}">
               ${btnLabel}
             </button>
+            
+            ${canCheckOut ? `
+            <button type="button" 
+                    class="btn-small btn-small--warning"
+                    title="Check out all participants"
+                    style="background-color: #f59e0b; color: white; border: none;"
+                    data-checkout-booking="${b.bookingId}">
+              Check-out
+            </button>` : ''}
+            
             <button type="button"
                     class="btn-small btn-small--invoice"
                     data-invoice-booking="${b.bookingId}"
                     title="Create invoice for this booking">
               💰 Invoice
             </button>
+
             <button type="button"
                     class="btn-small btn-small--delete"
                     data-delete-booking="${b.bookingId}">
@@ -550,6 +564,58 @@ function setupRowActions() {
             } else {
                 alert("Invoice modal not initialized");
             }
+        });
+    });
+
+    document.querySelectorAll("[data-checkout-booking]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const bookingId = btn.getAttribute("data-checkout-booking");
+            if (!bookingId) return;
+
+            const booking = allBookings.find((b) => String(b.bookingId) === String(bookingId));
+            if (!booking) return;
+
+            // 1. Confirm Action
+            if (!confirm(`Check out ${booking.bookerFirstName} ${booking.bookerLastName} and generate invoice?`)) return;
+
+            // 2. Perform Checkout (API Call)
+            fetch(`/api/checkin/bookings/${encodeURIComponent(bookingId)}/checkout`, {
+                method: "POST"
+            })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Check-out failed");
+
+                    // 3. Prepare Data for Invoice Modal
+                    const bookingData = {
+                        first_name: booking.bookerFirstName || "",
+                        last_name: booking.bookerLastName || "",
+                        email: booking.bookerEmail || "",
+                        seats: booking.numParticipants || 1,
+                        booking_number: booking.bookingNumber || ""
+                    };
+
+                    const eventData = {
+                        id: currentEventData.id,
+                        title: currentEventData.title,
+                        price: currentEventData.price,
+                        organizer_id: currentEventData.organizerId || 1
+                    };
+
+                    // 4. Open the Invoice Creation Modal
+                    // (Defined in frontoffice-invoice.js)
+                    if (window.openInvoiceModal) {
+                        window.openInvoiceModal(bookingData, eventData);
+                    } else {
+                        alert("Invoice system not loaded.");
+                    }
+
+                    // 5. Refresh the list to update status (green -> grey)
+                    loadBookings(currentEventId);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert("Error during checkout: " + err.message);
+                });
         });
     });
 }
