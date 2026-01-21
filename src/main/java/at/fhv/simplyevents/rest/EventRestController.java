@@ -91,7 +91,12 @@ public class EventRestController {
     @GetMapping("/{id}")
     public ResponseEntity<EventResponse> getEventById(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(toResponse(eventUseCase.getEventById(id)));
+            var result = eventUseCase.getEventById(id);
+            // Blockiere Zugriff auf cancelled Events für öffentliche API
+            if (Boolean.TRUE.equals(result.cancelled())) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(toResponse(result));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
@@ -101,6 +106,15 @@ public class EventRestController {
     public ResponseEntity<EventResponse> publishEvent(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(toResponse(eventUseCase.publishEvent(id)));
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/toggle-cancel")
+    public ResponseEntity<EventResponse> toggleEventCanceled(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(toResponse(eventUseCase.toggleEventCanceled(id)));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
@@ -275,7 +289,8 @@ public class EventRestController {
                 r.bookingStart(),
                 r.bookingEnd(),
                 r.yearRound(),
-                r.status()
+                r.status(),
+                r.cancelled()
         );
     }
 }

@@ -98,7 +98,6 @@ function renderPopularEvents() {
     }
     empty.classList.add("hidden");
 
-    // Very simple "popularity": simply the first 6 events
     const eventsToShow = filtered.slice(0, 6);
 
     const cards = eventsToShow.map((ev) => {
@@ -111,14 +110,18 @@ function renderPopularEvents() {
         const priceText = formatPrice(ev.price);
         const category = escapeHtml(ev.category || "Event");
         const imagePath = ev.imagePath ? `/${ev.imagePath}` : "/images/default-event.jpg";
+        const isCancelled = ev.cancelled === true;
+
+        const cancelledBadge = isCancelled ? `<span class="badge badge--cancelled">Cancelled</span>` : "";
+        const cardClass = isCancelled ? "event-card--cancelled" : "";
 
         return `
-      <article class="event-card" data-event-id="${id}">
+      <article class="event-card ${cardClass}" data-event-id="${id}">
         <div class="event-card__image-wrap">
           <img src="${imagePath}" alt="${title}" class="event-card__image">
         </div>
         <div class="event-card__body">
-          <div class="event-card__category">${category}</div>
+          <div class="event-card__category">${category} ${cancelledBadge}</div>
           <h3 class="event-card__title">${title}</h3>
           <p class="event-card__location">${location}</p>
           <div class="event-card__meta">
@@ -133,7 +136,14 @@ function renderPopularEvents() {
     grid.innerHTML = cards.join("");
 
     grid.querySelectorAll(".event-card").forEach((card) => {
+        const eventId = card.getAttribute("data-event-id");
+        const event = eventsToShow.find(ev => String(ev.id) === String(eventId));
+        const isCancelled = event && event.cancelled === true;
+
         card.addEventListener("click", () => {
+            if (isCancelled) {
+                return;
+            }
             const id = card.getAttribute("data-event-id");
             if (id) {
                 window.location.href = `/event-details/${encodeURIComponent(id)}`;
@@ -158,19 +168,23 @@ function updateHighlightEvent() {
         return;
     }
 
-    // Einfach das erste Event als "Highlight"
     const ev = filtered[0];
     const date = ev.date || "";
     const time = ev.time || "";
     const dateTime = date ? (time ? `${date} · ${time}` : date) : "Date follows";
     const category = ev.category || "Event";
+    const isCancelled = ev.cancelled === true;
 
     titleEl.textContent = ev.title || "Event";
     metaEl.textContent = `${category} • ${dateTime}`;
     locEl.textContent = ev.location || "Location follows";
-    btn.disabled = false;
+
+    btn.disabled = isCancelled;
 
     btn.onclick = () => {
+        if (isCancelled) {
+            return;
+        }
         if (ev.id != null) {
             window.location.href = `/event-details/${encodeURIComponent(ev.id)}`;
         }

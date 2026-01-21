@@ -641,6 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkinModal.init();
     setupSeatControls();
     setupNewBookingForm();
+    setupInvoiceModalDropdown();
 });
 
 function loadBookingParticipants(bookingId) {
@@ -782,3 +783,41 @@ function toggleNewBookingForm(disabled) {
     if (!newBookingForm) return;
     [...newBookingForm.elements].forEach((el) => (el.disabled = disabled));
 }
+
+/* -------- Invoice Modal Dropdown ---------- */
+
+function setupInvoiceModalDropdown() {
+    const invoiceActionsToggle = document.getElementById("invoiceActionsToggle");
+    const invoiceActionsMenu = document.getElementById("invoiceActionsMenu");
+
+    if (!invoiceActionsToggle || !invoiceActionsMenu) return;
+
+    // Toggle menu on button click
+    invoiceActionsToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        invoiceActionsMenu.classList.toggle("hidden");
+        invoiceActionsToggle.setAttribute("aria-expanded",
+            invoiceActionsMenu.classList.contains("hidden") ? "false" : "true");
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!invoiceActionsToggle.contains(e.target) && !invoiceActionsMenu.contains(e.target)) {
+            invoiceActionsMenu.classList.add("hidden");
+            invoiceActionsToggle.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    // Handle action items
+    const printBtn = document.getElementById("invoicePrint");
+
+    if (printBtn) {
+        printBtn.addEventListener("click", () => {
+            window.print();
+            invoiceActionsMenu.classList.add("hidden");
+            invoiceActionsToggle.setAttribute("aria-expanded", "false");
+        });
+    }
+
+}
+

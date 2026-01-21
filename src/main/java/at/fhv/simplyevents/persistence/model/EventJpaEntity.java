@@ -37,6 +37,9 @@ public class EventJpaEntity {
     @Column(nullable = false)
     private EventStatus status;
 
+    @Column(name = "cancelled", nullable = false)
+    private Boolean cancelled = false;
+
     @Column(name = "year_round")
     private Boolean yearRound;
 
@@ -84,6 +87,8 @@ public class EventJpaEntity {
     public void setImagePath(String imagePath) { this.imagePath = imagePath; }
     public EventStatus getStatus() { return status; }
     public void setStatus(EventStatus status) { this.status = status; }
+    public Boolean getCancelled() { return cancelled; }
+    public void setCancelled(Boolean cancelled) { this.cancelled = cancelled == null ? false : cancelled; }
     public Boolean getYearRound() { return yearRound; }
     public void setYearRound(Boolean yearRound) { this.yearRound = yearRound; }
     public Date getBookingStart() { return bookingStart; }

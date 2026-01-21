@@ -13,6 +13,26 @@ document.addEventListener('DOMContentLoaded', function() {
 /* -------- Navigation -------- */
 
 function setupNavigation() {
+    // Setup navbar dropdown
+    const actionsToggle = document.getElementById('actionsToggle');
+    const actionsMenu = document.getElementById('actionsMenu');
+
+    if (actionsToggle && actionsMenu) {
+        actionsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            actionsMenu.classList.toggle('hidden');
+            actionsToggle.setAttribute('aria-expanded',
+                actionsMenu.classList.contains('hidden') ? 'false' : 'true');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!actionsToggle.contains(e.target) && !actionsMenu.contains(e.target)) {
+                actionsMenu.classList.add('hidden');
+                actionsToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
     const goToDashboard = document.getElementById('goToDashboard');
     const goToFrontoffice = document.getElementById('goToFrontoffice');
     const logoutBtn = document.getElementById('logoutBtn');

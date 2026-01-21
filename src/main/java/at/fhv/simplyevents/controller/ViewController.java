@@ -46,6 +46,11 @@ public class ViewController {
     @GetMapping("/event-details/{id}")
     public String showEventDetails(@PathVariable Long id, Model model) {
         var eventResponse = eventUseCase.getEventById(id);
+
+        if (Boolean.TRUE.equals(eventResponse.cancelled())) {
+            return "redirect:/events";
+        }
+
         model.addAttribute("event", eventResponse);
         return "event-details";
     }

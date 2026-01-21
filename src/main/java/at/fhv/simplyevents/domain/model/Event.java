@@ -29,9 +29,11 @@ public class Event {
     private Long vendorProfileId;
     private String imagePath;
     private EventStatus status;
+    private Boolean cancelled;
 
     protected Event() {
         this.status = EventStatus.PLANNED;
+        this.cancelled = false;
     }
 
     public static Event createDraft() {
@@ -62,7 +64,8 @@ public class Event {
             Date bookingStart,
             Date bookingEnd,
             String imagePath,
-            EventStatus status
+            EventStatus status,
+            Boolean cancelled
     ) {
         validate(title, price, minParticipants, maxParticipants, availableSlots, bookingStart, bookingEnd);
         this.title = title.trim();
@@ -83,6 +86,7 @@ public class Event {
         this.bookingEnd = copy(bookingEnd);
         this.imagePath = imagePath;
         this.status = status == null ? EventStatus.PLANNED : status;
+        this.cancelled = cancelled == null ? false : cancelled;
     }
 
     private void validate(String title, Double price, Integer minParticipants, Integer maxParticipants, Integer availableSlots, Date bookingStart, Date bookingEnd) {
@@ -141,6 +145,10 @@ public class Event {
         this.status = status;
     }
 
+    public void toggleCancelled() {
+        this.cancelled = !Boolean.TRUE.equals(this.cancelled);
+    }
+
     private Date copy(Date source) {
         return source == null ? null : new Date(source.getTime());
     }
@@ -166,6 +174,7 @@ public class Event {
     public Long getVendorProfileId() { return vendorProfileId; }
     public String getImagePath() { return imagePath; }
     public EventStatus getStatus() { return status; }
+    public boolean isCancelled() { return Boolean.TRUE.equals(cancelled); }
 
     @Override
     public boolean equals(Object o) {
