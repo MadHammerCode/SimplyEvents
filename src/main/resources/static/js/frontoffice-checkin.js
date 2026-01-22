@@ -586,6 +586,7 @@ function updateEventMetaFromSelect() {
 function setupNavigation() {
     const goToDashboard = document.getElementById("goToDashboard");
     const goToBackoffice = document.getElementById("goToBackoffice");
+    const goToAdminDashboard = document.getElementById("goToAdminDashboard");
     const logoutBtn = document.getElementById("logoutBtn");
 
     if (goToDashboard) {
@@ -600,21 +601,76 @@ function setupNavigation() {
         });
     }
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            try {
-                localStorage.removeItem("simplyevents_currentUser");
-            } catch (_) {}
-            window.location.href = "/login";
+    if (goToAdminDashboard) {
+        goToAdminDashboard.addEventListener("click", () => {
+            window.location.href = "/admin-dashboard";
         });
     }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            handleLogout();
+        });
+    }
+
+    // Filter navigation menu items based on user role
+    filterNavigationMenuItems();
+}
+
+
+function filterNavigationMenuItems() {
+    getCurrentUserRole().then((userRole) => {
+        if (!userRole) {
+            window.location.href = "/login";
+            return;
+        }
+
+        const isAdmin = userRole === "ADMIN";
+        const isFrontoffice = userRole === "FRONTOFFICE";
+        const isBackoffice = userRole === "BACKOFFICE";
+
+        const showIf = (id, condition) => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (condition) {
+                    el.classList.remove("hidden");
+                } else {
+                    el.classList.add("hidden");
+                }
+            }
+        };
+
+
+
+        showIf("goToDashboard", true); // All can go to main dashboard
+        showIf("goToBackoffice", isAdmin || isBackoffice);
+        showIf("goToAdminDashboard", isAdmin);
+    }).catch((err) => {
+        console.error("Error filtering navigation:", err);
+        window.location.href = "/login";
+    });
 }
 
 /* -------- Init ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
-    setupNavigation();
-    loadEventsForSelect();
+    // Load role-utils script if not already loaded
+    if (!window.getCurrentUserRole) {
+        const script = document.createElement('script');
+        script.src = '/js/role-utils.js';
+        script.onload = () => {
+            setupNavigation();
+            loadEventsForSelect();
+        };
+        script.onerror = () => {
+            console.error('Failed to load role-utils.js');
+            window.location.href = '/login';
+        };
+        document.head.appendChild(script);
+    } else {
+        setupNavigation();
+        loadEventsForSelect();
+    }
 
     const eventSelect = document.getElementById("eventSelect");
     const filterOnlyOpen = document.getElementById("filterOnlyOpen");

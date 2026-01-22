@@ -4,20 +4,61 @@
     <meta charset="UTF-8">
     <title>SimplyEvents – My profile</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <link rel="stylesheet" href="/css/navbar.css">
     <link rel="stylesheet" href="/css/user-profile.css">
 </head>
 <body>
 <div class="page">
-    <!-- HEADER -->
+    <!-- Navbar -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/dashboard" class="nav-logo">
+                <img src="/images/simplyevents-logo.png" alt="SimplyEvents Logo" class="nav-logo-img">
+                <span class="nav-logo-text">SimplyEvents</span>
+            </a>
+
+            <div class="nav-links" id="navLinks">
+                <!-- Guest -->
+                <a href="/login" class="nav-link nav-guest-only">Login</a>
+
+                <!-- Logged-in: user dropdown -->
+                <div class="nav-user-dropdown nav-auth-only hidden" id="userMenuWrapper">
+                    <button class="nav-link nav-user-btn" id="navUserBtn" type="button" aria-haspopup="true" aria-expanded="false">
+                        <span id="navUserName"></span>
+                        <span class="nav-user-caret">▾</span>
+                    </button>
+
+                    <div class="nav-user-menu hidden" id="userMenu" role="menu">
+                        <!-- CUSTOMER -->
+                        <a class="nav-user-item hidden nav-menu-customer" href="/dashboard" role="menuitem">Dashboard</a>
+                        <a class="nav-user-item hidden nav-menu-customer" href="/user-profile" role="menuitem">Profile</a>
+                        <a class="nav-user-item hidden nav-menu-customer" href="/my-bookings" role="menuitem">My Bookings</a>
+
+                        <!-- BACKOFFICE -->
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/dashboard" role="menuitem">Dashboard</a>
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/backoffice-dashboard" role="menuitem">Backoffice</a>
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/frontoffice-checkin" role="menuitem">Check in</a>
+
+                        <!-- FRONTOFFICE -->
+                        <a class="nav-user-item hidden nav-menu-frontoffice" href="/dashboard" role="menuitem">Dashboard</a>
+                        <a class="nav-user-item hidden nav-menu-frontoffice" href="/frontoffice-checkin" role="menuitem">Check in</a>
+
+                        <div class="nav-user-sep"></div>
+
+                        <!-- Logout -->
+                        <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="navToggle" class="nav-toggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- Header with Title -->
     <header class="up-header">
         <div class="container up-header__inner">
             <h1 class="up-title">My profile</h1>
-            <nav class="up-nav">
-                <button type="button" id="btnToDashboard" class="btn btn-outline">Dashboard</button>
-                <button type="button" id="btnToBookings" class="btn btn-outline">My bookings</button>
-                <button type="button" id="btnLogout" class="btn btn-danger">Logout</button>
-            </nav>
         </div>
     </header>
 
@@ -109,6 +150,7 @@
 </div>
 
 
+<script src="/js/navbar.js" defer></script>
 <script src="/js/user-profile.js" defer></script>
 </body>
 </html>

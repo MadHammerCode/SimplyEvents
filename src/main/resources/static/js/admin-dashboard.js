@@ -1,6 +1,106 @@
 document.addEventListener("DOMContentLoaded", function() {
-    loadUsers();
+    // Load role-utils script if not already loaded
+    if (!window.getCurrentUserRole) {
+        const script = document.createElement('script');
+        script.src = '/js/role-utils.js';
+        script.onload = () => {
+            setupAdminActions();
+            loadUsers();
+            loadStats();
+        };
+        script.onerror = () => {
+            console.error('Failed to load role-utils.js');
+            window.location.href = '/login';
+        };
+        document.head.appendChild(script);
+    } else {
+        setupAdminActions();
+        loadUsers();
+        loadStats();
+    }
 });
+
+function setupAdminActions() {
+    const actionsToggle = document.getElementById("actionsToggle");
+    const actionsMenu = document.getElementById("actionsMenu");
+    const goToDashboard = document.getElementById("goToDashboard");
+    const goToBackoffice = document.getElementById("goToBackoffice");
+    const goToFrontoffice = document.getElementById("goToFrontoffice");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    // Toggle menu
+    if (actionsToggle) {
+        actionsToggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = !actionsMenu.classList.contains("hidden");
+            if (isOpen) {
+                actionsMenu.classList.add("hidden");
+                actionsToggle.setAttribute("aria-expanded", "false");
+            } else {
+                actionsMenu.classList.remove("hidden");
+                actionsToggle.setAttribute("aria-expanded", "true");
+            }
+        });
+    }
+
+    // Close on outside click
+    document.addEventListener("click", (e) => {
+        if (actionsMenu && !actionsMenu.classList.contains("hidden")) {
+            const isInside = actionsToggle?.contains(e.target) || actionsMenu?.contains(e.target);
+            if (!isInside) {
+                actionsMenu.classList.add("hidden");
+                if (actionsToggle) actionsToggle.setAttribute("aria-expanded", "false");
+            }
+        }
+    });
+
+    // Navigate
+    if (goToDashboard) {
+        goToDashboard.addEventListener("click", () => {
+            window.location.href = "/dashboard";
+        });
+    }
+
+    if (goToBackoffice) {
+        goToBackoffice.addEventListener("click", () => {
+            window.location.href = "/backoffice-dashboard";
+        });
+    }
+
+    if (goToFrontoffice) {
+        goToFrontoffice.addEventListener("click", () => {
+            window.location.href = "/frontoffice-checkin";
+        });
+    }
+    // Logout
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            handleLogout();
+        });
+    }
+}
+
+function loadStats() {
+    fetch("/api/admin/stats")
+        .then(res => {
+            if (!res.ok) throw new Error("Could not load stats.");
+            return res.json();
+        })
+        .then(stats => {
+            renderStats(stats);
+        })
+        .catch(err => {
+            console.error("Stats error:", err.message);
+        });
+}
+
+function renderStats(stats) {
+    document.getElementById("statTotalUsers").textContent = stats.totalUsers || "0";
+    document.getElementById("statCustomers").textContent = stats.customers || "0";
+    document.getElementById("statVendors").textContent = stats.vendors || "0";
+    document.getElementById("statAdmins").textContent = stats.admins || "0";
+}
 
 function loadUsers() {
     const tbody = document.getElementById("userTableBody");
@@ -32,10 +132,10 @@ function renderTable(users) {
     users.forEach(user => {
         const tr = document.createElement("tr");
 
-        let badgeClass = "role-badge--user";
-        if (user.role === "ADMIN") badgeClass = "role-badge--admin";
-        if (user.role === "BACKOFFICE") badgeClass = "role-badge--backoffice";
-        if (user.role === "FRONTOFFICE") badgeClass = "role-badge--frontoffice";
+        let badgeClass = "badge";
+        if (user.role === "ADMIN") badgeClass = "badge badge--admin";
+        if (user.role === "BACKOFFICE") badgeClass = "badge badge--backoffice";
+        if (user.role === "FRONTOFFICE") badgeClass = "badge badge--frontoffice";
 
         const isDisabled = user.isCurrentUser ? "disabled" : "";
 
@@ -43,9 +143,9 @@ function renderTable(users) {
             <td>#${user.id}</td>
             <td>${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)}</td>
             <td>${escapeHtml(user.email)}</td>
-            <td><span class="role-badge ${badgeClass}">${user.role}</span></td>
+            <td><span class="${badgeClass}">${user.role}</span></td>
             <td>
-                <select id="role-select-${user.id}" class="role-select" ${isDisabled}>
+                <select id="role-select-${user.id}" class="filter-group-select" ${isDisabled}>
                     <option value="CUSTOMER" ${user.role === 'CUSTOMER' ? 'selected' : ''}>Customer</option>
                     <option value="FRONTOFFICE" ${user.role === 'FRONTOFFICE' ? 'selected' : ''}>Frontoffice</option>
                     <option value="BACKOFFICE" ${user.role === 'BACKOFFICE' ? 'selected' : ''}>Backoffice</option>
@@ -55,7 +155,7 @@ function renderTable(users) {
             <td>
                 ${user.isCurrentUser
             ? '<span style="color:#999; font-size:0.85rem; font-style:italic;">(You)</span>'
-            : `<button class="action-btn" onclick="promoteUser(${user.id})">Save</button>`
+            : `<button class="action-btn action-btn--edit" onclick="promoteUser(${user.id})">Save</button>`
         }
             </td>
         `;
@@ -66,7 +166,6 @@ function renderTable(users) {
 function promoteUser(userId) {
     const select = document.getElementById(`role-select-${userId}`);
     const newRole = select.value;
-    const statusBox = document.getElementById("statusBox");
 
     select.disabled = true;
 

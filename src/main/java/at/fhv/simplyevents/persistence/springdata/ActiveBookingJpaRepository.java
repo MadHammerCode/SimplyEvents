@@ -23,8 +23,9 @@ public interface ActiveBookingJpaRepository extends JpaRepository<ActiveBookingJ
     List<ActiveBookingJpaEntity> findByEventId(Long eventId);
 
     @Query("SELECT COALESCE(SUM(b.numParticipants), 0) FROM ActiveBookingJpaEntity b " +
-            "WHERE b.eventId = :eventId " +
-            "AND b.attendanceDate = :date")
+            "WHERE b.eventId = :eventId")
     int sumParticipantsByEventIdAndDate(@Param("eventId") Long eventId, @Param("date") LocalDate date);
+
+    List<ActiveBookingJpaEntity> findByEmail(String email);
 
 }

@@ -345,7 +345,8 @@ function submitBooking() {
         lastName,
         email,
         phone,
-        numParticipants
+        numParticipants,
+        attendanceDate
     };
 
     return fetch("/api/bookings", {

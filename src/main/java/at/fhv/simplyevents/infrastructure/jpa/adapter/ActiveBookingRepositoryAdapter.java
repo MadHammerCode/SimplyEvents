@@ -60,4 +60,9 @@ public class ActiveBookingRepositoryAdapter implements ActiveBookingRepositoryPo
     public int sumParticipantsByEventIdAndDate(Long eventId, LocalDate date) {
         return delegate.sumParticipantsByEventIdAndDate(eventId, date);
     }
+
+    @Override
+    public List<ActiveBooking> findByEmail(String email) {
+        return delegate.findByEmail(email).stream().map(ActiveBookingMapper::toDomain).toList();
+    }
 }

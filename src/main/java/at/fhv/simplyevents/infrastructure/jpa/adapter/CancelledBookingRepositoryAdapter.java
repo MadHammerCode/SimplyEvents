@@ -6,6 +6,8 @@ import at.fhv.simplyevents.persistence.mapper.CancelledBookingMapper;
 import at.fhv.simplyevents.persistence.springdata.CancelledBookingJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class CancelledBookingRepositoryAdapter implements CancelledBookingRepositoryPort {
 
@@ -19,6 +21,11 @@ public class CancelledBookingRepositoryAdapter implements CancelledBookingReposi
     public CancelledBooking save(CancelledBooking cancelledBooking) {
         var saved = delegate.save(CancelledBookingMapper.toEntity(cancelledBooking));
         return CancelledBookingMapper.toDomain(saved);
+    }
+
+    @Override
+    public List<CancelledBooking> findByEmail(String email) {
+        return delegate.findByEmail(email).stream().map(CancelledBookingMapper::toDomain).toList();
     }
 }
 
