@@ -32,12 +32,19 @@ public class SecurityConfig {
                 ).permitAll()
 
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/events/backoffice**").hasAnyAuthority("BACKOFFICE", "ADMIN")
                 .requestMatchers("/api/events/**").permitAll()
 
                 .requestMatchers("/admin-dashboard").hasAuthority("ADMIN")
 
-                .requestMatchers("/backoffice-dashboard/**", "/event-editor/**")
+                .requestMatchers("/backoffice-dashboard/**", "/event-editor/**", "/create-event/**", "/edit-event/**")
                 .hasAnyAuthority("BACKOFFICE", "ADMIN")
+
+                .requestMatchers("/invoices/**")
+                .hasAnyAuthority("FRONTOFFICE", "BACKOFFICE", "ADMIN")
+
+                .requestMatchers("/frontoffice-checkin/**")
+                .hasAnyAuthority("FRONTOFFICE", "ADMIN")
 
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()

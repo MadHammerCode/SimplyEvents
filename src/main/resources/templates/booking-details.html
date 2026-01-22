@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SimplyEvents – Booking Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/booking.css">
+</head>
+<body>
+<div class="page">
+    <!-- Navbar -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/dashboard" class="nav-logo">
+                <img src="/images/simplyevents-logo.png" alt="SimplyEvents Logo" class="nav-logo-img">
+                <span class="nav-logo-text">SimplyEvents</span>
+            </a>
+
+            <div class="nav-links" id="navLinks">
+                <!-- Guest -->
+                <a href="/login" class="nav-link nav-guest-only">Login</a>
+
+                <!-- Logged-in: user dropdown -->
+                <div class="nav-user-dropdown nav-auth-only hidden" id="userMenuWrapper">
+                    <button class="nav-link nav-user-btn" id="navUserBtn" type="button" aria-haspopup="true" aria-expanded="false">
+                        <span id="navUserName"></span>
+                        <span class="nav-user-caret">▾</span>
+                    </button>
+
+                    <div class="nav-user-menu hidden" id="userMenu" role="menu">
+                        <!-- CUSTOMER -->
+                        <a class="nav-user-item hidden nav-menu-customer" href="/dashboard" role="menuitem">Dashboard</a>
+                        <a class="nav-user-item hidden nav-menu-customer" href="/user-profile" role="menuitem">Profile</a>
+                        <a class="nav-user-item hidden nav-menu-customer" href="/my-bookings" role="menuitem">My Bookings</a>
+
+                        <!-- BACKOFFICE -->
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/dashboard" role="menuitem">Dashboard</a>
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/backoffice-dashboard" role="menuitem">Backoffice</a>
+                        <a class="nav-user-item hidden nav-menu-backoffice" href="/frontoffice-checkin" role="menuitem">Check in</a>
+
+                        <!-- FRONTOFFICE -->
+                        <a class="nav-user-item hidden nav-menu-frontoffice" href="/dashboard" role="menuitem">Dashboard</a>
+                        <a class="nav-user-item hidden nav-menu-frontoffice" href="/frontoffice-checkin" role="menuitem">Check in</a>
+
+                        <div class="nav-user-sep"></div>
+
+                        <!-- Logout -->
+                        <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="navToggle" class="nav-toggle">☰</button>
+        </div>
+    </nav>
+
+    <main class="booking-main">
+        <div class="container">
+            <section class="card card--summary" style="max-width: 600px; margin: 40px auto;">
+                <h2 class="card__title">Your Booking Details</h2>
+
+                <div id="bookingDetailsContent" th:if="${booking}" class="confirmation-box">
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Booking number:</span>
+                        <span class="confirmation-value" th:text="${booking.bookingNumber}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Event:</span>
+                        <span class="confirmation-value" th:text="${booking.eventTitle}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Date:</span>
+                        <span class="confirmation-value" th:text="${booking.date}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Time:</span>
+                        <span class="confirmation-value" th:text="${booking.time}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Location:</span>
+                        <span class="confirmation-value" th:text="${booking.location}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Participants:</span>
+                        <span class="confirmation-value" th:text="${booking.numParticipants}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Total price:</span>
+                        <span class="confirmation-value" th:text="${#numbers.formatDecimal(booking.priceTotal, 1, 2)}">–</span>
+                        <span class="confirmation-value">€</span>
+                    </p>
+                </div>
+
+                <div id="noBooking" th:unless="${booking}" class="confirmation-box">
+                    <p>Booking information not available.</p>
+                </div>
+
+                <div class="confirmation-hints" style="margin-top: 30px;">
+                    <p>📋 Full details of your booking and event information.</p>
+                    <p>🔗 Visit the event details page for more information.</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                    <a th:href="@{'/event-details/' + ${booking.eventId}}" class="btn btn-secondary" th:if="${booking}">
+                        View Event Details
+                    </a>
+                    <a href="/my-bookings" class="btn btn-primary">Back to My Bookings</a>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script src="/js/navbar.js" defer></script>
+</body>
+</html>

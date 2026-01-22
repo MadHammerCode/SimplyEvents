@@ -53,8 +53,6 @@ public class ActiveBookingJpaEntity {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "attendance_date")
-    private LocalDate attendanceDate;
 
     // getters/setters
     public Long getId() { return id; }
@@ -85,6 +83,4 @@ public class ActiveBookingJpaEntity {
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDate getAttendanceDate() { return attendanceDate; }
-    public void setAttendanceDate(LocalDate attendanceDate) { this.attendanceDate = attendanceDate; }
 }

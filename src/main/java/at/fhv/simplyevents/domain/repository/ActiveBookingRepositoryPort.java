@@ -15,4 +15,5 @@ public interface ActiveBookingRepositoryPort {
     void delete(ActiveBooking booking);
     List<ActiveBooking> findByEventId(Long eventId);
     int sumParticipantsByEventIdAndDate(Long eventId, LocalDate date);
+    List<ActiveBooking> findByEmail(String email);
 }

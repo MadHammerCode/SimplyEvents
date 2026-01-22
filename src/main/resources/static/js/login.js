@@ -12,6 +12,38 @@ function escapeHtml(str) {
 
 function showError(messageOrList) {
     const box = document.getElementById("errorBox");
+    const successBox = document.getElementById("successBox");
+    if (!box) {
+        console.error("Error box not found in DOM");
+        return;
+    }
+
+    if (!messageOrList) {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+        return;
+    }
+
+    // Ensure box is visible
+    if (successBox) {
+        successBox.classList.add("hidden");
+    }
+    box.classList.remove("hidden");
+
+    // Set the error message
+    if (Array.isArray(messageOrList)) {
+        const items = messageOrList.map((m) => `<li>${escapeHtml(m)}</li>`).join("");
+        box.innerHTML = `<strong>Fehler:</strong><ul>${items}</ul>`;
+    } else {
+        box.innerHTML = `<strong>Fehler:</strong> ${escapeHtml(messageOrList)}`;
+    }
+
+    console.log("Error displayed:", messageOrList);
+}
+
+function showSuccess(messageOrList) {
+    const box = document.getElementById("successBox");
+    const errorBox = document.getElementById("errorBox");
     if (!box) return;
 
     if (!messageOrList) {
@@ -20,11 +52,12 @@ function showError(messageOrList) {
         return;
     }
 
+    if (errorBox) errorBox.classList.add("hidden");
     box.classList.remove("hidden");
 
     if (Array.isArray(messageOrList)) {
         const items = messageOrList.map((m) => `<li>${escapeHtml(m)}</li>`).join("");
-        box.innerHTML = `<strong>Please check:</strong><ul>${items}</ul>`;
+        box.innerHTML = `<strong>Success:</strong><ul>${items}</ul>`;
     } else {
         box.innerHTML = escapeHtml(messageOrList);
     }
@@ -43,6 +76,7 @@ function switchToLogin() {
     formLogin.classList.remove("hidden");
     formRegister.classList.add("hidden");
     showError(null);
+    showSuccess(null);
 }
 
 function switchToRegister() {
@@ -58,6 +92,7 @@ function switchToRegister() {
     formLogin.classList.add("hidden");
     formRegister.classList.remove("hidden");
     showError(null);
+    showSuccess(null);
 }
 
 /* ---------- Login ---------- */
@@ -65,27 +100,16 @@ function switchToRegister() {
 function validateLoginForm() {
     const emailEl = document.getElementById("loginEmail");
     const pwEl = document.getElementById("loginPassword");
-    const errors = [];
 
     const email = emailEl?.value.trim();
     const pw = pwEl?.value;
 
-    if (!email) {
-        errors.push("Email must not be empty.");
-    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-        errors.push("Please enter a valid email address.");
-    }
-
-    if (!pw) {
-        errors.push("Password must not be empty.");
-    }
-
-    if (errors.length) {
-        showError(errors);
+    // Silent validation - only check if fields are filled
+    // Error messages will come from the server
+    if (!email || !pw) {
         return null;
     }
 
-    showError(null);
     return { email, password: pw };
 }
 
@@ -99,20 +123,28 @@ function doLogin(payload) {
         body: JSON.stringify(payload)
     }).then(async (res) => {
         if (!res.ok) {
-            let body;
+            let errorMessage = "Login failed. Please check your entries.";
+
             try {
-                body = await res.json();
+                const body = await res.json();
+                if (typeof body === "string" && body.trim()) {
+                    errorMessage = body;
+                } else if (body && typeof body === "object") {
+                    errorMessage = JSON.stringify(body);
+                }
             } catch {
-                body = await res.text();
+                try {
+                    errorMessage = await res.text();
+                    if (!errorMessage.trim()) {
+                        errorMessage = "Login failed. Please check your entries.";
+                    }
+                } catch {
+                    // keep default error message
+                }
             }
 
-            if (Array.isArray(body)) {
-                showError(body);
-            } else if (typeof body === "string" && body.trim()) {
-                showError(body);
-            } else {
-                showError("Login failed. Please check your entries.");
-            }
+            console.error("Login error:", errorMessage);
+            showError(errorMessage);
             throw new Error("Login failed");
         }
 
@@ -249,13 +281,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const submitBtn = document.getElementById("loginSubmit");
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.textContent = "Will be registered…";
+                submitBtn.textContent = "Logging in…";
             }
 
             doLogin(payload)
                 .then(() => {
                     // After successful login: redirect to dashboard
                     window.location.href = "/dashboard";
+                })
+                .catch(() => {
+                    // Error is already displayed by doLogin()
+                    // This catch just prevents unhandled promise rejection
                 })
                 .finally(() => {
                     if (submitBtn) {
@@ -282,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(() => {
                     // After successful registration, switch directly to login
                     switchToLogin();
-                    showError("Your account has been created. You can register now.");
+                    showSuccess("Your account has been created. You can now log in.");
                 })
                 .finally(() => {
                     if (submitBtn) {

@@ -45,6 +45,10 @@ public class BookingDtos {
             String cancelReason
     ) {}
 
+    public record CancelBookingByIdRequest(
+            @NotBlank(message = "Cancel reason must not be blank")
+            String cancelReason
+    ) {}
 
     public record CancelledBookingResponse(
             String bookingNumber,
@@ -68,5 +72,25 @@ public class BookingDtos {
             String pendingId,
             @NotBlank(message = "Payment method must not be blank")
             String paymentMethod
+    ) {}
+
+    // DTO für die "My Bookings" Seite mit verschachteltem Event-Objekt
+    public record MyBookingResponse(
+            Long bookingId,
+            String bookingNumber,
+            Long eventId,
+            EventInfo event,
+            Integer numParticipants,
+            BigDecimal priceTotal,
+            String status,
+            String bookingDate
+    ) {}
+
+    public record EventInfo(
+            Long id,
+            String title,
+            String location,
+            String date,
+            String time
     ) {}
 }
