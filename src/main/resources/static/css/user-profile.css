@@ -91,16 +91,23 @@ body {
     width: 82px;
     height: 82px;
     border-radius: 50%;
-    background-color: #f3f4f6;
+    background-color: rgba(75, 126, 236, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .up-avatar {
     width: 70%;
     height: 70%;
     object-fit: contain;
+}
+
+.avatar-initials {
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: #2952cc;
 }
 
 .up-profile-name {
@@ -125,7 +132,7 @@ body {
 
 .up-form-grid {
     display: grid;
-    gap: 1rem;
+    gap: 1.5rem;
     margin-top: 0.2rem;
 }
 

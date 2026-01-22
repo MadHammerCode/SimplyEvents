@@ -40,7 +40,7 @@ function classifyStatus(booking) {
 /* -------- Daten laden -------- */
 
 function loadBookings() {
-    fetch("/api/my/bookings")
+    fetch("/api/bookings/my/bookings")
         .then((res) => {
             if (!res.ok) throw new Error("Bookings could not be loaded");
             return res.json();
@@ -176,7 +176,7 @@ function renderBookingCard(booking) {
       </div>
 
       <div class="mb-card__footer">
-        <button type="button" class="mb-btn-small mb-btn-primary" data-details="${booking.bookingId}">
+        <button type="button" class="mb-btn-small mb-btn-primary" data-event-id="${booking.event?.id}" data-booking-id="${booking.bookingId}">
           View details
         </button>
         ${
@@ -197,13 +197,11 @@ function renderBookingCard(booking) {
 /* -------- Actions on cards -------- */
 
 function setupCardActions() {
-    document.querySelectorAll("[data-details]").forEach((btn) => {
+    document.querySelectorAll("[data-event-id]").forEach((btn) => {
         btn.addEventListener("click", () => {
-            const id = btn.getAttribute("data-details");
-            if (!id) return;
-            // Here you can connect a detail page, e.g.:
-            // window.location.href = `/booking-details/${id}`;
-            window.location.href = `/booking-details/${encodeURIComponent(id)}`;
+            const eventId = btn.getAttribute("data-event-id");
+            if (!eventId) return;
+            window.location.href = `/event-details/${encodeURIComponent(eventId)}`;
         });
     });
 
@@ -220,10 +218,24 @@ function setupCardActions() {
         btn.addEventListener("click", () => {
             const id = btn.getAttribute("data-cancel");
             if (!id) return;
-            if (!confirm("Do you really want to cancel this booking?")) return;
+
+            // Show prompt for cancellation reason
+            const reason = prompt("Do you really want to cancel this booking?\n\nPlease enter the reason for cancellation:");
+
+            // If user clicked Cancel or left reason empty, don't proceed
+            if (reason === null || reason.trim() === "") {
+                if (reason !== null) {
+                    alert("Please enter a reason for cancellation.");
+                }
+                return;
+            }
 
             fetch(`/api/bookings/${encodeURIComponent(id)}/cancel`, {
-                method: "POST"
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ cancelReason: reason.trim() })
             })
                 .then((res) => {
                     if (!res.ok) throw new Error("Cancellation failed");
@@ -233,10 +245,11 @@ function setupCardActions() {
                         b.status = "CANCELLED";
                     }
                     applyFilters();
+                    alert("Booking cancelled successfully.");
                 })
                 .catch((err) => {
                     console.error(err);
-                    alert("The booking could not be cancelled.");
+                    alert("The booking could not be cancelled. Please try again.");
                 });
         });
     });

@@ -29,7 +29,8 @@
                     </button>
                     <div class="nav-user-menu hidden" id="actionsMenu" role="menu">
                         <button class="nav-user-item" id="goToDashboard" type="button" role="menuitem">Dashboard</button>
-                        <button class="nav-user-item" id="goToBackoffice" type="button" role="menuitem">Backoffice</button>
+                        <button class="nav-user-item" id="goToAdminDashboard" type="button" role="menuitem">Admin Dashboard</button>
+                        <button class="nav-user-item" id="goToBackoffice" type="button" role="menuitem">Backoffice Dashboard</button>
                         <div class="nav-user-sep"></div>
                         <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
                     </div>
@@ -223,6 +224,7 @@
 </div>
 
 <script src="/js/frontoffice-invoice.js"></script>
+<script src="/js/frontoffice-checkin.js" defer></script>
 <script>
     // Setup dropdown menu for check-in navbar
     document.addEventListener("DOMContentLoaded", () => {
@@ -265,4 +267,5 @@
         }
     });
 </script>
-<script src="/js/frontoffice-checkin.js" defer></script>
+</body>
+</html>

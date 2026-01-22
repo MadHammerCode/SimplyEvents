@@ -1,5 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
-    setupNavbarLogic();
+    // Load role-utils.js if not already loaded
+    if (!window.getCurrentUserRole) {
+        const script = document.createElement('script');
+        script.src = '/js/role-utils.js';
+        script.onload = () => {
+            setupNavbarLogic();
+        };
+        script.onerror = () => {
+            console.error('Failed to load role-utils.js');
+            setupNavbarLogic(); // Fallback to localStorage-based logic
+        };
+        document.head.appendChild(script);
+    } else {
+        setupNavbarLogic();
+    }
 });
 
 function setupNavbarLogic() {
@@ -15,27 +29,13 @@ function setupNavbarLogic() {
     const menuCustomerEls = document.querySelectorAll(".nav-menu-customer");
     const menuBackofficeEls = document.querySelectorAll(".nav-menu-backoffice");
     const menuFrontofficeEls = document.querySelectorAll(".nav-menu-frontoffice");
+    const menuAdminEls = document.querySelectorAll(".nav-menu-admin");
 
     // Mobile Menu Toggle
     if (navToggle && navLinks) {
         navToggle.addEventListener("click", () => {
             navLinks.classList.toggle("nav-open");
         });
-    }
-
-    // Read user from localStorage (you can link to backend later)
-    let user = null;
-    try {
-        const raw = localStorage.getItem("simplyevents_currentUser");
-        if (raw) {
-            user = JSON.parse(raw);
-            // If the backend/client stored JSON *as a string* (double-stringified), parse again
-            if (typeof user === "string") {
-                user = JSON.parse(user);
-            }
-        }
-    } catch (_) {
-        user = null;
     }
 
     const guestEls = document.querySelectorAll(".nav-guest-only");
@@ -53,25 +53,50 @@ function setupNavbarLogic() {
     menuCustomerEls.forEach(el => el.classList.add("hidden"));
     menuBackofficeEls.forEach(el => el.classList.add("hidden"));
     menuFrontofficeEls.forEach(el => el.classList.add("hidden"));
+    menuAdminEls.forEach(el => el.classList.add("hidden"));
 
     if (navUserName) {
         navUserName.textContent = "";
     }
 
-    // No user → only guest links
-    if (!user) {
-        guestEls.forEach(el => el.classList.remove("hidden"));
+    // Try to fetch user from API if role-utils is available
+    if (window.getCurrentUserRole) {
+        getCurrentUserRole().then((userRole) => {
+            if (!userRole) {
+                // Not authenticated - show guest links only
+                guestEls.forEach(el => el.classList.remove("hidden"));
+                return;
+            }
+
+            // Authenticated - fetch user profile
+            fetch('/api/users/me')
+                .then(res => res.ok ? res.json() : null)
+                .then(userProfile => {
+                    setupAuthenticatedNav(userProfile, userRole);
+                })
+                .catch(() => {
+                    // Fallback to just role if profile fetch fails
+                    setupAuthenticatedNav({ role: userRole }, userRole);
+                });
+        }).catch(() => {
+            // Fallback to localStorage
+            setupNavbarWithLocalStorage();
+        });
     } else {
-        // Logged In → Auth-Links
+        // Fallback to localStorage if role-utils not loaded
+        setupNavbarWithLocalStorage();
+    }
+
+    function setupAuthenticatedNav(userProfile, userRole) {
         authEls.forEach(el => el.classList.remove("hidden"));
 
         const niceName = (
-            [user.firstName || user.fname, user.lastName || user.lname]
+            [userProfile?.firstName || userProfile?.fname, userProfile?.lastName || userProfile?.lname]
                 .filter(Boolean)
                 .join(" ")
         ).trim();
 
-        const fallback = user.email || user.username || user.login || "";
+        const fallback = userProfile?.email || userProfile?.username || userProfile?.login || "";
         if (navUserName) {
             navUserName.textContent = niceName || fallback;
             navUserName.classList.toggle("hidden", !(niceName || fallback));
@@ -80,66 +105,140 @@ function setupNavbarLogic() {
         // Show the user dropdown wrapper
         if (userMenuWrapper) userMenuWrapper.classList.remove("hidden");
 
-        // Role-based dropdown items (robust: supports user.role and/or user.roles[])
-        const role = String(user.role || "").toUpperCase();
-        const roles = Array.isArray(user.roles)
-            ? user.roles.map(r => String(r).toUpperCase())
-            : [];
+        // Show role-based menu items
+        const role = String(userRole || "").toUpperCase();
 
-        const isCustomer = role === "CUSTOMER" || role === "USER" || roles.includes("ROLE_USER") || roles.includes("USER");
-        const isBackoffice = role === "BACKOFFICE" || role === "VENDOR" || roles.includes("ROLE_VENDOR") || roles.includes("VENDOR");
-        const isFrontoffice = role === "FRONTOFFICE" || roles.includes("ROLE_FRONTOFFICE") || roles.includes("FRONTOFFICE");
-
-        if (isCustomer) {
-            // Customer: Profile + My Bookings + Logout
+        if (role === "CUSTOMER") {
             menuCustomerEls.forEach(el => el.classList.remove("hidden"));
-        }
-
-        if (isBackoffice) {
-            // Backoffice: Backoffice + Check in + Logout
+        } else if (role === "BACKOFFICE") {
             menuBackofficeEls.forEach(el => el.classList.remove("hidden"));
-        }
-
-        if (isFrontoffice) {
-            // Frontoffice: Check in + Logout
+        } else if (role === "FRONTOFFICE") {
             menuFrontofficeEls.forEach(el => el.classList.remove("hidden"));
+        } else if (role === "ADMIN") {
+            menuAdminEls.forEach(el => el.classList.remove("hidden"));
         }
+
+        setupMenuHandlers();
     }
 
-    // Dropdown open/close
-    function closeUserMenu() {
-        if (userMenu) userMenu.classList.add("hidden");
-        if (navUserBtn) navUserBtn.setAttribute("aria-expanded", "false");
-    }
+    function setupNavbarWithLocalStorage() {
+        let user = null;
+        try {
+            const raw = localStorage.getItem("simplyevents_currentUser");
+            if (raw) {
+                user = JSON.parse(raw);
+                if (typeof user === "string") {
+                    user = JSON.parse(user);
+                }
+            }
+        } catch (_) {
+            user = null;
+        }
 
-    function toggleUserMenu() {
-        if (!userMenu) return;
-        const isOpen = !userMenu.classList.contains("hidden");
-        if (isOpen) {
-            closeUserMenu();
+        if (!user) {
+            guestEls.forEach(el => el.classList.remove("hidden"));
         } else {
-            userMenu.classList.remove("hidden");
-            if (navUserBtn) navUserBtn.setAttribute("aria-expanded", "true");
+            authEls.forEach(el => el.classList.remove("hidden"));
+
+            const niceName = (
+                [user.firstName || user.fname, user.lastName || user.lname]
+                    .filter(Boolean)
+                    .join(" ")
+            ).trim();
+
+            const fallback = user.email || user.username || user.login || "";
+            if (navUserName) {
+                navUserName.textContent = niceName || fallback;
+                navUserName.classList.toggle("hidden", !(niceName || fallback));
+            }
+
+            if (userMenuWrapper) userMenuWrapper.classList.remove("hidden");
+
+            const role = String(user.role || "").toUpperCase();
+            const roles = Array.isArray(user.roles)
+                ? user.roles.map(r => String(r).toUpperCase())
+                : [];
+
+            const isCustomer = role === "CUSTOMER" || role === "USER" || roles.includes("ROLE_USER") || roles.includes("USER");
+            const isBackoffice = role === "BACKOFFICE" || role === "VENDOR" || roles.includes("ROLE_VENDOR") || roles.includes("VENDOR");
+            const isFrontoffice = role === "FRONTOFFICE" || roles.includes("ROLE_FRONTOFFICE") || roles.includes("FRONTOFFICE");
+            const isAdmin = role === "ADMIN" || roles.includes("ROLE_ADMIN") || roles.includes("ADMIN");
+
+            if (isCustomer) menuCustomerEls.forEach(el => el.classList.remove("hidden"));
+            if (isBackoffice) menuBackofficeEls.forEach(el => el.classList.remove("hidden"));
+            if (isFrontoffice) menuFrontofficeEls.forEach(el => el.classList.remove("hidden"));
+            if (isAdmin) menuAdminEls.forEach(el => el.classList.remove("hidden"));
+
+            setupMenuHandlers();
         }
     }
 
-    if (navUserBtn) {
-        navUserBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleUserMenu();
+    function setupMenuHandlers() {
+        // Dropdown open/close
+        function closeUserMenu() {
+            if (userMenu) userMenu.classList.add("hidden");
+            if (navUserBtn) navUserBtn.setAttribute("aria-expanded", "false");
+        }
+
+        function toggleUserMenu() {
+            if (!userMenu) return;
+            const isOpen = !userMenu.classList.contains("hidden");
+            if (isOpen) {
+                closeUserMenu();
+            } else {
+                userMenu.classList.remove("hidden");
+                if (navUserBtn) navUserBtn.setAttribute("aria-expanded", "true");
+            }
+        }
+
+        if (navUserBtn) {
+            navUserBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleUserMenu();
+            });
+        }
+
+        // Close on outside click
+        document.addEventListener("click", (e) => {
+            if (!userMenu || userMenu.classList.contains("hidden")) return;
+            const target = e.target;
+            const clickedInside = (userMenuWrapper && userMenuWrapper.contains(target));
+            if (!clickedInside) closeUserMenu();
         });
+
+        // Close on ESC
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeUserMenu();
+        });
+
+        // When clicking a menu link, close dropdown
+        if (userMenu) {
+            userMenu.addEventListener("click", (e) => {
+                const a = e.target && e.target.closest ? e.target.closest("a") : null;
+                if (a) {
+                    closeUserMenu();
+                    if (navLinks) navLinks.classList.remove("nav-open");
+                }
+            });
+        }
+
+        // Logout
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+                if (window.handleLogout) {
+                    handleLogout();
+                } else {
+                    try {
+                        localStorage.removeItem("simplyevents_currentUser");
+                    } catch (_) {}
+                    if (navLinks) navLinks.classList.remove("nav-open");
+                    closeUserMenu();
+                    window.location.href = "/login";
+                }
+            });
+        }
     }
-
-    // Close on outside click
-    document.addEventListener("click", (e) => {
-        if (!userMenu || userMenu.classList.contains("hidden")) return;
-        const target = e.target;
-        const clickedInside = (userMenuWrapper && userMenuWrapper.contains(target));
-        if (!clickedInside) closeUserMenu();
-    });
-
-    // Close on ESC
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeUserMenu();
     });

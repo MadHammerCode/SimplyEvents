@@ -11,6 +11,7 @@ import at.fhv.simplyevents.rest.dto.EventDtos.EventResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,7 @@ public class EventRestController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public ResponseEntity<?> createEventJson(
             @Valid @RequestBody CreateEventRequest request,
             BindingResult bindingResult
@@ -53,6 +55,7 @@ public class EventRestController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public ResponseEntity<?> createEventMultipart(
             @Valid @RequestPart("event") CreateEventRequest request,
             BindingResult bindingResult,
@@ -81,6 +84,7 @@ public class EventRestController {
     }
 
     @GetMapping("/backoffice")
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public List<EventResponse> getBackofficeEvents(@RequestParam(required = false) EventStatus status) {
         if (status == null) {
             return eventUseCase.getAllEvents().stream().map(this::toResponse).toList();
@@ -103,6 +107,7 @@ public class EventRestController {
     }
 
     @PostMapping("/{id}/publish")
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public ResponseEntity<EventResponse> publishEvent(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(toResponse(eventUseCase.publishEvent(id)));
@@ -112,6 +117,7 @@ public class EventRestController {
     }
 
     @PostMapping("/{id}/toggle-cancel")
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public ResponseEntity<EventResponse> toggleEventCanceled(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(toResponse(eventUseCase.toggleEventCanceled(id)));
@@ -121,6 +127,7 @@ public class EventRestController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public ResponseEntity<?> updateEventJson(
             @PathVariable Long id,
             @Valid @RequestBody CreateEventRequest request,
@@ -146,6 +153,7 @@ public class EventRestController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public ResponseEntity<?> updateEventMultipart(
             @PathVariable Long id,
             @Valid @RequestPart("event") CreateEventRequest request,
@@ -172,6 +180,7 @@ public class EventRestController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         try {
             eventUseCase.deleteEvent(id);

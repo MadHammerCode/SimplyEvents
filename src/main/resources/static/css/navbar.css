@@ -152,6 +152,7 @@
     background: none;
     cursor: pointer;
     font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .nav-user-item:hover {

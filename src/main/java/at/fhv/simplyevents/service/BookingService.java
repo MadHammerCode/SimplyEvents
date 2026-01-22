@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class BookingService implements BookingUseCase {
@@ -109,6 +111,19 @@ public class BookingService implements BookingUseCase {
         return booking;
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<?> getBookingsByEmail(String email) {
+        List<ActiveBooking> activeBookings = activeBookingRepository.findByEmail(email);
+        List<CancelledBooking> cancelledBookings = cancelledBookingRepository.findByEmail(email);
+
+        List<Object> allBookings = new ArrayList<>();
+        allBookings.addAll(activeBookings);
+        allBookings.addAll(cancelledBookings);
+
+        return allBookings;
+    }
+
     @Transactional
     @Override
     public CancelledBooking cancelBooking(CancelBookingCommand command) {
@@ -175,7 +190,6 @@ public class BookingService implements BookingUseCase {
         booking.setStatus(Status.PENDING_PAYMENT.name());
         booking.setCreatedAt(LocalDateTime.now());
 
-        booking.setAttendanceDate(pending.attendanceDate());
 
         ActiveBooking savedBooking = activeBookingRepository.save(booking);
         pendingBookingCache.remove(command.pendingId());

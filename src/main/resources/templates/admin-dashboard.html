@@ -2,57 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SimplyEvents – User Management</title>
+    <title>SimplyEvents – Admin Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="/css/booking.css">
-
-    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/backoffice-dashboard.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
 </head>
 <body>
 <div class="page">
-    <header class="booking-header">
-        <div class="container booking-header__inner">
-            <a href="/dashboard" class="back-link">
-                ← Back to Dashboard
-            </a>
-            <div class="booking-steps">
-                <span class="step-indicator__label" style="font-weight: bold; color: #333;">Admin Area</span>
+    <!-- Header / Top bar im Navbar-Style -->
+    <nav class="nav nav--backoffice">
+        <div class="nav-container">
+            <div class="nav-brand-block">
+                <a href="/admin-dashboard" class="nav-logo">
+                    <img src="/images/simplyevents-logo.png" alt="SimplyEvents Logo" class="nav-logo-img">
+                    <span class="nav-logo-text">Admin</span>
+                </a>
+                <p class="nav-subtitle">Manage users, roles and system settings.</p>
+            </div>
+
+            <div class="nav-links">
+                <div class="nav-user-dropdown" id="adminActions">
+                    <button class="nav-user-btn" id="actionsToggle" type="button" aria-haspopup="true" aria-expanded="false">
+                        Actions
+                        <span class="nav-user-caret">▾</span>
+                    </button>
+                    <div class="nav-user-menu hidden" id="actionsMenu" role="menu">
+                        <button class="nav-user-item" id="goToDashboard" type="button" role="menuitem">Dashboard</button>
+                        <button class="nav-user-item" id="goToBackoffice" type="button" role="menuitem">Backoffice Dashboard</button>
+                        <button class="nav-user-item" id="goToFrontoffice" type="button" role="menuitem">Frontoffice Dashboard</button>
+                        <div class="nav-user-sep"></div>
+                        <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <main class="booking-main">
-        <div class="container">
+    <main class="admin-main">
+        <div class="container admin-main__inner">
 
-            <section class="card">
-                <div class="admin-header-row">
-                    <h1 class="card__title">User Management</h1>
-                    <button onclick="loadUsers()" class="btn btn-secondary">
-                        Refresh List
-                    </button>
-                </div>
 
-                <div id="statusBox" class="status-banner hidden"></div>
 
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Current Role</th>
-                            <th>Change Role</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
-                        <tbody id="userTableBody">
-                        <tr>
-                            <td colspan="6" style="text-align:center; padding: 2rem;">Loading users...</td>
-                        </tr>
-                        </tbody>
-                    </table>
+
+            <!-- User Management Section -->
+            <section class="bottom-grid">
+                <div class="admin-section">
+                    <div class="admin-section__header">
+                        <div>
+                            <h2 class="admin-section__title">User Management</h2>
+                            <p class="admin-section__subtitle">Manage user accounts and assign roles</p>
+                        </div>
+                        <div class="admin-section__actions">
+                            <button onclick="loadUsers()" class="btn btn-primary">
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="statusBox" class="status-banner hidden"></div>
+
+                    <div class="table-wrapper">
+                        <table class="events-table">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Current Role</th>
+                                <th>Change Role</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center; padding: 2rem;">Loading users...</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 

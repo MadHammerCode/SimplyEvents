@@ -622,50 +622,138 @@ function setupRowActions() {
 // ------- Navigation -------
 
 function setupNavigation() {
-    const goToCreateEvent = document.getElementById("goToCreateEvent");
-    const goToFrontoffice = document.getElementById("goToFrontoffice");
-    const goToDashboard = document.getElementById("goToDashboard");
-    const goToInvoices = document.getElementById("goToInvoices");
-    const logoutBtn = document.getElementById("logoutBtn");
+    // Setup actions menu toggle
+    const actionsToggle = document.getElementById("actionsToggle");
+    const actionsMenu = document.getElementById("actionsMenu");
 
-    if (goToCreateEvent) {
-        goToCreateEvent.addEventListener("click", () => {
-            window.location.href = "/create-event";
+    if (actionsToggle && actionsMenu) {
+        actionsToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            actionsMenu.classList.toggle("hidden");
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener("click", (e) => {
+            if (!actionsToggle.contains(e.target) && !actionsMenu.contains(e.target)) {
+                actionsMenu.classList.add("hidden");
+            }
         });
     }
 
-    if (goToInvoices) {
-        goToInvoices.addEventListener("click", () => {
-            window.location.href = "/invoices";
-        });
-    }
-
-    if (goToFrontoffice) {
-        goToFrontoffice.addEventListener("click", () => {
-            window.location.href = "/frontoffice-checkin";
-        });
-    }
-
-    if (goToDashboard) {
-        goToDashboard.addEventListener("click", () => {
-            window.location.href = "/dashboard";
-        });
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            try {
-                localStorage.removeItem("simplyevents_currentUser");
-            } catch (_) {}
+    // Get role and filter navigation
+    getCurrentUserRole().then((userRole) => {
+        if (!userRole) {
+            // Redirect to login if no role
             window.location.href = "/login";
-        });
-    }
+            return;
+        }
+
+        // Filter menu items based on role
+        filterNavigationMenuItems(userRole);
+
+        // Setup button listeners
+        const goToCreateEvent = document.getElementById("goToCreateEvent");
+        const goToFrontoffice = document.getElementById("goToFrontoffice");
+        const goToDashboard = document.getElementById("goToDashboard");
+        const goToAdminDashboard = document.getElementById("goToAdminDashboard");
+        const goToInvoices = document.getElementById("goToInvoices");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (goToCreateEvent) {
+            goToCreateEvent.addEventListener("click", () => {
+                window.location.href = "/create-event";
+            });
+        }
+
+        if (goToInvoices) {
+            goToInvoices.addEventListener("click", () => {
+                window.location.href = "/invoices";
+            });
+        }
+
+        if (goToFrontoffice) {
+            goToFrontoffice.addEventListener("click", () => {
+                window.location.href = "/frontoffice-checkin";
+            });
+        }
+
+        if (goToDashboard) {
+            goToDashboard.addEventListener("click", () => {
+                window.location.href = "/dashboard";
+            });
+        }
+
+        if (goToAdminDashboard) {
+            goToAdminDashboard.addEventListener("click", () => {
+                window.location.href = "/admin-dashboard";
+            });
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+                handleLogout();
+            });
+        }
+    }).catch((err) => {
+        console.error("Error setting up navigation:", err);
+        window.location.href = "/login";
+    });
+}
+
+/**
+ * Filter actions menu based on user role
+ * Shows/hides menu items according to permissions
+ */
+function filterNavigationMenuItems(userRole) {
+    const menu = document.getElementById("actionsMenu");
+    if (!menu) return;
+
+    // Helper: show/hide element
+    const showIf = (id, condition) => {
+        const el = document.getElementById(id);
+        if (el) {
+            if (condition) {
+                el.classList.remove("hidden");
+            } else {
+                el.classList.add("hidden");
+            }
+        }
+    };
+
+    const isAdmin = userRole === "ADMIN";
+    const isBackoffice = userRole === "BACKOFFICE";
+    const isFrontoffice = userRole === "FRONTOFFICE";
+
+    // ADMIN: all items visible
+    // BACKOFFICE: New event, Invoices, Dashboard (NOT Frontoffice, NOT Admin Dashboard)
+
+    showIf("goToCreateEvent", isAdmin || isBackoffice);
+    showIf("goToInvoices", isAdmin || isBackoffice);
+    showIf("goToDashboard", true); // All can go to main dashboard
+    showIf("goToAdminDashboard", isAdmin);
+    showIf("goToFrontoffice", isAdmin); // Only ADMIN can see Frontoffice
 }
 
 // ------- Init -------
 
 document.addEventListener("DOMContentLoaded", () => {
-    setupNavigation();
+    // Load role-utils script dynamically if not already loaded
+    if (!window.getCurrentUserRole) {
+        const script = document.createElement('script');
+        script.src = '/js/role-utils.js';
+        script.onload = () => {
+            setupNavigation();
+            loadEvents();
+        };
+        script.onerror = () => {
+            console.error('Failed to load role-utils.js');
+            window.location.href = '/login';
+        };
+        document.head.appendChild(script);
+    } else {
+        setupNavigation();
+        loadEvents();  // ✅ WICHTIG: loadEvents() aufrufen wenn role-utils bereits geladen ist
+    }
 
     const periodSel = document.getElementById("filterPeriod");
     const categorySel = document.getElementById("filterCategory");
@@ -676,6 +764,4 @@ document.addEventListener("DOMContentLoaded", () => {
     if (categorySel) categorySel.addEventListener("change", applyFilters);
     if (statusSel) statusSel.addEventListener("change", applyFilters);
     if (searchInput) searchInput.addEventListener("input", applyFilters);
-
-    loadEvents();
 });

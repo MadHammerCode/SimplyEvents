@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SimplyEvents – My bookings</title>
+    <title>SimplyEvents – Booking Ticket</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/navbar.css">
-    <link rel="stylesheet" href="/css/my-bookings.css">
+    <link rel="stylesheet" href="/css/booking.css">
 </head>
 <body>
 <div class="page">
@@ -55,67 +55,60 @@
         </div>
     </nav>
 
-    <!-- Header with Title -->
-    <header class="mb-header">
-        <div class="container mb-header__inner">
-            <div>
-                <h1 class="mb-title">My bookings</h1>
-                <p class="mb-subtitle">
-                    Keep track of your upcoming, past and cancelled bookings.
-                </p>
-            </div>
-        </div>
-    </header>
+    <main class="booking-main">
+        <div class="container">
+            <section class="card card--summary" style="max-width: 600px; margin: 40px auto;">
+                <h2 class="card__title">Booking Summary</h2>
 
-    <!-- Filter bar -->
-    <section class="mb-filterbar">
-        <div class="container mb-filterbar__inner">
-            <div class="mb-filter-tabs">
-                <button type="button" class="filter-tab filter-tab--active" data-filter="all">All</button>
-                <button type="button" class="filter-tab" data-filter="upcoming">Upcoming</button>
-                <button type="button" class="filter-tab" data-filter="past">Past</button>
-                <button type="button" class="filter-tab" data-filter="cancelled">Cancelled</button>
-            </div>
-            <div class="mb-filter-search">
-                <input id="searchInput" type="text" class="search-input"
-                       placeholder="Search by event, location or booking number…">
-            </div>
-        </div>
-    </section>
-
-    <main class="mb-main">
-        <div class="container mb-main__inner">
-
-            <!-- Stats -->
-            <section class="mb-stats">
-                <article class="mb-stat-card">
-                    <p class="mb-stat-card__label">Upcoming events</p>
-                    <p id="statUpcoming" class="mb-stat-card__value">–</p>
-                </article>
-                <article class="mb-stat-card mb-stat-card--highlight">
-                    <p class="mb-stat-card__label">Total bookings</p>
-                    <p id="statTotal" class="mb-stat-card__value">–</p>
-                </article>
-                <article class="mb-stat-card">
-                    <p class="mb-stat-card__label">Cancelled bookings</p>
-                    <p id="statCancelled" class="mb-stat-card__value">–</p>
-                </article>
-            </section>
-
-            <!-- List -->
-            <section class="mb-list-section">
-                <div id="bookingsList" class="mb-list">
-                    <!-- cards are inserted via JS -->
+                <div id="ticketContent" th:if="${booking}" class="confirmation-box">
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Booking number:</span>
+                        <span class="confirmation-value" th:text="${booking.bookingNumber}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Event:</span>
+                        <span class="confirmation-value" th:text="${booking.eventTitle}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Date:</span>
+                        <span class="confirmation-value" th:text="${booking.date}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Time:</span>
+                        <span class="confirmation-value" th:text="${booking.time}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Location:</span>
+                        <span class="confirmation-value" th:text="${booking.location}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Participants:</span>
+                        <span class="confirmation-value" th:text="${booking.numParticipants}">–</span>
+                    </p>
+                    <p class="confirmation-line">
+                        <span class="confirmation-label">Total price:</span>
+                        <span class="confirmation-value" th:text="${#numbers.formatDecimal(booking.priceTotal, 1, 2)}">–</span>
+                        <span class="confirmation-value">€</span>
+                    </p>
                 </div>
-                <p id="bookingsEmpty" class="mb-empty">
-                    There are currently no bookings available.
-                </p>
+
+                <div id="noBooking" th:unless="${booking}" class="confirmation-box">
+                    <p>Booking information not available.</p>
+                </div>
+
+                <div class="confirmation-hints" style="margin-top: 30px;">
+                    <p>✓ Show this ticket at check-in on site.</p>
+                    <p>📱 Present your booking number for verification.</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="/my-bookings" class="btn btn-primary">Back to My Bookings</a>
+                </div>
             </section>
         </div>
     </main>
 </div>
 
 <script src="/js/navbar.js" defer></script>
-<script src="/js/my-bookings.js" defer></script>
 </body>
 </html>

@@ -53,6 +53,31 @@ function loadProfile() {
             document.getElementById("profileEmail").textContent = data.email || "-";
             document.getElementById("profileRole").textContent = data.role || "User";
 
+            // Generate avatar initials
+            const firstName = data.firstName || "";
+            const lastName = data.lastName || "";
+            const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+
+            const avatarImg = document.getElementById("avatarImg");
+            const avatarWrapper = document.getElementById("avatarImg").parentElement;
+
+            if (initials.length === 2 && initials !== "  ") {
+                // Hide image and show initials
+                avatarImg.style.display = "none";
+                let initialsSpan = avatarWrapper.querySelector(".avatar-initials");
+                if (!initialsSpan) {
+                    initialsSpan = document.createElement("span");
+                    initialsSpan.className = "avatar-initials";
+                    avatarWrapper.appendChild(initialsSpan);
+                }
+                initialsSpan.textContent = initials;
+            } else {
+                // Show default image
+                avatarImg.style.display = "block";
+                const initialsSpan = avatarWrapper.querySelector(".avatar-initials");
+                if (initialsSpan) initialsSpan.remove();
+            }
+
             document.getElementById("firstName").value = data.firstName || "";
             document.getElementById("lastName").value = data.lastName || "";
             document.getElementById("email").value = data.email || "";

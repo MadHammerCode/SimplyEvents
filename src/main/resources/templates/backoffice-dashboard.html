@@ -30,8 +30,10 @@
                     <div class="nav-user-menu hidden" id="actionsMenu" role="menu">
                         <button class="nav-user-item" id="goToCreateEvent" type="button" role="menuitem">+ New event</button>
                         <button class="nav-user-item" id="goToInvoices" type="button" role="menuitem">📄 Invoices</button>
+                        <div class="nav-user-sep"></div>
                         <button class="nav-user-item" id="goToDashboard" type="button" role="menuitem">Dashboard</button>
-                        <button class="nav-user-item" id="goToFrontoffice" type="button" role="menuitem">Frontoffice</button>
+                        <button class="nav-user-item" id="goToAdminDashboard" type="button" role="menuitem">Admin Dashboard</button>
+                        <button class="nav-user-item hidden" id="goToFrontoffice" type="button" role="menuitem">Frontoffice Dashboard</button>
                         <div class="nav-user-sep"></div>
                         <button class="nav-user-item" id="logoutBtn" type="button" role="menuitem">Logout</button>
                     </div>
@@ -198,23 +200,5 @@
 
 
 <script src="/js/backoffice-dashboard.js" defer></script>
-<script>
-    const actionsToggle = document.getElementById('actionsToggle');
-    const actionsMenu = document.getElementById('actionsMenu');
-
-    if (actionsToggle && actionsMenu) {
-        actionsToggle.addEventListener('click', () => {
-            const isHidden = actionsMenu.classList.toggle('hidden');
-            actionsToggle.setAttribute('aria-expanded', (!isHidden).toString());
-        });
-
-        document.addEventListener('click', (evt) => {
-            if (!actionsMenu.contains(evt.target) && !actionsToggle.contains(evt.target)) {
-                actionsMenu.classList.add('hidden');
-                actionsToggle.setAttribute('aria-expanded', 'false');
-            }
-        });
-    }
-</script>
 </body>
 </html>
