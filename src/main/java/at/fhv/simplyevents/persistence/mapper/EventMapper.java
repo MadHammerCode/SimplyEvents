@@ -30,7 +30,8 @@ public class EventMapper {
                 entity.getBookingEnd(),
                 entity.getImagePath(),
                 entity.getStatus(),
-                entity.getCancelled()
+                entity.getCancelled(),
+                entity.getTime() // <--- Now accepted by Event.java
         );
         event.loadIdentifiers(entity.getEventId(), entity.getVendorProfileId(), entity.getBookingId());
         return event;
@@ -50,6 +51,7 @@ public class EventMapper {
         entity.setLocation(domain.getLocation());
         entity.setDurationHours(domain.getDurationHours());
         entity.setDate(domain.getDate());
+        entity.setTime(domain.getTime()); // <--- Persist Time
         entity.setAvailableSlots(domain.getAvailableSlots());
         entity.setDescription(domain.getDescription());
         entity.setCancellationDeadline(domain.getCancellationDeadline());

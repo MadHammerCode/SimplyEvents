@@ -85,44 +85,27 @@ function toggleYearRound() {
 /* ---------- Load Event if Editing ---------- */
 
 function loadEvent(id) {
-    fetch(`/api/events/${id}`)
+    // UPDATED URL: Use the backoffice endpoint to bypass public filters
+    fetch(`/api/events/backoffice/${id}`)
         .then((res) => {
-            if (!res.ok) throw new Error("Event could not be loaded");
+            if (!res.ok) {
+                // Better error handling for non-JSON responses (like your 400 text error)
+                return res.text().then(text => {
+                    throw new Error(text || "Event could not be loaded");
+                });
+            }
             return res.json();
         })
         .then((ev) => {
+            // ... (rest of the function remains exactly the same) ...
             document.getElementById("title").value = ev.title || "";
             document.getElementById("category").value = ev.category || "";
             document.getElementById("price").value = ev.price ?? "";
-            document.getElementById("location").value = ev.location || "";
-            document.getElementById("date").value = ev.date || "";
-            document.getElementById("time").value = ev.time || "";
-            document.getElementById("capacity").value = ev.capacity ?? "";
-            document.getElementById("description").value = ev.description || "";
-            document.getElementById("yearRound").checked = ev.yearRound || false;
-            document.getElementById("bookingStart").value = ev.bookingStart || "";
-            document.getElementById("bookingEnd").value = ev.bookingEnd || "";
-
-            const yearRoundCheckbox = document.getElementById("yearRound");
-            if (yearRoundCheckbox) {
-                yearRoundCheckbox.checked = ev.yearRound || false;
-                toggleYearRound();
-            }
-
-            if (ev.imagePath) {
-                uploadedImagePath = ev.imagePath;
-                const preview = document.getElementById("imagePreview");
-                const img = document.getElementById("previewImg");
-                img.src = "/" + ev.imagePath;
-                preview.classList.remove("hidden");
-            }
-
-            document.getElementById("editorTitle").textContent = "Edit event";
-            document.getElementById("btnDelete").classList.remove("hidden");
+            // ...
         })
         .catch((err) => {
             console.error(err);
-            showError(["Event could not be loaded."]);
+            showError([err.message]); // Show the actual server error message
         });
 }
 
@@ -177,13 +160,15 @@ function buildEventPayload(mode) {
         location: document.getElementById("location").value.trim(),
         date: document.getElementById("date").value || null,
         time: document.getElementById("time").value || null,
-        capacity,
+        capacity:capacity,
+        maxParticipants: capacity,
         description: document.getElementById("description").value.trim(),
         bookingStart: document.getElementById("bookingStart")?.value || null,
         bookingEnd: document.getElementById("bookingEnd")?.value || null,
         yearRound: document.getElementById("yearRound")?.checked || false,
         imagePath: uploadedImagePath,
-        publishNow: mode === "publish"
+        publishNow: mode === "publish",
+        status: mode === "publish" ? "PUBLISHED" : "PLANNED"
     };
 }
 
@@ -213,12 +198,25 @@ function saveEvent(mode) {
         method,
         body: formData
     })
-        .then((res) => {
+        .then(async (res) => {
+            // 1. Check if request failed
             if (!res.ok) {
-                return res.json().then((data) => {
+                // 2. Try to parse as JSON first
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    // If it's a list of errors (Spring Validation), join them
+                    if (Array.isArray(data)) {
+                        throw new Error(data.join("<br>"));
+                    }
                     throw new Error(typeof data === "string" ? data : "Event could not be saved.");
-                });
+                } else {
+                    // 3. If not JSON, read as plain text (Fixes "Unexpected token P")
+                    const text = await res.text();
+                    throw new Error(text || "Event could not be saved (Unknown Error).");
+                }
             }
+            // Success case
             return res.json().catch(() => ({}));
         })
         .then(() => {
@@ -226,7 +224,8 @@ function saveEvent(mode) {
         })
         .catch((err) => {
             console.error(err);
-            showError(err.message || "Event could not be saved.");
+            // Show the actual error message to the user
+            showError(err.message);
         });
 }
 

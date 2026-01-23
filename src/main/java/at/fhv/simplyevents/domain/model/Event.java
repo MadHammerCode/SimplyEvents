@@ -2,6 +2,7 @@ package at.fhv.simplyevents.domain.model;
 
 import at.fhv.simplyevents.domain.DomainValidationException;
 
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.Objects;
 
@@ -18,6 +19,7 @@ public class Event {
     private String location;
     private Integer durationHours;
     private Date date;
+    private LocalTime time; // Ensure time is stored if used by controller
     private Integer availableSlots;
     private String description;
     private Date cancellationDeadline;
@@ -65,9 +67,12 @@ public class Event {
             Date bookingEnd,
             String imagePath,
             EventStatus status,
-            Boolean cancelled
+            Boolean cancelled,
+            LocalTime time // <--- Added Argument (to match your Mapper)
     ) {
-        validate(title, price, minParticipants, maxParticipants, availableSlots, bookingStart, bookingEnd);
+        // Pass status and relevant fields to validate
+        validate(title, price, minParticipants, maxParticipants, availableSlots, bookingStart, bookingEnd, date, time, yearRound, status);
+
         this.title = title.trim();
         this.category = category;
         this.price = price == null ? 0 : price;
@@ -78,6 +83,7 @@ public class Event {
         this.location = location;
         this.durationHours = durationHours;
         this.date = copy(date);
+        this.time = time;
         setAvailableSlots(resolveAvailableSlots(availableSlots, this.maxParticipants));
         this.description = description;
         this.cancellationDeadline = copy(cancellationDeadline);
@@ -89,31 +95,47 @@ public class Event {
         this.cancelled = cancelled == null ? false : cancelled;
     }
 
-    private void validate(String title, Double price, Integer minParticipants, Integer maxParticipants, Integer availableSlots, Date bookingStart, Date bookingEnd) {
+    private void validate(String title, Double price, Integer minParticipants, Integer maxParticipants, Integer availableSlots,
+                          Date bookingStart, Date bookingEnd, Date date, LocalTime time, Boolean yearRound, EventStatus status) {
+
+        // 1. Basic Identity (Always Required)
         if (title == null || title.isBlank()) {
             throw new DomainValidationException("Title must not be empty.");
         }
+
+        // 2. ESCAPE HATCH: If it is a draft (PLANNED), stop here.
+        // We don't enforce prices, dates, or locations for drafts.
+        if (status == EventStatus.PLANNED) {
+            return;
+        }
+
+        // 3. PUBLISHED CHECKS (Strict rules only apply when publishing)
         if (price != null && price < 0) {
             throw new DomainValidationException("Price must not be negative.");
         }
+
         int min = minParticipants == null ? 0 : minParticipants;
         int max = maxParticipants == null ? 0 : maxParticipants;
-        if (min < 0) {
-            throw new DomainValidationException("Min participants must not be negative.");
-        }
-        if (max < min) {
-            throw new DomainValidationException("Max participants must be greater or equal to min participants.");
-        }
+
+        if (min < 0) throw new DomainValidationException("Min participants must not be negative.");
+        if (max < min) throw new DomainValidationException("Max participants must be greater or equal to min participants.");
+
         if (availableSlots != null) {
-            if (availableSlots < 0) {
-                throw new DomainValidationException("Available slots must not be negative.");
-            }
-            if (max > 0 && availableSlots > max) {
-                throw new DomainValidationException("Available slots cannot exceed max participants.");
-            }
+            if (availableSlots < 0) throw new DomainValidationException("Available slots must not be negative.");
+            if (max > 0 && availableSlots > max) throw new DomainValidationException("Available slots cannot exceed max participants.");
         }
+
         if (bookingStart != null && bookingEnd != null && bookingStart.after(bookingEnd)) {
             throw new DomainValidationException("Booking start must not be after booking end.");
+        }
+
+        // The Logic causing your 400 Error:
+        boolean hasSpecificDate = (date != null); // If you have separate time, add: && time != null
+        boolean isYearRound = Boolean.TRUE.equals(yearRound);
+        boolean hasBookingWindow = (bookingStart != null && bookingEnd != null);
+
+        if (!hasSpecificDate && !isYearRound && !hasBookingWindow) {
+            throw new DomainValidationException("Please enter either date + time, or activate 'Available all year', or fill in both 'Booking from' and 'Booking until'.");
         }
     }
 
@@ -164,6 +186,7 @@ public class Event {
     public String getLocation() { return location; }
     public Integer getDurationHours() { return durationHours; }
     public Date getDate() { return copy(date); }
+    public LocalTime getTime() { return time; }
     public Integer getAvailableSlots() { return availableSlots; }
     public String getDescription() { return description; }
     public Date getCancellationDeadline() { return copy(cancellationDeadline); }
