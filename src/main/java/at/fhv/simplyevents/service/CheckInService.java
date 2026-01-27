@@ -193,6 +193,7 @@ public class CheckInService implements CheckInUseCase {
     }
 
     @Override
+    @Transactional
     public BookingDto updateBookingCapacity(Long bookingId, int requestedSeats) {
         ActiveBooking booking = activeBookings.findById(bookingId)
                 .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
@@ -227,6 +228,7 @@ public class CheckInService implements CheckInUseCase {
     }
 
     @Override
+    @Transactional
     public NewBookingResponse createBookingForEvent(Long eventId, NewBookingRequestCommand request) {
         if (request == null) {
             throw new IllegalArgumentException("Missing booking data");
