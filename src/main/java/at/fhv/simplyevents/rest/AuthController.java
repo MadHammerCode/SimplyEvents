@@ -4,18 +4,14 @@ import at.fhv.simplyevents.application.port.in.AuthUseCase;
 import at.fhv.simplyevents.application.port.in.AuthUseCase.LoginCommand;
 import at.fhv.simplyevents.application.port.in.AuthUseCase.RegisterCustomerCommand;
 import at.fhv.simplyevents.application.port.in.AuthUseCase.RegisterVendorCommand;
-import at.fhv.simplyevents.domain.repository.RoleRepositoryPort;
 import at.fhv.simplyevents.rest.dto.AuthDtos;
-import at.fhv.simplyevents.domain.model.Role;
 import at.fhv.simplyevents.domain.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

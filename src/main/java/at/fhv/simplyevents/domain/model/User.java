@@ -2,10 +2,7 @@ package at.fhv.simplyevents.domain.model;
 
 import at.fhv.simplyevents.domain.DomainValidationException;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 public class User {
     private final Long id;
@@ -76,23 +73,6 @@ public class User {
         if (!expression) {
             throw new DomainValidationException(message);
         }
-    }
-
-    private static Set<Long> validateRoles(Set<Long> roleIds) {
-        if (roleIds == null) {
-            throw new DomainValidationException("roleIds must not be null");
-        }
-        Set<Long> cleaned = new HashSet<>();
-        for (Long r : roleIds) {
-            if (r == null) {
-                throw new DomainValidationException("roleIds cannot contain null");
-            }
-            cleaned.add(r);
-        }
-        if (cleaned.isEmpty()) {
-            throw new DomainValidationException("at least one roleId is required");
-        }
-        return Collections.unmodifiableSet(cleaned);
     }
 
     public Long getId() { return id; }
