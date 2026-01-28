@@ -234,36 +234,10 @@ function setupNavbarLogic() {
                     } catch (_) {}
                     if (navLinks) navLinks.classList.remove("nav-open");
                     closeUserMenu();
-                    window.location.href = "/login";
+                    window.location.href = "/Dashboard/logout";
                 }
             });
         }
-    }
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeUserMenu();
-    });
-
-    // When clicking a menu link, close dropdown (also closes mobile nav)
-    if (userMenu) {
-        userMenu.addEventListener("click", (e) => {
-            const a = e.target && e.target.closest ? e.target.closest("a") : null;
-            if (a) {
-                closeUserMenu();
-                if (navLinks) navLinks.classList.remove("nav-open");
-            }
-        });
-    }
-
-    // Logout
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            try {
-                localStorage.removeItem("simplyevents_currentUser");
-            } catch (_) {}
-            if (navLinks) navLinks.classList.remove("nav-open");
-            closeUserMenu();
-            window.location.href = "/dashboard";
-        });
     }
 }
 
