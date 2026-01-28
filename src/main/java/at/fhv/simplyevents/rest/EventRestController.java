@@ -50,9 +50,10 @@ public class EventRestController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            throw ex;
+            return ResponseEntity.badRequest().body("System Error: " + ex.getMessage());
         }
     }
+
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('BACKOFFICE', 'ADMIN')")
@@ -74,7 +75,7 @@ public class EventRestController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            throw ex;
+            return ResponseEntity.badRequest().body("System Error: " + ex.getMessage());
         }
     }
 
@@ -100,6 +101,17 @@ public class EventRestController {
             if (Boolean.TRUE.equals(result.cancelled())) {
                 return ResponseEntity.notFound().build();
             }
+            return ResponseEntity.ok(toResponse(result));
+        } catch (NotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/backoffice/{id}")
+    public ResponseEntity<EventResponse> getBackofficeEventById(@PathVariable Long id) {
+        try {
+            // Directly fetch the event without filtering "cancelled" status
+            var result = eventUseCase.getEventById(id);
             return ResponseEntity.ok(toResponse(result));
         } catch (NotFoundException ex) {
             return ResponseEntity.notFound().build();
@@ -148,7 +160,7 @@ public class EventRestController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            throw ex;
+            return ResponseEntity.badRequest().body("System Error: " + ex.getMessage());
         }
     }
 
@@ -175,7 +187,7 @@ public class EventRestController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            throw ex;
+            return ResponseEntity.badRequest().body("System Error: " + ex.getMessage());
         }
     }
 
