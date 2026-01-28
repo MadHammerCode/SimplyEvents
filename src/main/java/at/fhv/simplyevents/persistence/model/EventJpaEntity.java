@@ -2,6 +2,8 @@ package at.fhv.simplyevents.persistence.model;
 
 import at.fhv.simplyevents.domain.model.EventStatus;
 import jakarta.persistence.*;
+
+import java.time.LocalTime;
 import java.util.Date;
 
 @Entity
@@ -24,6 +26,8 @@ public class EventJpaEntity {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
+
+    private LocalTime time;
 
     @Column(name = "available_slots")
     private Integer availableSlots;
@@ -101,4 +105,6 @@ public class EventJpaEntity {
     public void setVendorProfileId(Long vendorProfileId) { this.vendorProfileId = vendorProfileId; }
     public Long getBookingId() { return bookingId; }
     public void setBookingId(Long bookingId) { this.bookingId = bookingId; }
+    public LocalTime getTime() { return time; }
+    public void setTime(LocalTime time) { this.time = time; }
 }
