@@ -97,7 +97,7 @@ public class EventRestController {
     public ResponseEntity<EventResponse> getEventById(@PathVariable Long id) {
         try {
             var result = eventUseCase.getEventById(id);
-            // Blockiere Zugriff auf cancelled Events für öffentliche API
+            // Blockiert Zugriff auf gecancellte Events für öffentliche API
             if (Boolean.TRUE.equals(result.cancelled())) {
                 return ResponseEntity.notFound().build();
             }

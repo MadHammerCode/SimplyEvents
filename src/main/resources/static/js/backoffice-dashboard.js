@@ -49,7 +49,7 @@ function loadEvents(statusFilter = "ALL") {
         });
 }
 
-// ------- Filters (Unchanged) -------
+// ------- Filters -------
 
 function initCategoryFilter(events) {
     const select = document.getElementById("filterCategory");
@@ -104,14 +104,12 @@ function filterAndRender(period, category, search) {
     renderTopEvents(filteredEvents);
 }
 
-// ------- Stats & Charts (Keep existing implementations) -------
-// ... (Insert updateStats, renderCharts, buildRevenueByMonth, etc. here if needed,
-// they are fine as they were in your previous upload) ...
 
-function updateStats(events) { /* ... same as before ... */ }
-function renderCharts(events) { /* ... same as before ... */ }
 
-// ------- Table (UPDATED) -------
+function updateStats(events) { }
+function renderCharts(events) { }
+
+// ------- Table -------
 
 function renderTable(events) {
     const tbody = document.getElementById("eventsTableBody");
@@ -136,7 +134,7 @@ function renderTable(events) {
         const status = escapeHtml(ev.status || "PLANNED");
         const isCancelled = ev.cancelled === true;
 
-        // 1. Determine Edit Permission
+        //  Determines Edit Permission
         const isEditable = (status === "PLANNED" && !isCancelled);
 
         const cancelledBadge = isCancelled ? `<span class="badge badge--cancelled">Cancelled</span>` : "";
@@ -147,7 +145,7 @@ function renderTable(events) {
             ? `<button type="button" class="action-btn action-btn--publish" data-publish="${id}">Publish</button>`
             : "";
 
-        // Edit Button: Disabled if not planned
+        // Edit Button: Disabled if already published
         const editButton = isEditable
             ? `<button type="button" class="action-btn action-btn--edit" data-edit="${id}">Edit</button>`
             : `<button type="button" class="action-btn action-btn--edit" disabled style="opacity:0.5; cursor:not-allowed;" title="Only planned events can be edited">Edit</button>`;
@@ -179,16 +177,15 @@ function renderTable(events) {
     setupRowActions();
 }
 
-// ------- Row Actions (UPDATED) -------
+// ------- Row Actions  -------
 
 function setupRowActions() {
-    // 2. Fix Edit Redirect
+
     document.querySelectorAll("[data-edit]").forEach((btn) => {
         if (!btn.disabled) {
             btn.addEventListener("click", () => {
                 const id = btn.getAttribute("data-edit");
                 if (id) {
-                    // Redirect to the Editor, not the Details page
                     window.location.href = `/edit-event/${encodeURIComponent(id)}`;
                 }
             });
@@ -231,8 +228,6 @@ function setupRowActions() {
                 .catch((err) => alert("Event could not be published."));
         });
     });
-
-    // ... (Cancel handler remains the same) ...
 }
 
 // ------- Navigation & Init -------
@@ -278,7 +273,6 @@ function setupNavigation() {
     // Get role and filter navigation
     getCurrentUserRole().then((userRole) => {
         if (!userRole) {
-            // Redirect to login if no role
             window.location.href = "/login";
             return;
         }
@@ -335,10 +329,7 @@ function setupNavigation() {
     });
 }
 
-/**
- * Filter actions menu based on user role
- * Shows/hides menu items according to permissions
- */
+
 function filterNavigationMenuItems(userRole) {
     const menu = document.getElementById("actionsMenu");
     if (!menu) return;
@@ -366,12 +357,11 @@ function filterNavigationMenuItems(userRole) {
     showIf("goToInvoices", isAdmin || isBackoffice);
     showIf("goToDashboard", true); // All can go to main dashboard
     showIf("goToAdminDashboard", isAdmin);
-    showIf("goToFrontoffice", isAdmin); // Only ADMIN can see Frontoffice
+    showIf("goToFrontoffice", isAdmin);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Load role-utils script dynamically if not already loaded
     if (!window.getCurrentUserRole) {
         const script = document.createElement('script');
         script.src = '/js/role-utils.js';
@@ -386,7 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.head.appendChild(script);
     } else {
         setupNavigation();
-        loadEvents();  // ✅ WICHTIG: loadEvents() aufrufen wenn role-utils bereits geladen ist
+        loadEvents();
     }
 
     const periodSel = document.getElementById("filterPeriod");

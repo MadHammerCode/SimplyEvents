@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository // <--- This annotation solves the "Could not autowire" error
+@Repository // <--- This annotation solves the "Could not autowire" error in WishlistService
 public class WishlistRepositoryAdapter implements WishlistRepositoryPort {
 
     private final WishlistRepository jpaRepository;
@@ -33,7 +33,6 @@ public class WishlistRepositoryAdapter implements WishlistRepositoryPort {
 
         WishlistJpaEntity saved = jpaRepository.save(entity);
 
-        // Update Domain ID just in case it was new
         wishlist.setWishlistId(saved.getId());
     }
 

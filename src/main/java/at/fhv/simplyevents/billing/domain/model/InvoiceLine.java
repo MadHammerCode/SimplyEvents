@@ -32,7 +32,6 @@ public class InvoiceLine implements Serializable {
         this.quantity = quantity;
         this.unitPrice = unitPrice;
 
-        // Calculate line total: qty * unitPrice
         this.lineTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
 

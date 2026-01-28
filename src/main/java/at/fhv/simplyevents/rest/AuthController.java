@@ -60,7 +60,7 @@ public class AuthController {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(u.getEmail(), null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // store security context in session so subsequent requests are authenticated
+        // stores security context in session so subsequent requests are authenticated
         HttpSession session = request.getSession(true);
         session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
@@ -75,8 +75,8 @@ public class AuthController {
                 u.getFname(),
                 u.getLname(),
                 u.getEmail(),
-                Collections.singleton(roleName), // Keep 'roles' set for frontend compatibility
-                roleName // 'role' field
+                Collections.singleton(roleName),
+                roleName
         );
     }
 

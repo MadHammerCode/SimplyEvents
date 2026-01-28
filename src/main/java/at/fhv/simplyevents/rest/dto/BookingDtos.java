@@ -57,7 +57,7 @@ public class BookingDtos {
             String paymentMethod
     ) {}
 
-    // DTO für die "My Bookings" Seite mit verschachteltem Event-Objekt
+
     public record MyBookingResponse(
             Long bookingId,
             String bookingNumber,

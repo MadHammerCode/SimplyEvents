@@ -1,4 +1,3 @@
-// Mock reviews until backend exists
 const MOCK_REVIEWS = [];
 
 let wishlist = new Set();
@@ -47,7 +46,6 @@ async function toggleWishlist(eventId) {
         return;
     }
 
-    // Optimistic UI update
     if (wishlist.has(Number(eventId))) {
         wishlist.delete(Number(eventId));
     } else {
@@ -64,7 +62,6 @@ async function toggleWishlist(eventId) {
         }
     } catch (e) {
         console.error(e);
-        // Revert on failure
         loadWishlist(eventId);
     }
 }
@@ -138,8 +135,7 @@ function renderEvent(event) {
 }
 
 function renderReviews(reviews) {
-    // (Existing review rendering code - kept short for brevity, function is same as before)
-    // ...
+
 }
 
 function setupShareModal(eventId) {

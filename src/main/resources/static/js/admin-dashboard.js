@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // Load role-utils script if not already loaded
     if (!window.getCurrentUserRole) {
         const script = document.createElement('script');
         script.src = '/js/role-utils.js';
@@ -44,7 +43,6 @@ function setupAdminActions() {
         });
     }
 
-    // Close on outside click
     document.addEventListener("click", (e) => {
         if (actionsMenu && !actionsMenu.classList.contains("hidden")) {
             const isInside = actionsToggle?.contains(e.target) || actionsMenu?.contains(e.target);
@@ -73,7 +71,6 @@ function setupAdminActions() {
             window.location.href = "/frontoffice-checkin";
         });
     }
-    // Logout
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
             handleLogout();

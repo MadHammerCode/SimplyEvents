@@ -19,11 +19,10 @@ public class Event {
     private String location;
     private Integer durationHours;
     private Date date;
-    private LocalTime time; // Ensure time is stored if used by controller
+    private LocalTime time;
     private Integer availableSlots;
     private String description;
     private Date cancellationDeadline;
-    // references to other aggregates by ID only
     private Long bookingId;
     private Boolean yearRound;
     private Date bookingStart;
@@ -68,9 +67,9 @@ public class Event {
             String imagePath,
             EventStatus status,
             Boolean cancelled,
-            LocalTime time // <--- Added Argument (to match your Mapper)
+            LocalTime time
     ) {
-        // Pass status and relevant fields to validate
+
         validate(title, price, minParticipants, maxParticipants, availableSlots, bookingStart, bookingEnd, date, time, yearRound, status);
 
         this.title = title.trim();
@@ -129,8 +128,7 @@ public class Event {
             throw new DomainValidationException("Booking start must not be after booking end.");
         }
 
-        // The Logic causing your 400 Error:
-        boolean hasSpecificDate = (date != null); // If you have separate time, add: && time != null
+        boolean hasSpecificDate = (date != null);
         boolean isYearRound = Boolean.TRUE.equals(yearRound);
         boolean hasBookingWindow = (bookingStart != null && bookingEnd != null);
 

@@ -222,7 +222,6 @@ function setupCardActions() {
             // Show prompt for cancellation reason
             const reason = prompt("Do you really want to cancel this booking?\n\nPlease enter the reason for cancellation:");
 
-            // If user clicked Cancel or left reason empty, don't proceed
             if (reason === null || reason.trim() === "") {
                 if (reason !== null) {
                     alert("Please enter a reason for cancellation.");

@@ -52,9 +52,7 @@ async function initWishlist() {
             return;
         }
 
-        // B. Fetch All Events (or specific ones if you have an endpoint for that)
-        // Optimization: In a real app, you'd have /api/events/batch?ids=...
-        // For now, we fetch all and filter client-side to keep it simple with existing APIs
+        // B. Fetch All Events
         const eventRes = await fetch("/api/events");
         if (!eventRes.ok) throw new Error("Could not load events");
         allEvents = await eventRes.json();
@@ -121,7 +119,7 @@ async function removeWishlist(card) {
     if (!confirm("Remove from wishlist?")) return;
 
     const id = card.getAttribute("data-event-id");
-    card.remove(); // Optimistic remove
+    card.remove();
 
     try {
         await fetch(`/api/wishlist/${id}?userId=${currentUser.id}`, { method: "POST" });

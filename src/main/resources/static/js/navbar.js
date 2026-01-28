@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Load role-utils.js if not already loaded
     if (!window.getCurrentUserRole) {
         const script = document.createElement('script');
         script.src = '/js/role-utils.js';
@@ -8,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         script.onerror = () => {
             console.error('Failed to load role-utils.js');
-            setupNavbarLogic(); // Fallback to localStorage-based logic
+            setupNavbarLogic();
         };
         document.head.appendChild(script);
     } else {

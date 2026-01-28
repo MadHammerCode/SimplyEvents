@@ -99,7 +99,6 @@
     align-items: center;
 }
 
-/* keep .nav-user for any legacy markup */
 .nav-user {
     font-weight: 600;
     color: var(--color-muted);

@@ -398,7 +398,7 @@ body {
     border-radius: 50%;
     background:
             conic-gradient(
-                /* JS fügt genaue Werte als inline style ein */
+
             );
 }
 

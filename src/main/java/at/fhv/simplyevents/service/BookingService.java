@@ -52,7 +52,6 @@ public class BookingService implements BookingUseCase {
                 throw new IllegalArgumentException("Date is required for year-round events.");
             }
 
-            // You must add this method to your ActiveBookingRepositoryPort interface!
             int bookedForDate = activeBookingRepository.sumParticipantsByEventIdAndDate(
                     event.getEventId(),
                     command.attendanceDate()
@@ -107,7 +106,6 @@ public class BookingService implements BookingUseCase {
     public ActiveBooking getBooking(Long bookingId) {
         ActiveBooking booking = activeBookingRepository.findById(bookingId)
                 .orElseThrow(() -> NotFoundException.forEntity("Booking", bookingId));
-        // Optional: enrich booking with event data if needed
         return booking;
     }
 
