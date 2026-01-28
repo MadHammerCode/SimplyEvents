@@ -370,7 +370,7 @@ function filterNavigationMenuItems(userRole) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    setupNavigation();
+
     // Load role-utils script dynamically if not already loaded
     if (!window.getCurrentUserRole) {
         const script = document.createElement('script');
