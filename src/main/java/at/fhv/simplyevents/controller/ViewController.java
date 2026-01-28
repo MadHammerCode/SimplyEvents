@@ -66,8 +66,7 @@ public class ViewController {
     public String createEventPage() { return "event-editor"; }
 
     @GetMapping("/edit-event/{id}")
-    public String editEventPage(@PathVariable Long id, Model model) {
-        model.addAttribute("eventId", id);
+    public String editEvent(@PathVariable Long id, org.springframework.ui.Model model) {
         return "event-editor";
     }
 
