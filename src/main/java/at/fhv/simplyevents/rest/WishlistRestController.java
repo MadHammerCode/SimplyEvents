@@ -1,4 +1,4 @@
-package at.fhv.simplyevents.rest.dto;
+package at.fhv.simplyevents.rest;
 import at.fhv.simplyevents.application.port.in.dto.WishlistUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

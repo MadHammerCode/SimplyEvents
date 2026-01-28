@@ -7,6 +7,7 @@ import at.fhv.simplyevents.domain.model.Event;
 import at.fhv.simplyevents.domain.model.EventStatus;
 import at.fhv.simplyevents.domain.repository.EventRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -320,6 +321,7 @@ public class EventService implements EventUseCase {
     }
 
     @Override
+    @Transactional
     public void deleteEvent(Long id) {
         if (!eventRepository.existsById(id)) throw NotFoundException.forEntity("Event", id);
         Event event = eventRepository.findById(id).orElseThrow();
@@ -330,6 +332,7 @@ public class EventService implements EventUseCase {
     }
 
     @Override
+    @Transactional
     public EventResult toggleEventCanceled(Long id) {
         Event event = eventRepository.findById(id).orElseThrow(() -> NotFoundException.forEntity("Event", id));
         event.toggleCancelled();

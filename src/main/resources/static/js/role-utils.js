@@ -113,7 +113,8 @@ function handleLogout() {
     try {
         localStorage.removeItem('simplyevents_currentUser');
     } catch (_) {}
-    window.location.href = '/login';
+    // Use Spring Security logout endpoint, then redirect to dashboard
+    window.location.href = '/logout';
 }
 
 

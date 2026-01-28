@@ -50,23 +50,6 @@ public class BookingDtos {
             String cancelReason
     ) {}
 
-    public record CancelledBookingResponse(
-            String bookingNumber,
-            String eventTitle,
-            Integer numParticipants,
-            String cancelReason
-    ) {}
-
-
-    public record PendingBookingResponse(
-            String pendingId,
-            String bookingNumber,
-            Long eventId,
-            Integer numParticipants,
-            BigDecimal priceTotal
-    ) {}
-
-
     public record ConfirmBookingRequest(
             @NotBlank(message = "Pending ID must not be blank")
             String pendingId,

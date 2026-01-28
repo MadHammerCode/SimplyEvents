@@ -28,6 +28,7 @@ public class SecurityConfig {
                     "/css/**",
                     "/js/**",
                     "/images/**",
+                        "/uploads/**",
                     "/webjars/**"
                 ).permitAll()
 
@@ -55,7 +56,10 @@ public class SecurityConfig {
                 form.permitAll();
 
             })
-            .logout(logout -> logout.logoutSuccessUrl("/")
+            .logout(logout -> logout
+                    .logoutUrl("/logout")
+                    .logoutSuccessUrl("/dashboard")
+                    .logoutRequestMatcher(org.springframework.security.web.util.matcher.RegexRequestMatcher.regexMatcher(org.springframework.http.HttpMethod.GET, "/logout"))
                     .permitAll())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
