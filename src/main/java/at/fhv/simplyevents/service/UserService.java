@@ -65,7 +65,6 @@ public class UserService implements UserUseCase {
 
     public void changeUserRole(Long userId, UserRole newRole) {
         User user = users.findById(userId)
-                //NotFoundException has private constructor, so we use the static factory method
                 .orElseThrow(() -> NotFoundException.forEntity("User", userId));
 
         User updated = user.promoteTo(newRole);

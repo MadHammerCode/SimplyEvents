@@ -53,18 +53,18 @@ class EventServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals("My Draft Event", result.title());
-        assertEquals("PLANNED", result.status()); // Should be PLANNED by default
+        assertEquals("PLANNED", result.status());
         verify(eventRepository).save(any(Event.class));
     }
 
     @Test
     void createEvent_should_fail_publishing_without_required_fields() {
-        // Arrange: Try to publish with ONLY a title (should fail strict validation)
+        // Arrange: Try to publish with ONLY a title (should fail cause of strict validation)
         CreateEventCommand cmd = new CreateEventCommand(
                 "Incomplete Event", null, null, null, null,
                 null, null, null, "Music", null,
                 null, null, null, null, null,
-                false, false, null, null, true, // <--- publishNow = true
+                false, false, null, null, true,
                 null
         );
 

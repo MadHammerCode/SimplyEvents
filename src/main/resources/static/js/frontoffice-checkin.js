@@ -1,5 +1,5 @@
 let currentEventId = null;
-let currentEventData = null; // Speichere Event-Daten (z.B. Preis)
+let currentEventData = null;
 let allBookings = [];
 let filteredBookings = [];
 
@@ -17,7 +17,6 @@ function escapeHtml(str) {
 
 function formatDateTime(iso) {
     if (!iso) return "–";
-    // Simply display unchanged, backend can format better later
     return iso.replace("T", " ");
 }
 
@@ -679,7 +678,6 @@ function setupNavigation() {
         });
     }
 
-    // Filter navigation menu items based on user role
     filterNavigationMenuItems();
 }
 
@@ -720,7 +718,6 @@ function filterNavigationMenuItems() {
 /* -------- Init ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Load role-utils script if not already loaded
     if (!window.getCurrentUserRole) {
         const script = document.createElement('script');
         script.src = '/js/role-utils.js';

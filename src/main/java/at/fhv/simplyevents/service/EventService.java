@@ -88,7 +88,6 @@ public class EventService implements EventUseCase {
             throw new IllegalArgumentException("The booking window is invalid: 'Booking from' must be before or equal to 'Booking until'.");
         }
 
-        // 3. Prepare Data
         LocalDateTime startDateTime = null;
         if (cmd.date() != null && cmd.time() != null) {
             startDateTime = LocalDateTime.of(cmd.date(), cmd.time());
@@ -117,7 +116,6 @@ public class EventService implements EventUseCase {
         Integer resolvedCapacity = (cmd.capacity() != null) ? cmd.capacity() : cmd.maxParticipants();
         if (resolvedCapacity == null) resolvedCapacity = 0;
 
-        // 4. Create Event
         Event event = Event.createDraft();
         event.applyDetails(
                 cmd.title(),
@@ -130,7 +128,7 @@ public class EventService implements EventUseCase {
                 cmd.location(),
                 cmd.durationHours(),
                 startDate,
-                resolvedCapacity, // initial available slots = capacity
+                resolvedCapacity,
                 cmd.description(),
                 cancellationDeadlineDate,
                 yearRound,
@@ -139,7 +137,7 @@ public class EventService implements EventUseCase {
                 resolveImagePath(image, cmd.imagePath(), DEFAULT_IMAGE_PATH),
                 publishNow ? EventStatus.PUBLISHED : EventStatus.PLANNED,
                 false,
-                cmd.time() // <--- Passed time
+                cmd.time()
         );
 
         Event saved = eventRepository.save(event);
@@ -153,7 +151,7 @@ public class EventService implements EventUseCase {
 
     @Override
     public EventResult updateEventWithImage(Long id, CreateEventCommand cmd, ImageUpload image) {
-        // 1. Fetch Event FIRST so we know its current status
+        // 1. Fetches Event FIRST so we know its current status
         Event event = eventRepository.findById(id).orElseThrow(() -> NotFoundException.forEntity("Event", id));
 
         boolean publishNow = Boolean.TRUE.equals(cmd.publishNow());
@@ -170,12 +168,6 @@ public class EventService implements EventUseCase {
                 throw new IllegalArgumentException("Please enter either date + time, or activate 'Available all year', or fill in both 'Booking from' and 'Booking until'.");
             }
 
-            // Validate capacity if publishing
-            Integer providedCapacity = cmd.capacity() != null ? cmd.capacity() : cmd.maxParticipants();
-            if (providedCapacity == null && event.getMaxParticipants() <= 0) {
-                // Check logic: if it's already published, it should have capacity.
-                // If we are updating, we check if the result would be valid.
-            }
         }
 
         if (cmd.bookingStart() != null && cmd.bookingEnd() != null && cmd.bookingStart().isAfter(cmd.bookingEnd())) {
@@ -208,7 +200,6 @@ public class EventService implements EventUseCase {
             bookingEndDate = Date.from(cmd.bookingEnd().atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
-        // Capacity Logic (Preserve logic from your previous file)
         int newMin = cmd.minParticipants() == null ? event.getMinParticipants() : cmd.minParticipants();
 
         Integer providedCapacity = cmd.capacity() != null ? cmd.capacity() : cmd.maxParticipants();
@@ -221,7 +212,6 @@ public class EventService implements EventUseCase {
             if (oldAvailable == null) {
                 finalAvailable = providedCapacity;
             } else {
-                // Adjust available slots by the delta of capacity change
                 int prevCap = oldCapacity == null ? providedCapacity : oldCapacity;
                 int delta = providedCapacity - prevCap;
                 finalAvailable = Math.max(0, oldAvailable + delta);
@@ -230,25 +220,20 @@ public class EventService implements EventUseCase {
             finalAvailable = oldAvailable == null ? event.getMaxParticipants() : oldAvailable;
         }
 
-        // Field mapping with fallbacks to existing values
         Integer currentDuration = event.getDurationHours();
         Integer finalDuration = cmd.durationHours() == null ? currentDuration : cmd.durationHours();
 
-        // Use fallbacks for other fields
         String finalEquipment = cmd.equipmentNeeded() == null ? event.getEquipmentNeeded() : cmd.equipmentNeeded();
         String finalRequirements = cmd.requirements() == null ? event.getRequirements() : cmd.requirements();
         String finalDescription = cmd.description() == null ? event.getDescription() : cmd.description();
 
-        // Price is safe because event.getPrice() is primitive double
         double finalPrice = cmd.price() == null ? event.getPrice() : cmd.price().doubleValue();
 
         String finalCategory = cmd.category() == null ? event.getCategory() : cmd.category();
         String finalLocation = cmd.location() == null ? event.getLocation() : cmd.location();
         String finalImagePath = resolveImagePath(image, cmd.imagePath(), event.getImagePath());
 
-        // ...
 
-        // Determine Status
         EventStatus finalStatus = event.getStatus();
         if (publishNow) {
             finalStatus = EventStatus.PUBLISHED;
@@ -274,7 +259,7 @@ public class EventService implements EventUseCase {
                 finalImagePath,
                 finalStatus,
                 event.isCancelled(),
-                cmd.time() // <--- Passed time
+                cmd.time()
         );
 
         Event saved = eventRepository.save(event);
@@ -344,19 +329,17 @@ public class EventService implements EventUseCase {
         String date = null;
         String time = null;
 
-        // Date String
+
         if (event.getDate() != null) {
             LocalDateTime ldt = LocalDateTime.ofInstant(event.getDate().toInstant(), ZoneId.systemDefault());
             date = ldt.toLocalDate().toString();
-            // Fallback time if specific time field is null
             if (event.getTime() == null) {
                 time = ldt.toLocalTime().toString().substring(0, 5);
             }
         }
 
-        // Time String (Priority)
         if (event.getTime() != null) {
-            time = event.getTime().toString().substring(0, 5); // HH:mm
+            time = event.getTime().toString().substring(0, 5);
         }
 
         String cancellationDeadline = null;

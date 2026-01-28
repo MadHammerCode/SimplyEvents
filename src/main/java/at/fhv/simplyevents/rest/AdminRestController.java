@@ -36,7 +36,7 @@ public class AdminRestController {
                         u.getLname(),
                         u.getEmail(),
                         u.getRole().name(),
-                        u.getEmail().equals(currentEmail) // <--- Check if matches
+                        u.getEmail().equals(currentEmail)
                 ))
                 .toList();
         return ResponseEntity.ok(list);

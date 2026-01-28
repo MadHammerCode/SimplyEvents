@@ -9,13 +9,12 @@
     <link rel="stylesheet" href="/css/navbar.css">
     <link rel="stylesheet" href="/css/footer.css">
 
-    <!-- PAGE-SPECIFIC STYLES: adjust per page -->
-    <!-- Example: <link rel="stylesheet" href="/css/landing.css"> -->
+
 </head>
 <body>
 <div class="page">
 
-    <!-- 🔹 NAVBAR (always the same) -->
+    <!--  NAVBAR  -->
     <nav class="nav" th:fragment="navbar">
         <div class="nav-container">
             <a href="/dashboard" class="nav-logo">
@@ -66,15 +65,13 @@
         </div>
     </nav>
 
-    <!-- 🔸 MAIN CONTENT (varies per page) -->
+    <!--  MAIN CONTENT (varies per page) -->
     <main id="main-content">
-        <!--
-          The HTML content of the respective page is inserted here,
-          e.g. landing page, backoffice dashboard, my bookings, etc.
-        -->
+
+
     </main>
 
-    <!-- 🔹 FOOTER (always the same) -->
+    <!--  FOOTER  -->
     <footer class="footer" th:fragment="footer">
         <div class="container footer__inner">
 
@@ -123,14 +120,13 @@
 
 </div>
 
-<!-- 🔹 Global scripts fragment -->
+<!-- Global scripts fragment -->
 <div th:fragment="scripts">
     <script src="/js/navbar.js" defer></script>
     <script src="/js/footer.js" defer></script>
 </div>
 
-<!-- PAGE-SPECIFIC SCRIPT -->
-<!-- Example: <script src="/js/landing.js" defer></script> -->
+
 
 </body>
 </html>

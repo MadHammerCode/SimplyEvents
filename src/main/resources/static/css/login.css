@@ -189,8 +189,8 @@ body {
 
 
 .form__row-inputs {
-    display: flex;       /* Change from grid to flex */
-    flex-direction: column; /* Stack them vertically */
+    display: flex;
+    flex-direction: column;
     gap: 0.75rem;
 }
 

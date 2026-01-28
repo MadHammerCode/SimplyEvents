@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = EventRestController.class, properties = "spring.jpa.open-in-view=false")
-@AutoConfigureMockMvc(addFilters = false) // Disable security login for this test
+@AutoConfigureMockMvc(addFilters = false)
 class EventRestControllerIT {
 
     @Autowired
@@ -29,7 +29,6 @@ class EventRestControllerIT {
 
     @Test
     void createEvent_should_return_200_when_service_succeeds() throws Exception {
-        // Arrange
         // We create a dummy result to return
         EventResult mockResult = new EventResult(
                 1L, "Test Event", null, null, null, null,
@@ -58,7 +57,7 @@ class EventRestControllerIT {
     @Test
     void createEvent_should_return_400_when_service_throws_validation_error() throws Exception {
         // Arrange
-        // Simulate the Service saying "Title is required"
+        // Simulates the Service saying "Title is required"
         when(eventUseCase.createEvent(any(CreateEventCommand.class)))
                 .thenThrow(new IllegalArgumentException("Title is required."));
 

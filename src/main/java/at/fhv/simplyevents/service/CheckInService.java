@@ -67,12 +67,6 @@ public class CheckInService implements CheckInUseCase {
         }
         participants.save(p);
 
-        // Update the tracking table (Optional but keeps data clean)
-        if (!checkedIn) {
-            // If checking out individually, we could remove from CheckedInParticipant table here too
-            // But for now, just updating the main participant entity is enough for the logic
-        }
-
         return new ParticipantDto(
                 p.getId(),
                 p.getBookingNumber(),
@@ -308,7 +302,6 @@ public class CheckInService implements CheckInUseCase {
             }
         }
 
-        // 2. Clear from checked-in list (the transaction is needed for this delete)
         checkedInParticipants.deleteByBookingId(bookingId);
     }
 }

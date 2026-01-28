@@ -104,8 +104,7 @@ function validateLoginForm() {
     const email = emailEl?.value.trim();
     const pw = pwEl?.value;
 
-    // Silent validation - only check if fields are filled
-    // Error messages will come from the server
+
     if (!email || !pw) {
         return null;
     }
@@ -139,7 +138,7 @@ function doLogin(payload) {
                         errorMessage = "Login failed. Please check your entries.";
                     }
                 } catch {
-                    // keep default error message
+                    //Empty
                 }
             }
 
@@ -151,8 +150,7 @@ function doLogin(payload) {
         showError(null);
         const user = await res.json().catch(() => ({}));
 
-        // Benutzer im localStorage merken (immer, damit Navbar sich sofort anpasst)
-        // Wichtig: Manche Antworten können bereits ein JSON-String sein (sonst entsteht ein "double-stringify" wie "{\"firstName\":...}")
+
         if (user) {
             try {
                 if (typeof user === "string") {
@@ -162,7 +160,7 @@ function doLogin(payload) {
                     window.localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
                 }
             } catch {
-                // ignore
+                // Empty
             }
         }
 
@@ -184,8 +182,7 @@ function validateRegisterForm() {
 
     const errors = [];
 
-    // OLD: const name = nameEl?.value.trim();
-    // NEW: Get values from new fields
+
     const firstName = firstNameEl?.value.trim();
     const lastName = lastNameEl?.value.trim();
 
@@ -194,8 +191,7 @@ function validateRegisterForm() {
     const pwRepeat = pwRepeatEl?.value;
     const address = addressEl?.value.trim();
 
-    // OLD: if (!name) errors.push("Name must not be empty.");
-    // NEW: Validate both fields
+
     if (!firstName) errors.push("First name is required.");
     if (!lastName) errors.push("Last name is required.");
 
@@ -222,7 +218,6 @@ function validateRegisterForm() {
 
     showError(null);
 
-    // IMPORTANT: Return 'firstName' and 'lastName' keys to match your Java DTO
     return {
         firstName: firstName,
         lastName: lastName,

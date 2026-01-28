@@ -110,12 +110,10 @@ function applyFilters() {
     const searchTerm = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
 
     filteredInvoices = allInvoices.filter((inv) => {
-        // Status filter
         if (statusFilter && inv.status !== statusFilter) {
             return false;
         }
 
-        // Search term
         if (searchTerm) {
             const searchable = [
                 inv.invoiceNumber || '',

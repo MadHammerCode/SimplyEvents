@@ -26,7 +26,6 @@ public class Money implements Serializable {
             throw new InvoiceValidationException("Amount cannot be negative: " + amount);
         }
 
-        // Enforce scale=2
         this.amount = amount.setScale(SCALE, java.math.RoundingMode.HALF_UP);
         this.currency = currency.toUpperCase();
     }

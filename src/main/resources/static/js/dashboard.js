@@ -54,7 +54,7 @@ async function toggleWishlistForCard(cardEl) {
         } else {
             wishlist.add(Number(eventId));
         }
-        applyFilters(); // Update UI immediately
+        applyFilters();
 
         // Send to backend
         const res = await fetch(`/api/wishlist/${eventId}?userId=${currentUser.id}`, {
@@ -177,7 +177,6 @@ function renderEvents(events) {
         const category = escapeHtml(ev.category || 'Other');
         const priceText = (ev.price != null) ? `${Number(ev.price).toFixed(2)} €` : 'Free';
 
-        // Wishlist Check
         const isWishlisted = wishlist.has(id);
 
         const imagePath = ev.imagePath ? `/${ev.imagePath}` : '/images/default-event.jpg';
@@ -268,7 +267,7 @@ function fetchEvents() {
         .then(data => {
             allEvents = data;
             renderCategories(allEvents);
-            loadWishlist(); // Load wishlist after events to update hearts
+            loadWishlist();
             applyFilters();
         })
         .catch(console.error);

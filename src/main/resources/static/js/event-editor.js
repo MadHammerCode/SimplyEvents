@@ -3,7 +3,6 @@ let uploadedImagePath = null;
 let saveMode = "planned";
 
 function getEventIdFromUrl() {
-    // Optional: falls per Model-Attribute übergeben → window.eventId = {id}
     const url = window.location.pathname;
     if (url.includes("/edit-event/")) {
         return url.split("/edit-event/")[1];
@@ -61,7 +60,6 @@ function toggleYearRound() {
         dateInput.removeAttribute("required");
         timeInput.removeAttribute("required");
 
-        // Clear values so we don't send hidden data (optional)
         dateInput.value = "";
         timeInput.value = "";
 
@@ -85,11 +83,9 @@ function toggleYearRound() {
 /* ---------- Load Event if Editing ---------- */
 
 function loadEvent(id) {
-    // UPDATED URL: Use the backoffice endpoint to bypass public filters
     fetch(`/api/events/backoffice/${id}`)
         .then((res) => {
             if (!res.ok) {
-                // Better error handling for non-JSON responses (like your 400 text error)
                 return res.text().then(text => {
                     throw new Error(text || "Event could not be loaded");
                 });
@@ -97,7 +93,6 @@ function loadEvent(id) {
             return res.json();
         })
         .then((ev) => {
-            // ... (rest of the function remains exactly the same) ...
             document.getElementById("title").value = ev.title || "";
             document.getElementById("category").value = ev.category || "";
             document.getElementById("price").value = ev.price ?? "";
@@ -105,7 +100,7 @@ function loadEvent(id) {
         })
         .catch((err) => {
             console.error(err);
-            showError([err.message]); // Show the actual server error message
+            showError([err.message]);
         });
 }
 
@@ -199,19 +194,19 @@ function saveEvent(mode) {
         body: formData
     })
         .then(async (res) => {
-            // 1. Check if request failed
+
             if (!res.ok) {
-                // 2. Try to parse as JSON first
+
                 const contentType = res.headers.get("content-type");
                 if (contentType && contentType.includes("application/json")) {
                     const data = await res.json();
-                    // If it's a list of errors (Spring Validation), join them
+
                     if (Array.isArray(data)) {
                         throw new Error(data.join("<br>"));
                     }
                     throw new Error(typeof data === "string" ? data : "Event could not be saved.");
                 } else {
-                    // 3. If not JSON, read as plain text (Fixes "Unexpected token P")
+
                     const text = await res.text();
                     throw new Error(text || "Event could not be saved (Unknown Error).");
                 }
@@ -224,7 +219,6 @@ function saveEvent(mode) {
         })
         .catch((err) => {
             console.error(err);
-            // Show the actual error message to the user
             showError(err.message);
         });
 }

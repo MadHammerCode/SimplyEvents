@@ -64,7 +64,6 @@ function setStep(step) {
         circle.classList.toggle("step-indicator__circle--active", s === step);
     });
 
-    // Save in dataset for navigation logic
     document.body.dataset.currentStep = String(step);
 }
 
@@ -166,7 +165,6 @@ function handleYearRoundLogic(event) {
         if (summaryDate) summaryDate.textContent = "Select a date";
 
     } else {
-        // Standard Event: Hide Picker
         if (dateField) dateField.classList.add("hidden");
     }
 }
@@ -185,7 +183,7 @@ function fillSummary(event) {
 
     if (dtEl) {
         if (event.yearRound) {
-            // For year-round, show the selected date (or placeholder)
+            // For year-round, shows the selected date
             const picked = document.getElementById("attendanceDate")?.value;
             dtEl.textContent = picked || "Select a date";
         } else {
@@ -247,7 +245,6 @@ function updateTotalPrice() {
     let count = Number(ticketInput.value);
     if (!count || count < 1) count = 1;
 
-    // optional: Limit to availableSlots
     if (currentEvent.availableSlots != null && count > currentEvent.availableSlots) {
         count = currentEvent.availableSlots;
         ticketInput.value = String(count);
@@ -519,7 +516,6 @@ function handleCallbackParams() {
             fillConfirmation(lastBookingResponse);
         })
         .catch(() => {
-            // ignore fetch failure, banner already present
         });
 }
 
@@ -621,7 +617,6 @@ function setupNavigation() {
                         showError(null);
                     })
                     .catch(() => {
-                        // error already shown
                     })
                     .finally(() => {
                         nextBtn.disabled = false;
@@ -652,7 +647,6 @@ function setupNavigation() {
 
     if (cancelBtn) {
         cancelBtn.addEventListener("click", () => {
-            // Abbrechen → zurück zur Event-Details oder Dashboard
             const params = getQueryParams();
             if (params.eventId) {
                 window.location.href = `/event-details/${encodeURIComponent(params.eventId)}`;
